@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="720.0" prefWidth="1280.0" style="-fx-background-color: #4870D7;" stylesheets="@../../../../css/styles.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ku.cs.controllers.login.LoginController">
+    <children>
+        <Button layoutX="590.0" layoutY="502.0" mnemonicParsing="false" onAction="#onLoginButtonClick" prefHeight="70.0" prefWidth="600.0" styleClass="login-button" text="Login" textFill="WHITE">
+            <font>
+                <Font size="48.0" />
+            </font>
+        </Button>
+        <Button layoutX="970.0" layoutY="626.0" mnemonicParsing="false" onAction="#onRegisterButtonClick" styleClass="register-button" text="Register">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Button>
+        <TextField fx:id="giveUsernameTextField" layoutX="590.0" layoutY="206.0" prefHeight="70.0" prefWidth="600.0" styleClass="text-field-naja">
+            <font>
+                <Font size="24.0" />
+            </font></TextField>
+        <TextField fx:id="givePasswordTextField" layoutX="590.0" layoutY="348.0" prefHeight="70.0" prefWidth="600.0">
+            <font>
+                <Font size="24.0" />
+            </font></TextField>
+        <Label fx:id="errorLabel" layoutX="595.0" layoutY="438.0" text="errorLabel" textFill="#faa0a0">
+            <font>
+                <Font size="36.0" />
+            </font>
+        </Label>
+        <AnchorPane prefHeight="720.0" prefWidth="500.0" style="-fx-background-color: BED0FF;">
+            <children>
+                <ImageView fx:id="loginLogoImageView" fitHeight="244.0" fitWidth="291.0" layoutX="112.0" layoutY="227.0" pickOnBounds="true" preserveRatio="true" />
+                <Label alignment="CENTER" layoutX="98.0" layoutY="121.0" text="Welcome!">
+                    <font>
+                        <Font size="72.0" />
+                    </font>
+                </Label>
+            </children>
+        </AnchorPane>
+        <Label alignment="CENTER" layoutX="564.0" layoutY="41.0" text="Login to your account" textFill="WHITE">
+            <font>
+                <Font size="72.0" />
+            </font>
+        </Label>
+        <Label alignment="CENTER" layoutX="712.0" layoutY="630.0" text="Dont have an account ?" textFill="WHITE">
+            <font>
+                <Font size="24.0" />
+            </font>
+        </Label>
+        <Label alignment="CENTER" layoutX="590.0" layoutY="311.0" text="Password:" textFill="WHITE">
+            <font>
+                <Font size="24.0" />
+            </font>
+        </Label>
+        <Label alignment="CENTER" layoutX="590.0" layoutY="167.0" text="Email:" textFill="WHITE">
+            <font>
+                <Font size="24.0" />
+            </font>
+        </Label>
+      <Label alignment="CENTER" layoutX="609.0" layoutY="223.0" text="Enter your email..." textFill="#bcbaba">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Label>
+      <Label alignment="CENTER" layoutX="609.0" layoutY="365.0" text="Enter your password..." textFill="#bcbaba">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Label>
+    </children>
+</AnchorPane>
