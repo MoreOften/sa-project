@@ -14,12 +14,18 @@ public class MainApplication extends Application {
         FXRouter.bind(this, stage, "SA Project", 1280, 720);
         configRoutes();
 
-        FXRouter.goTo("login");
+        FXRouter.goTo("instructor-main-page");
 
     }
 
     private void configRoutes() {
         String viewPath;
+
+        viewPath = "ku/cs/views/login/";
+
+
+        viewPath = "ku/cs/views/instructor/";
+        FXRouter.when("instructor-main-page", viewPath + "instructor-main-page.fxml");
     }
 
     public static void main(String[] args) {
