@@ -11,7 +11,7 @@ import java.io.IOException;
 public class MainApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXRouter.bind(this, stage, "CS211 Project", 1280, 720);
+        FXRouter.bind(this, stage, "SA Project", 1280, 720);
         configRoutes();
 
         FXRouter.goTo("login");
