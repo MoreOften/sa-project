@@ -10,6 +10,8 @@ public class User {
     private String password;
     private String name;
     private String role;
+    private String phone;
+    private String email;
     private String profilePicture;
     private LocalDateTime lastLogin;
     private boolean hasAccess;
@@ -31,11 +33,20 @@ public class User {
     }
 
 
-    public User(String username, String password, String role, String name) {
+//    public User(String username, String password, String role, String name) {
+//        this.username = username;
+//        setPassword(password);
+//        this.role = role;
+//        this.name = name;
+//        this.profilePicture = "default-user-photo.png";
+//        this.hasAccess = true;
+//    }
+
+    public User(String name, String email, String username, String password) {
         this.username = username;
         setPassword(password);
-        this.role = role;
         this.name = name;
+        this.email = email;
         this.profilePicture = "default-user-photo.png";
         this.hasAccess = true;
     }
@@ -128,6 +139,14 @@ public class User {
         this.hasAccess = hasAccess;
     }
 
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
 
     //----------Getter----------
 
@@ -163,4 +182,14 @@ public class User {
     public boolean getHasAccess() {
         return hasAccess;
     }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+
 }

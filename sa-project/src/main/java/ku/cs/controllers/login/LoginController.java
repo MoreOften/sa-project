@@ -1,64 +1,54 @@
 package ku.cs.controllers.login;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import ku.cs.models.department.DepartmentStaff;
-import ku.cs.models.department.DepartmentStaffList;
-import ku.cs.models.faculty.FacultyStaff;
-import ku.cs.models.faculty.FacultyStaffList;
-import ku.cs.models.professor.Professor;
-import ku.cs.models.professor.ProfessorList;
-import ku.cs.models.user.User;
-import ku.cs.models.user.UserList;
-import ku.cs.services.Datasource;
-import ku.cs.services.FXRouter;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import ku.cs.services.department.DepartmentStaffListFileDatasource;
-import ku.cs.services.faculty.FacultyStaffListFileDatasource;
-import ku.cs.services.professor.ProfessorListFileDatasource;
-import ku.cs.services.user.UserListFileDatasource;
+import ku.cs.models.user.User;
+// *** ลบ imports ที่เกี่ยวกับ FileDatasource ออก ***
 
+// *** สมมติว่าคุณมี Model เหล่านี้ (จากโค้ดเดิมของคุณ) ***
+import ku.cs.models.pilot.Pilot;
+import ku.cs.models.instructor.Instructor;
+import ku.cs.models.supervisor.Supervisor;
+
+// *** เพิ่ม imports สำหรับ Repository ที่จะสร้างขึ้นใหม่ ***
+// (เราจะสร้างคลาสเหล่านี้ในขั้นตอนถัดไป)
+import ku.cs.services.user.UserRepository;
+import ku.cs.services.pilot.PilotRepository;
+import ku.cs.services.instructor.InstructorRepository;
+import ku.cs.services.supervisor.SupervisorRepository;
+
+import ku.cs.services.FXRouter;
 import java.io.IOException;
-
 
 public class LoginController {
     @FXML private TextField giveUsernameTextField;
     @FXML private TextField givePasswordTextField;
     @FXML private Label errorLabel;
-
     @FXML private ImageView loginLogoImageView;
-    private UserList userList;
-    private Datasource<UserList> userListDatasource;
 
-    private PilotList pilotList;
-    private Datasource<PilotList> pilotListDatasource;
-
-    private InstructorList instructorList;
-    private Datasource<InstructorList> instructorListDatasource;
-
-    private SupervisorList supervisorList;
-    private Datasource<SupervisorList> supervisorListDatasource;
-
+    // --- เปลี่ยนจาก List และ Datasource มาเป็น Repository ---
+    // เราไม่จำเป็นต้องเก็บ List ไว้ใน Controller อีกต่อไป
+    // Repository จะทำหน้าที่ดึงข้อมูลจาก DB เมื่อต้องการ
+    private UserRepository userRepository;
+    private PilotRepository pilotRepository;
+    private InstructorRepository instructorRepository;
+    private SupervisorRepository supervisorRepository;
+    // --- สิ้นสุดการเปลี่ยนแปลง ---
 
     @FXML private void initialize() {
         errorLabel.setText("");
         Image image = new Image(getClass().getResource("/images/login-logo.png").toString());
-        kuLogoImageView.setImage(image);
+        loginLogoImageView.setImage(image);
 
-        userListDatasource = new UserListFileDatasource("data", "user-list.csv");
-        userList = userListDatasource.readData();
-
-        pilotListDatasource = new PilotListFileDatasource("data", "pilot-list.csv");
-        pilotList = pilotListDatasource.readData();
-
-        instructorListDatasource = new InstructorListFileDatasource("data", "instructor-list.csv");
-        instructorList = instructorListDatasource.readData();
-
-        supervisorListDatasource = new SupervisorListFileDatasource("data", "supervisor-list.csv");
-        supervisorList = supervisorListDatasource.readData();
-
+        // --- เปลี่ยนจากการอ่านไฟล์ มาเป็นการสร้าง instance ของ Repository ---
+        userRepository = new UserRepository();
+        pilotRepository = new PilotRepository();
+        instructorRepository = new InstructorRepository();
+        supervisorRepository = new SupervisorRepository();
+        // --- สิ้นสุดการเปลี่ยนแปลง ---
     }
 
     @FXML
@@ -67,7 +57,11 @@ public class LoginController {
             String usernameText = giveUsernameTextField.getText();
             String passwordText = givePasswordTextField.getText();
 
-            User user = userList.login(usernameText, passwordText);
+            // --- เปลี่ยนจากการ login ด้วย List มาเป็น Repository ---
+            // เมธอด .login() ใน Repository จะทำการ query ฐานข้อมูล
+            User user = userRepository.login(usernameText, passwordText);
+            // --- สิ้นสุดการเปลี่ยนแปลง ---
+
             if (user != null && user.getHasAccess()) {
                 handleLoginBasedOnRole(user);
             }
@@ -102,41 +96,68 @@ public class LoginController {
         }
     }
 
+    // --- เปิดการใช้งานและแก้ไขเมธอด handle...Login ---
 
     private void handlePilotLogin(User user) throws IOException {
-        Pilot pilot = pilotList.findPilotByUsername(user.getUsername());
-        if (pilot.getFirstTimeLogin()) {
-            pilotListDatasource.writeData(pilotList);
-            FXRouter.goTo("set-password", user);
-        } else {
-            FXRouter.goTo("home-pilot", user);
+        // ค้นหา Pilot จาก DB ผ่าน Repository
+        Pilot pilot = pilotRepository.findPilotByUsername(user.getUsername());
+
+        if (pilot == null) {
+            errorLabel.setText("Pilot profile not found for user: " + user.getUsername());
+            return;
         }
-        userListDatasource.writeData(userList);
+
+//        if (pilot.getFirstTimeLogin()) {
+//            // ไม่ต้องมีการ writeData() ที่นี่
+//            // หน้า "set-password" จะเป็นคนรับผิดชอบในการอัปเดต DB
+//            FXRouter.goTo("set-password", user);
+//        } else {
+//            FXRouter.goTo("home-pilot", user);
+//        }
+
+        // ลบ userListDatasource.writeData(userList) ออก
+        // (การอัปเดต 'last_login' ควรเกิดขึ้นภายใน userRepository.login())
     }
 
 
     private void handleInstructorLogin(User user) throws IOException {
-        Instructor instructor = instructorList.findInstructorByUsername(user.getUsername());
-        if (instructor.getFirstTimeLogin()) {
-            instructorListDatasource.writeData(instructorList);
-            FXRouter.goTo("set-password", user);
-        } else {
-            FXRouter.goTo("home-instructor", user);
+        // ค้นหา Instructor จาก DB ผ่าน Repository
+        Instructor instructor = instructorRepository.findInstructorByUsername(user.getUsername());
+
+        if (instructor == null) {
+            errorLabel.setText("Instructor profile not found for user: " + user.getUsername());
+            return;
         }
-        userListDatasource.writeData(userList);
+
+//        if (instructor.getFirstTimeLogin()) {
+//            // หน้า "set-password" จะเป็นคนรับผิดชอบในการอัปเดต DB
+//            FXRouter.goTo("set-password", user);
+//        } else {
+//            FXRouter.goTo("home-instructor", user);
+//        }
+        // ลบ ...Datasource.writeData(...) ออก
     }
 
 
     private void handleSupervisorLogin(User user) throws IOException {
-        Supervisor supervisor = supervisorList.findSupervisorByUsername(user.getUsername());
-        if (supervisor.getFirstTimeLogin()) {
-            supervisorListDatasource.writeData(supervisorList);
-            FXRouter.goTo("set-password", user);
-        } else {
-            FXRouter.goTo("home-supervisor", user);
+        // ค้นหา Supervisor จาก DB ผ่าน Repository
+        Supervisor supervisor = supervisorRepository.findSupervisorByUsername(user.getUsername());
+
+        if (supervisor == null) {
+            errorLabel.setText("Supervisor profile not found for user: " + user.getUsername());
+            return;
         }
-        userListDatasource.writeData(userList);
+
+//        if (supervisor.getFirstTimeLogin()) {
+//            // หน้า "set-password" จะเป็นคนรับผิดชอบในการอัปเดต DB
+//            FXRouter.goTo("set-password", user);
+//        } else {
+//            FXRouter.goTo("home-supervisor", user);
+//        }
+        // ลบ ...Datasource.writeData(...) ออก
     }
+
+    // --- สิ้นสุดการแก้ไข ---
 
 
     @FXML
@@ -147,5 +168,4 @@ public class LoginController {
             throw new RuntimeException(e);
         }
     }
-
 }

@@ -15,7 +15,7 @@ public class InstructorSchedulePageController {
     @FXML ImageView logoImageView;
 
     public void initialize() {
-        Instructor instructor = new Instructor("A", "a@gmail.com", "12345678", "I0001", "0123456789");
+        Instructor instructor = new Instructor("A", "a@gmail.com", "12345678", "I0001", "0123456789", "08888888");
     }
 
     public void onHomepageButtonClick() {

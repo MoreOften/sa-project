@@ -3,20 +3,17 @@ package ku.cs.controllers.login;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import ku.cs.models.department.DepartmentStaff;
-import ku.cs.models.department.DepartmentStaffList;
-import ku.cs.models.faculty.FacultyStaff;
-import ku.cs.models.faculty.FacultyStaffList;
-import ku.cs.models.professor.Professor;
-import ku.cs.models.professor.ProfessorList;
 import ku.cs.models.user.User;
-import ku.cs.models.user.UserList;
-import ku.cs.services.Datasource;
 import ku.cs.services.FXRouter;
-import ku.cs.services.department.DepartmentStaffListFileDatasource;
-import ku.cs.services.faculty.FacultyStaffListFileDatasource;
-import ku.cs.services.professor.ProfessorListFileDatasource;
-import ku.cs.services.user.UserListFileDatasource;
+
+// --- ลบ import ของ Datasource และ List ทั้งหมด ---
+// ...
+
+// --- เพิ่ม import ของ Repositories ---
+import ku.cs.services.user.UserRepository;
+import ku.cs.services.pilot.PilotRepository;
+import ku.cs.services.instructor.InstructorRepository;
+import ku.cs.services.supervisor.SupervisorRepository;
 
 import java.io.IOException;
 
@@ -25,89 +22,84 @@ public class SetPasswordController {
     @FXML private TextField giveConfirmPasswordTextField;
     @FXML private Label errorLabel;
 
-    User user = (User) FXRouter.getData();
-    String role = user.getRole();
-    private User realUser;
+    // ข้อมูล User ที่ส่งมาจากหน้า Login
+    private User user;
+    private String role;
 
-    private UserList userlist;
-    private Datasource<UserList> userlistDatasource;
-
-    private PilotList pilotList;
-    private Datasource<PilotList> pilotListDatasource;
-    private Pilot pilot;
-
-    private InstructorList instructorList;
-    private Datasource<InstructorList> instructorListDatasource;
-    private Instructor instructor;
-
-    private SupervisorList supervisorList;
-    private Datasource<SupervisorList> supervisorListDatasource;
-    private Supervisor supervisor;
+    // --- เปลี่ยนจาก List/Datasource เป็น Repositories ---
+    private UserRepository userRepository;
+    private PilotRepository pilotRepository;
+    private InstructorRepository instructorRepository;
+    private SupervisorRepository supervisorRepository;
+    // --- สิ้นสุดการเปลี่ยนแปลง ---
 
 
     @FXML
     public void initialize() {
         errorLabel.setText("");
-        userlistDatasource = new UserListFileDatasource("data", "user-list.csv");
-        userlist = userlistDatasource.readData();
-        realUser = userlist.findUserByUsername(user.getUsername());
 
-        if (role.equals("pilot")) {
-            pilotListDatasource = new ProfessorListFileDatasource("data", "pilot-list.csv");
-            pilotList = pilotListDatasource.readData();
-            pilot = pilotList.findPilotByUsername(realUser.getUsername());
+        // ดึงข้อมูล user ที่ส่งมาจาก FXRouter
+        user = (User) FXRouter.getData();
+        if (user == null) {
+            errorLabel.setText("Error: Cannot get user data.");
+            return;
         }
-        else if (role.equals("instructor")) {
-            instructorListDatasource = new InstructorListFileDatasource("data", "Instructor-list.csv");
-            instructorList = instructorListDatasource.readData();
-            instructor = instructorList.findInstructorByUsername(realUser.getUsername());
-        }
-        else if (role.equals("supervisor")) {
-            supervisorListDatasource = new SupervisorListFileDatasource("data", "supervisor-list.csv");
-            supervisorList = supervisorListDatasource.readData();
-            supervisor = supervisorList.findSupervisorByUsername(realUser.getUsername());
-        }
+        role = user.getRole();
 
+        // --- สร้าง instance ของ Repositories ---
+        userRepository = new UserRepository();
+        pilotRepository = new PilotRepository();
+        instructorRepository = new InstructorRepository();
+        supervisorRepository = new SupervisorRepository();
+        // --- สิ้นสุดการเปลี่ยนแปลง ---
     }
 
 
     @FXML
     public void onConfirmButtonClick() {
-        try {
+        String passwordText = givePasswordTextField.getText();
+        String confirmPasswordText = giveConfirmPasswordTextField.getText();
 
-            String passwordText = givePasswordTextField.getText();
-            String confirmPasswordText = giveConfirmPasswordTextField.getText();
-            if (passwordText.equals(confirmPasswordText)) {
-                realUser.setPassword(passwordText);
-                userlistDatasource.writeData(userlist);
+        if (passwordText.isEmpty() || confirmPasswordText.isEmpty()) {
+            errorLabel.setText("Please fill in both fields.");
+            return;
+        }
 
-                if (role.equals("pilot")) {
-                    pilq.setPassword(passwordText);
-                    pilot.setFirstTimeLogin(false);
-                    pilotListDatasource.writeData(pilotList);
+        if (passwordText.equals(confirmPasswordText)) {
+            try {
+                // 1. อัปเดตรหัสผ่านในตาราง users หลัก
+                userRepository.updatePassword(user.getUsername(), passwordText);
 
-                    FXRouter.goTo("home-pilot", realUser);
+                // 2. อัปเดตรหัสผ่าน (ถ้ามี) และสถานะ firstTimeLogin ในตารางของแต่ละ Role
+                switch (role) {
+                    case "pilot":
+                        // แก้ไข typo (pilq) และเปลี่ยนไปใช้ Repository
+                        pilotRepository.updatePasswordAndStatus(user.getUsername(), passwordText);
+                        FXRouter.goTo("home-pilot", user);
+                        break;
+                    case "instructor":
+                        instructorRepository.updatePasswordAndStatus(user.getUsername(), passwordText);
+                        FXRouter.goTo("home-instructor", user);
+                        break;
+                    case "supervisor":
+                        supervisorRepository.updatePasswordAndStatus(user.getUsername(), passwordText);
+                        FXRouter.goTo("home-supervisor", user);
+                        break;
+                    default:
+                        errorLabel.setText("Unknown user role: " + role);
+                        break;
                 }
-                else if (role.equals("instructor")) {
-                    instructor.setPassword(passwordText);
-                    instructor.setFirstTimeLogin(false);
-                    instructorListDatasource.writeData(instructorList);
-                    FXRouter.goTo("home-instructor", realUser);
-                }
-                else if (role.equals("supervisor")) {
-                    supervisor.setPassword(passwordText);
-                    supervisor.setFirstTimeLogin(false);
-                    supervisorListDatasource.writeData(supervisorList);
-                    FXRouter.goTo("home-supervisor", realUser);
-                }
 
+            } catch (IOException e) {
+                // Catch นี้สำหรับ FXRouter.goTo()
+                throw new RuntimeException(e);
+            } catch (Exception e) {
+                // Catch นี้สำหรับข้อผิดพลาดจาก Database ที่ Repository อาจโยนมา
+                errorLabel.setText("Database update failed: " + e.getMessage());
+                e.printStackTrace();
             }
-
-            else {
-                errorLabel.setText("Passwords do not match");
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } else {
+            errorLabel.setText("Passwords do not match");
         }
     }
 
@@ -120,5 +112,4 @@ public class SetPasswordController {
             throw new RuntimeException(e);
         }
     }
-
 }
