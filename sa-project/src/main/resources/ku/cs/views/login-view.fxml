@@ -57,12 +57,12 @@
                 <Font size="24.0" />
             </font>
         </Label>
-        <Label alignment="CENTER" layoutX="590.0" layoutY="167.0" text="Email:" textFill="WHITE">
+        <Label alignment="CENTER" layoutX="590.0" layoutY="167.0" text="Username:" textFill="WHITE">
             <font>
                 <Font size="24.0" />
             </font>
         </Label>
-      <Label alignment="CENTER" layoutX="609.0" layoutY="223.0" text="Enter your email..." textFill="#bcbaba">
+      <Label alignment="CENTER" layoutX="609.0" layoutY="223.0" text="Enter your username..." textFill="#bcbaba">
          <font>
             <Font size="24.0" />
          </font>

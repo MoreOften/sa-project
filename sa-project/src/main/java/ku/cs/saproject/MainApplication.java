@@ -14,7 +14,7 @@ public class MainApplication extends Application {
         FXRouter.bind(this, stage, "SA Project", 1280, 720);
         configRoutes();
 
-        FXRouter.goTo("instructor-main-page");
+        FXRouter.goTo("login");
 
     }
 
@@ -22,6 +22,9 @@ public class MainApplication extends Application {
         String viewPath;
 
         viewPath = "ku/cs/views/login/";
+        FXRouter.when("login", viewPath + "login-view.fxml");
+        FXRouter.when("register", viewPath + "register-view.fxml");
+        FXRouter.when("set-password", viewPath + "set-password.fxml");
 
 
         viewPath = "ku/cs/views/instructor/";
