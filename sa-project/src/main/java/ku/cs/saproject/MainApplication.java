@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import ku.cs.database.DbConnect;
 import ku.cs.services.FXRouter;
 
 import java.io.IOException;
@@ -11,11 +12,25 @@ import java.io.IOException;
 public class MainApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        FXRouter.bind(this, stage, "SA Project", 1280, 720);
-        configRoutes();
+        try {
+            // 1. (ต้องมาก่อน) สร้างตารางทั้งหมด
+            // เมธอดนี้จะสร้างตาราง users, instructors, ฯลฯ
+            DbConnect.initializeDatabase();
 
-        FXRouter.goTo("login");
+            // 2. (ต้องมาทีหลัง) สร้างข้อมูลเริ่มต้น
+            // เมธอดนี้จะเรียก userRepository.findUserByUsername ซึ่งตอนนี้ตาราง users ถูกสร้างแล้ว
+            DbConnect.seedInitialData();
 
+            // 3. (มาทีหลังสุด) ตั้งค่า UI และเปิดหน้าแรก
+            FXRouter.bind(this, stage, "SA Project", 1280, 720);
+            configRoutes();
+
+            FXRouter.goTo("login");
+
+        } catch (Exception e) {
+            System.err.println("เกิดข้อผิดพลาดในการเริ่มแอป: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void configRoutes() {
@@ -31,6 +46,7 @@ public class MainApplication extends Application {
         FXRouter.when("instructor-main-page", viewPath + "instructor-main-page.fxml");
         FXRouter.when("instructor-schedule-page", viewPath + "instructor-schedule-page.fxml");
         FXRouter.when("instructor-report-page", viewPath + "instructor-report-page.fxml");
+        FXRouter.when("report-create",  viewPath + "report-create-form.fxml");
     }
 
     public static void main(String[] args) {

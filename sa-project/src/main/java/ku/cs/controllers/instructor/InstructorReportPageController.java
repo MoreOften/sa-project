@@ -9,13 +9,13 @@ import ku.cs.services.FXRouter;
 
 import java.io.IOException;
 
-public class InstructorSchedulePageController {
+public class InstructorReportPageController {
     @FXML
-    TableView<Schedule> scheduleTableView;
-    @FXML ImageView logoImageView;
+    TableView<Schedule> reportTableView;
+    @FXML
+    ImageView logoImageView;
 
     public void initialize() {
-
     }
 
     public void onHomepageButtonClick() {
@@ -37,6 +37,14 @@ public class InstructorSchedulePageController {
     public void onReportButtonClick() {
         try {
             FXRouter.goTo("instructor-report-page");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void onCreateButtonClick() {
+        try {
+            FXRouter.goTo("report-create");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

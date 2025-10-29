@@ -2,43 +2,17 @@ package ku.cs.models.instructor;
 
 import ku.cs.models.user.User;
 
-public class Instructor extends User {
-    private String name;
-    private String username;
-    private String email;
-    private String password;
-    private String instructorID;
-    private String phone;
+import java.time.LocalDateTime;
 
-    public Instructor(String name, String email, String username, String password, String instructorID, String phone) {
-        super(name, email, username, password);
-        this.instructorID = instructorID;
-        this.phone = phone;
-    }
+public class Instructor extends User {
+    private String instructorID;
 
     public Instructor() {
-        this.name = "";
-        this.email = "";
-        this.username = "";
-        this.password = "";
-        this.instructorID = "";
-        this.phone = "";
+        super(); // เรียก Constructor ของ User
     }
 
-    public String getName() { return name; }
-    public String getEmail() { return email; }
-    public String getPassword() { return password; }
+
     public String getInstructorID() { return instructorID; }
-    public String getPhone() { return phone; }
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.name = username; }
-
-    public void setName(String name) { this.name = name; }
-    public void setEmail(String email) { this.email = email; }
-    public void setPassword(String password) { this.password = password; }
     public void setInstructorID(String instructorID) { this.instructorID = instructorID; }
-    public void setPhone(String phone) { this.phone = phone; }
-
-
 }

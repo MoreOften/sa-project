@@ -83,7 +83,9 @@ public class User {
 
 
     public User() {
-
+        // ตั้งค่าเริ่มต้นสำหรับ object ที่สร้างแบบว่างๆ
+        this.profilePicture = "default-user-photo.png";
+        this.hasAccess = true;
     }
 
 
@@ -123,6 +125,10 @@ public class User {
         this.password = BCrypt.withDefaults().hashToString(12, password.toCharArray());
     }
 
+    public void setHashedPassword(String hashedPassword) {
+        this.password = hashedPassword;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -131,9 +137,11 @@ public class User {
         this.profilePicture = profilePicture;
     }
 
-    public void setLastLogin() {
+    public void setLastLogin(LocalDateTime parse) {
         this.lastLogin = LocalDateTime.now();
     }
+
+    public void setLastLogin() { this.lastLogin = LocalDateTime.now(); }
 
     public void setHasAccess(boolean hasAccess) {
         this.hasAccess = hasAccess;
@@ -147,6 +155,9 @@ public class User {
         this.email = email;
     }
 
+    public void setRole(String role) {
+        this.role = role;
+    }
 
     //----------Getter----------
 
@@ -190,6 +201,5 @@ public class User {
     public String getPhone() {
         return phone;
     }
-
 
 }

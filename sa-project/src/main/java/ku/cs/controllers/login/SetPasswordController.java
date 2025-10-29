@@ -67,22 +67,32 @@ public class SetPasswordController {
 
         if (passwordText.equals(confirmPasswordText)) {
             try {
-                // 1. อัปเดตรหัสผ่านในตาราง users หลัก
-                userRepository.updatePassword(user.getUsername(), passwordText);
+                // 1. (แก้ไข) อัปเดต Model ก่อน
+                // user ที่เราได้มาจาก FXRouter จะถูกอัปเดต
+                // และเมธอด .setPassword() จะทำการ HASH ให้เองอัตโนมัติ!
+                user.setPassword(passwordText);
 
-                // 2. อัปเดตรหัสผ่าน (ถ้ามี) และสถานะ firstTimeLogin ในตารางของแต่ละ Role
+                // 2. (แก้ไข) ให้ Repository บันทึก Model ที่อัปเดตแล้ว
+                // คุณต้องสร้างเมธอด updateUser(User user) ใน UserRepository
+                // ซึ่งจะเซฟ Hashed Password (จาก user.getPassword()) ลง DB
+                userRepository.updateUser(user);
+
+                // (ลบ) userRepository.updatePassword(user.getUsername(), passwordText); // <--- (วิธีเก่า ไม่ปลอดภัย)
+
+                // 3. (แก้ไข) อัปเดต "สถานะ" ในตาราง Role (ไม่ส่งรหัสผ่านไปแล้ว)
+                // เราแค่ต้องการบอกว่า "คนนี้ตั้งรหัสผ่านครั้งแรกแล้ว"
                 switch (role) {
                     case "pilot":
-                        // แก้ไข typo (pilq) และเปลี่ยนไปใช้ Repository
-                        pilotRepository.updatePasswordAndStatus(user.getUsername(), passwordText);
-                        FXRouter.goTo("home-pilot", user);
+                        // คุณต้องสร้างเมธอดนี้ใน PilotRepository
+                        pilotRepository.updateStatusAfterFirstLogin(user.getUsername());
+                        FXRouter.goTo("home-pilot", user); // หรือส่ง "pilot" profile ไปแทน
                         break;
                     case "instructor":
-                        instructorRepository.updatePasswordAndStatus(user.getUsername(), passwordText);
+                        instructorRepository.updateStatusAfterFirstLogin(user.getUsername());
                         FXRouter.goTo("home-instructor", user);
                         break;
                     case "supervisor":
-                        supervisorRepository.updatePasswordAndStatus(user.getUsername(), passwordText);
+                        supervisorRepository.updateStatusAfterFirstLogin(user.getUsername());
                         FXRouter.goTo("home-supervisor", user);
                         break;
                     default:
@@ -91,10 +101,8 @@ public class SetPasswordController {
                 }
 
             } catch (IOException e) {
-                // Catch นี้สำหรับ FXRouter.goTo()
                 throw new RuntimeException(e);
             } catch (Exception e) {
-                // Catch นี้สำหรับข้อผิดพลาดจาก Database ที่ Repository อาจโยนมา
                 errorLabel.setText("Database update failed: " + e.getMessage());
                 e.printStackTrace();
             }

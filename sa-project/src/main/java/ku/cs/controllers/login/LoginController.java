@@ -15,6 +15,7 @@ import ku.cs.models.supervisor.Supervisor;
 
 // *** เพิ่ม imports สำหรับ Repository ที่จะสร้างขึ้นใหม่ ***
 // (เราจะสร้างคลาสเหล่านี้ในขั้นตอนถัดไป)
+import ku.cs.services.UserSession;
 import ku.cs.services.user.UserRepository;
 import ku.cs.services.pilot.PilotRepository;
 import ku.cs.services.instructor.InstructorRepository;
@@ -22,6 +23,7 @@ import ku.cs.services.supervisor.SupervisorRepository;
 
 import ku.cs.services.FXRouter;
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 public class LoginController {
     @FXML private TextField giveUsernameTextField;
@@ -53,27 +55,32 @@ public class LoginController {
 
     @FXML
     public void onLoginButtonClick() {
-        try {
-            String usernameText = giveUsernameTextField.getText();
-            String passwordText = givePasswordTextField.getText();
+        String username = giveUsernameTextField.getText();
+        String plainPassword = givePasswordTextField.getText();
 
-            // --- เปลี่ยนจากการ login ด้วย List มาเป็น Repository ---
-            // เมธอด .login() ใน Repository จะทำการ query ฐานข้อมูล
-            User user = userRepository.login(usernameText, passwordText);
-            // --- สิ้นสุดการเปลี่ยนแปลง ---
+        // 1. ค้นหา User จาก Repo
+        User user = userRepository.findUserByUsername(username);
 
-            if (user != null && user.getHasAccess()) {
-                handleLoginBasedOnRole(user);
-            }
-            else if (user != null && user.getHasAccess() == false) {
-                errorLabel.setText("You are banned.");
-            }
-            else {
-                errorLabel.setText("Wrong username or password");
-            }
+        if (user != null) {
+            // 2. (ตรรกะใหม่) ให้ Model ตรวจสอบรหัสผ่านเอง
+            if (user.validatePassword(plainPassword)) {
+                // Login สำเร็จ!
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+                // 4. เก็บ Session
+                UserSession.getInstance().setCurrentUser(user);
+
+                try {
+                    handleLoginBasedOnRole(user);
+                } catch (IOException e) {
+                    System.err.println("ไม่สามารถโหลดหน้าหลักตาม Role: " + e.getMessage());
+                    e.printStackTrace();
+                    errorLabel.setText("ไม่สามารถโหลดหน้าถัดไปได้");
+                }
+            } else {
+                // Password ผิด
+            }
+        } else {
+            // Username ผิด
         }
     }
 
@@ -107,16 +114,9 @@ public class LoginController {
             return;
         }
 
-//        if (pilot.getFirstTimeLogin()) {
-//            // ไม่ต้องมีการ writeData() ที่นี่
-//            // หน้า "set-password" จะเป็นคนรับผิดชอบในการอัปเดต DB
-//            FXRouter.goTo("set-password", user);
-//        } else {
-//            FXRouter.goTo("home-pilot", user);
-//        }
-
-        // ลบ userListDatasource.writeData(userList) ออก
-        // (การอัปเดต 'last_login' ควรเกิดขึ้นภายใน userRepository.login())
+        // สำคัญ: เมื่อเจอแล้ว ให้ไปยังหน้า Pilot
+        // และ "ส่ง" object pilot ที่เพิ่งเจอ ไปให้หน้าถัดไป
+        FXRouter.goTo("pilot-home-page");
     }
 
 
@@ -129,13 +129,9 @@ public class LoginController {
             return;
         }
 
-//        if (instructor.getFirstTimeLogin()) {
-//            // หน้า "set-password" จะเป็นคนรับผิดชอบในการอัปเดต DB
-//            FXRouter.goTo("set-password", user);
-//        } else {
-//            FXRouter.goTo("home-instructor", user);
-//        }
-        // ลบ ...Datasource.writeData(...) ออก
+        // สำคัญ: เมื่อเจอแล้ว ให้ไปยังหน้า Instructor
+        // และ "ส่ง" object instructor ที่เพิ่งเจอ ไปให้หน้าถัดไป
+        FXRouter.goTo("instructor-home-page");
     }
 
 
@@ -148,13 +144,9 @@ public class LoginController {
             return;
         }
 
-//        if (supervisor.getFirstTimeLogin()) {
-//            // หน้า "set-password" จะเป็นคนรับผิดชอบในการอัปเดต DB
-//            FXRouter.goTo("set-password", user);
-//        } else {
-//            FXRouter.goTo("home-supervisor", user);
-//        }
-        // ลบ ...Datasource.writeData(...) ออก
+        // สำคัญ: เมื่อเจอแล้ว ให้ไปยังหน้า Supervisor
+        // และ "ส่ง" object supervisor ที่เพิ่งเจอ ไปให้หน้าถัดไป
+        FXRouter.goTo("supervisor-home-page");
     }
 
     // --- สิ้นสุดการแก้ไข ---

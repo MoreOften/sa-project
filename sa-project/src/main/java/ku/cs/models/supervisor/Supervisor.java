@@ -41,4 +41,6 @@ public class Supervisor extends User {
     public void setPhone(String phone) { this.phone = phone; }
 
 
+    public void setEmployeeId(String s001) {
+    }
 }

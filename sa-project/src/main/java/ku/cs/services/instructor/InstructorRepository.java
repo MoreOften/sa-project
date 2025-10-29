@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp; // อย่าลืม import Timestamp
+import java.time.LocalDateTime;
+
 import ku.cs.database.DbConnect;
 import ku.cs.models.instructor.Instructor;
 
@@ -12,59 +14,85 @@ public class InstructorRepository {
 
     public Instructor findInstructorByUsername(String username) {
         Instructor instructor = null;
-        Connection conn = DbConnect.getConnection();
 
-        // 1. แก้ไข SQL Query ให้ JOIN สองตาราง
-        // (u = users, i = instructors)
-        // ผมสมมติว่า name, email, phone อยู่ในตาราง users
-        // และ instructorID อยู่ในตาราง instructors
         String sql = "SELECT * " +
                 "FROM users u " +
                 "JOIN instructors i ON u.username = i.username " +
                 "WHERE u.username = ?";
 
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        // 1. (แก้ไข) ใช้ try-with-resources กับ Connection และ PreparedStatement
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
+                // 2. (แก้ไข) สร้างอ็อบเจกต์ว่าง
+                instructor = new Instructor();
 
-                // 2. สร้างอ็อบเจกต์ Instructor โดยเรียก Constructor ให้ถูกต้อง
-                // (เรียงลำดับพารามิเตอร์ให้ตรงกับที่คุณให้มา)
-                instructor = new Instructor(
-                        rs.getString("name"),         // 1. name (จากตาราง users)
-                        rs.getString("email"),        // 2. email (จากตาราง users)
-                        rs.getString("username"),     // 3. username (จากตาราง users/instructors)
-                        rs.getString("password"),     // 4. password (จากตาราง users)
-                        rs.getString("instructorID"), // 5. instructorID (จากตาราง instructors)
-                        rs.getString("phone")         // 6. phone (จากตาราง users)
-                );
+                // 3. (แก้ไข) เติมข้อมูล "User" (Parent) โดยใช้ Setters
+                instructor.setUsername(rs.getString("username"));
+                instructor.setName(rs.getString("name"));
+                instructor.setEmail(rs.getString("email"));
+                instructor.setPhone(rs.getString("phone"));
+                instructor.setRole(rs.getString("role"));
+                instructor.setProfilePicture(rs.getString("profilePicture"));
+                instructor.setHasAccess(rs.getInt("hasAccess") == 1);
 
-                // 3. ตั้งค่าอื่นๆ ที่เหลือ (ที่ไม่ได้อยู่ใน Constructor)
-                // *** คลาส Instructor ของคุณต้องมี Setter Methods เหล่านี้ด้วยนะครับ ***
-                // (เช่น setRole, setHasAccess, setFirstTimeLogin)
+                // แปลง String (จาก DB) กลับเป็น LocalDateTime
+                String dbLastLogin = rs.getString("lastLogin");
+                if (dbLastLogin != null) {
+                    instructor.setLastLogin(LocalDateTime.parse(dbLastLogin));
+                }
 
-                // ดึงจากตาราง users
-//                instructor.setRole(rs.getString("role"));
-//                instructor.setHasAccess(rs.getBoolean("hasAccess"));
-//                instructor.setLastLogin(new Timestamp(rs.getLong("lastLogin")));
-//                // instructor.setImagePath(rs.getString("imagePath")); // ถ้ามี
-//
-//                // ดึงจากตาราง instructors
-//                instructor.setFirstTimeLogin(rs.getBoolean("firstTimeLogin"));
+                // 4. (สำคัญ!) ใช้เมธอดใหม่เพื่อตั้งค่า Hashed Password
+                instructor.setHashedPassword(rs.getString("password"));
+
+                // 5. (แก้ไข) เติมข้อมูล "Instructor" (Child)
+                // (คุณต้องสร้าง Setter นี้ในคลาส Instructor)
+                instructor.setInstructorID(rs.getString("instructor_id"));
+                // (สมมติว่าคอลัมน์ชื่อ first_time_login)
+                // instructor.setFirstTimeLogin(rs.getInt("first_time_login") == 1);
             }
 
         } catch (SQLException e) {
             System.err.println("InstructorRepository (findInstructorByUsername) Error: " + e.getMessage());
-            e.printStackTrace(); // พิมพ์ stack trace เพื่อดูข้อผิดพลาด
-        } finally {
-            try {
-                if (conn != null) conn.close();
-            } catch (SQLException ex) {
-                System.err.println(ex.getMessage());
-            }
+            e.printStackTrace();
         }
+        // 6. (แก้ไข) ไม่ต้องใช้ finally { conn.close(); } แล้ว
+
         return instructor;
+    }
+
+    public void addInstructor(Instructor instructor) {
+        // SQL นี้ตรงกับ schema ใหม่ (ไม่มี name)
+        String sql = "INSERT INTO instructors (username, instructor_id, first_time_login) VALUES (?, ?, ?)";
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, instructor.getUsername());
+            pstmt.setString(2, instructor.getInstructorID());
+            pstmt.setInt(3, 1); // Default first_time_login = true
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("addInstructor failed: " + e.getMessage(), e);
+        }
+    }
+
+    public void updateStatusAfterFirstLogin(String username) {
+        // สมมติว่าตาราง instructors มีคอลัมน์ first_time_login (INTEGER 1=true, 0=false)
+        String sql = "UPDATE instructors SET first_time_login = 0 WHERE username = ?";
+
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, username);
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.err.println("InstructorRepository (updateStatus) Error: " + e.getMessage());
+            throw new RuntimeException("Database update instructor status failed: " + e.getMessage(), e);
+        }
     }
 
     // ... (เมธอด updatePasswordAndStatus อยู่ที่นี่) ...

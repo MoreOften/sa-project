@@ -39,5 +39,4 @@ public class Pilot extends User {
     public void setPilotID(String pilotID) { this.pilotID = pilotID; }
     public void setPhone(String phone) { this.phone = phone; }
 
-
 }

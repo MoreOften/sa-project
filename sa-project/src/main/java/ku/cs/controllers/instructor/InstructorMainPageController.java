@@ -19,10 +19,9 @@ public class InstructorMainPageController {
 
     public void initialize() {
         clearLabel();
-        Instructor instructor = new Instructor("A", "a@gmail.com", "12345678", "I0001", "0123456789");
-        nameLabel.setText(instructor.getName());
-        emailLabel.setText(instructor.getEmail());
-        idLabel.setText(instructor.getInstructorID());
+        nameLabel.setText("A");
+        emailLabel.setText("a@email.com");
+        idLabel.setText("0123456");
         roleLabel.setText("Instructor");
     }
 

@@ -59,25 +59,31 @@ public class PilotRepository {
     /**
      * อัปเดตสถานะ firstTimeLogin และรหัสผ่าน (ถ้ามี) ในตาราง 'pilots'
      */
-    public void updatePasswordAndStatus(String username, String newPassword) {
-        Connection conn = DbConnect.getConnection();
-        // ถ้าตาราง pilots ไม่เก็บ password ให้ลบ 'password = ?,' ออก
-        String sql = "UPDATE pilots SET password = ?, firstTimeLogin = ? WHERE username = ?";
+    public void updateStatusAfterFirstLogin(String username) {
+        // สมมติว่าตาราง pilot มีคอลัมน์ first_time_login (INTEGER 1=true, 0=false)
+        String sql = "UPDATE pilot_profiles SET first_time_login = 0 WHERE username = ?";
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, newPassword);
-            pstmt.setBoolean(2, false);
-            pstmt.setString(3, username);
+            pstmt.setString(1, username);
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Update pilot status failed: " + e.getMessage(), e);
+        }
+    }
+
+    public void addPilot(Pilot pilot) {
+        // SQL นี้ตรงกับ schema ใหม่ (ไม่มี name)
+        String sql = "INSERT INTO pilots (username, license_number, first_time_login) VALUES (?, ?, ?)";
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, pilot.getUsername());
+            pstmt.setString(2, pilot.getLicenseNumber()); // (ต้องมี Getter นี้ใน Model)
+            pstmt.setInt(3, 1);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("PilotRepository (updatePasswordAndStatus) Error: " + e.getMessage());
-            throw new RuntimeException("Database error: " + e.getMessage(), e);
-        } finally {
-            try {
-                if (conn != null) conn.close();
-            } catch (SQLException ex) {
-                System.err.println(ex.getMessage());
-            }
+            throw new RuntimeException("addPilot failed: " + e.getMessage(), e);
         }
     }
 }
