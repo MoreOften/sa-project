@@ -29,6 +29,8 @@ public class MainApplication extends Application {
 
         viewPath = "ku/cs/views/instructor/";
         FXRouter.when("instructor-main-page", viewPath + "instructor-main-page.fxml");
+        FXRouter.when("instructor-schedule-page", viewPath + "instructor-schedule-page.fxml");
+        FXRouter.when("instructor-report-page", viewPath + "instructor-report-page.fxml");
     }
 
     public static void main(String[] args) {
