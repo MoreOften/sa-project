@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime; // อย่าลืม import Timestamp
 
-import ku.cs.database.DbConnect;
+import ku.cs.database.DbConnect1;
 import ku.cs.models.instructor.Instructor;
 
 public class InstructorRepository {
@@ -20,7 +20,7 @@ public class InstructorRepository {
                 "WHERE u.username = ?";
 
         // 1. (แก้ไข) ใช้ try-with-resources กับ Connection และ PreparedStatement
-        try (Connection conn = DbConnect.getConnection();
+        try (Connection conn = DbConnect1.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, username);
@@ -66,7 +66,7 @@ public class InstructorRepository {
 
     public void addInstructor(Instructor instructor) {
     String sql = "INSERT INTO instructors (username, instructor_id) VALUES (?, ?)";
-    try (Connection conn = DbConnect.getConnection();
+    try (Connection conn = DbConnect1.getConnection();
          PreparedStatement pstmt = conn.prepareStatement(sql)) {
         
         pstmt.setString(1, instructor.getUsername());
@@ -82,7 +82,7 @@ public class InstructorRepository {
         // สมมติว่าตาราง instructors มีคอลัมน์ first_time_login (INTEGER 1=true, 0=false)
         String sql = "UPDATE instructors SET first_time_login = 0 WHERE username = ?";
 
-        try (Connection conn = DbConnect.getConnection();
+        try (Connection conn = DbConnect1.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, username);

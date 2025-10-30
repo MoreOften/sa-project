@@ -3,22 +3,23 @@ package ku.cs.controllers.pilot;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
-// --- เพิ่ม import ที่จำเป็น ---
 import ku.cs.models.pilot.Pilot;
 import ku.cs.models.user.User;
 import ku.cs.services.FXRouter;
-import ku.cs.services.pilot.PilotRepository; // ต้องใช้ Repository เพื่อดึงข้อมูล
+import ku.cs.services.pilot.PilotRepository;
 
 import java.io.IOException;
 
-public class PilotMainPageController {
-    @FXML Label nameLabel;
+public class PilotResignPageController {
+    @FXML
+    Label nameLabel;
     @FXML Label emailLabel;
     @FXML Label idLabel;
     @FXML Label roleLabel;
 
     // (ImageViews นี่ยังไม่ได้ใช้งาน แต่เก็บไว้ได้ครับ)
-    @FXML ImageView instructorImageView;
+    @FXML
+    ImageView instructorImageView;
     @FXML ImageView logoImageView;
 
     // --- เพิ่มตัวแปรสำหรับเก็บข้อมูล Pilot ---

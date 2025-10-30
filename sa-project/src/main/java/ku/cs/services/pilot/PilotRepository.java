@@ -5,7 +5,7 @@ import java.sql.PreparedStatement; // ตรวจสอบว่า import mode
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import ku.cs.database.DbConnect;
+import ku.cs.database.DbConnect1;
 import ku.cs.models.pilot.Pilot;
 
 public class PilotRepository {
@@ -16,7 +16,7 @@ public class PilotRepository {
      */
     public Pilot findPilotByUsername(String username) {
         Pilot pilot = null;
-        Connection conn = DbConnect.getConnection();
+        Connection conn = DbConnect1.getConnection();
 
         // 1. SQL JOIN ระหว่าง 'users' (u) และ 'pilots' (p)
         String sql = "SELECT * " +
@@ -61,7 +61,7 @@ public class PilotRepository {
     public void updateStatusAfterFirstLogin(String username) {
         // สมมติว่าตาราง pilot มีคอลัมน์ first_time_login (INTEGER 1=true, 0=false)
         String sql = "UPDATE pilot_profiles SET first_time_login = 0 WHERE username = ?";
-        try (Connection conn = DbConnect.getConnection();
+        try (Connection conn = DbConnect1.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, username);
@@ -74,7 +74,7 @@ public class PilotRepository {
 
     public void addPilot(Pilot pilot) {
     String sql = "INSERT INTO pilots (username, pilot_id) VALUES (?, ?)";
-    try (Connection conn = DbConnect.getConnection();
+    try (Connection conn = DbConnect1.getConnection();
          PreparedStatement pstmt = conn.prepareStatement(sql)) {
         
         pstmt.setString(1, pilot.getUsername());

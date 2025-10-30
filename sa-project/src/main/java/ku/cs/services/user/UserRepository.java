@@ -1,13 +1,12 @@
 package ku.cs.services.user;
 
-import ku.cs.database.DbConnect;
+import ku.cs.database.DbConnect1;
 import ku.cs.models.user.User; // ตรวจสอบว่า import model ถูกต้อง
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp; // ต้อง import Timestamp
 import java.time.LocalDateTime;
 
 public class UserRepository {
@@ -18,7 +17,7 @@ public class UserRepository {
      */
     public User login(String username, String password) {
         User user = null;
-        Connection conn = DbConnect.getConnection();
+        Connection conn = DbConnect1.getConnection();
         // 1. ค้นหา user และ password ที่ตรงกัน
         // (ควรใช้ Hashing ในอนาคต)
         String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
@@ -57,7 +56,7 @@ public class UserRepository {
         String sql = "SELECT * FROM users WHERE username = ?";
         User user = null;
 
-        try (Connection conn = DbConnect.getConnection();
+        try (Connection conn = DbConnect1.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, username);
@@ -102,7 +101,7 @@ public class UserRepository {
         String sql = "INSERT INTO users (username, password, name, role, phone, email, profilePicture, lastLogin, hasAccess) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = DbConnect.getConnection();
+        try (Connection conn = DbConnect1.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, user.getUsername());
@@ -146,7 +145,7 @@ public class UserRepository {
      * อัปเดตรหัสผ่านในตาราง 'users'
      */
     public void updatePassword(String username, String newPassword) {
-        Connection conn = DbConnect.getConnection();
+        Connection conn = DbConnect1.getConnection();
         String sql = "UPDATE users SET password = ? WHERE username = ?";
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -178,7 +177,7 @@ public class UserRepository {
                 + " hasAccess = ? "        // 8
                 + " WHERE username = ?";  // 9
 
-        try (Connection conn = DbConnect.getConnection();
+        try (Connection conn = DbConnect1.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             // 2. ตั้งค่า PreparedStatement

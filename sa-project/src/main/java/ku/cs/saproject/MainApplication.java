@@ -1,10 +1,8 @@
 package ku.cs.saproject;
 
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
-import ku.cs.database.DbConnect;
+import ku.cs.database.DbConnect1;
 import ku.cs.services.FXRouter;
 
 import java.io.IOException;
@@ -15,17 +13,17 @@ public class MainApplication extends Application {
         try {
             // 1. (ต้องมาก่อน) สร้างตารางทั้งหมด
             // เมธอดนี้จะสร้างตาราง users, instructors, ฯลฯ
-            DbConnect.initializeDatabase();
+            DbConnect1.initializeDatabase();
 
             // 2. (ต้องมาทีหลัง) สร้างข้อมูลเริ่มต้น
             // เมธอดนี้จะเรียก userRepository.findUserByUsername ซึ่งตอนนี้ตาราง users ถูกสร้างแล้ว
-            DbConnect.seedInitialData();
+            DbConnect1.seedInitialData();
 
             // 3. (มาทีหลังสุด) ตั้งค่า UI และเปิดหน้าแรก
             FXRouter.bind(this, stage, "SA Project", 1280, 720);
             configRoutes();
 
-            FXRouter.goTo("instructor-main-page");
+            FXRouter.goTo("pilot-schedule-page");
 
         } catch (Exception e) {
             System.err.println("เกิดข้อผิดพลาดในการเริ่มแอป: " + e.getMessage());
@@ -50,6 +48,10 @@ public class MainApplication extends Application {
 
         viewPath = "ku/cs/views/pilot/";
         FXRouter.when("pilot-main-page", viewPath + "pilot-main-page.fxml");
+        FXRouter.when("pilot-resign-page", viewPath + "pilot-resign-page.fxml");
+        FXRouter.when("resign-form-page", viewPath + "resign-create-form.fxml");
+        FXRouter.when("pilot-schedule-page", viewPath + "pilot-schedule-page.fxml");
+        FXRouter.when("pilot-report-page", viewPath + "pilot-report-page.fxml");
     }
 
     public static void main(String[] args) {
