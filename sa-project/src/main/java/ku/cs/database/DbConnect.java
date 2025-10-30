@@ -4,13 +4,16 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 
 import ku.cs.models.instructor.Instructor;
 import ku.cs.models.pilot.Pilot;
+import ku.cs.models.schedule.Schedule;
 import ku.cs.models.supervisor.Supervisor;
 import ku.cs.models.user.User;
 import ku.cs.services.instructor.InstructorRepository;
 import ku.cs.services.pilot.PilotRepository;
+import ku.cs.services.schedule.ScheduleRepository;
 import ku.cs.services.supervisor.SupervisorRepository;
 import ku.cs.services.user.UserRepository;
 
@@ -81,6 +84,20 @@ public class DbConnect {
                 + " FOREIGN KEY (username) REFERENCES users (username)"
                 + ");";
 
+        String scheduleSql = "CREATE TABLE IF NOT EXISTS schedules ("
+                + " schedule_id TEXT PRIMARY KEY,"
+                + " supervisor_id TEXT NOT NULL,"
+                + " instructor_id TEXT NOT NULL,"
+                + " pilot_id_1 TEXT NOT NULL,"
+                + " pilot_id_2 TEXT NOT NULL,"
+                + " program_name TEXT NOT NULL,"
+                + " training_timestamp TEXT NOT NULL,"
+                + " FOREIGN KEY (supervisor_id) REFERENCES users (username),"
+                + " FOREIGN KEY (instructor_id) REFERENCES users (username),"
+                + " FOREIGN KEY (pilot_id_1) REFERENCES users (username),"
+                + " FOREIGN KEY (pilot_id_2) REFERENCES users (username)"
+                + ");";
+
         // ใช้ try-with-resources เพื่อให้แน่ใจว่า Connection และ Statement ถูกปิดเสมอ
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
@@ -98,6 +115,9 @@ public class DbConnect {
             stmt.execute(pilotSql);
             System.out.println("ตรวจสอบ/สร้างตาราง Pilot สำเร็จ");
 
+            stmt.execute(scheduleSql);
+            System.out.println("ตรวจสอบ/สร้างตาราง Schedules สำเร็จ");
+
         } catch (SQLException e) {
             System.err.println("เกิดข้อผิดพลาดในการสร้างตาราง: " + e.getMessage());
         }
@@ -109,6 +129,7 @@ public class DbConnect {
         PilotRepository pilotRepository = new PilotRepository();
         InstructorRepository instructorRepository = new InstructorRepository();
         SupervisorRepository supervisorRepository = new SupervisorRepository();
+        ScheduleRepository scheduleRepository = new ScheduleRepository();
         try {
             // ... (if check supervisor_admin) ...
             if (userRepository.findUserByUsername("supervisor_admin") != null) {
@@ -164,8 +185,17 @@ public class DbConnect {
             pilotUser.setHasAccess(true);
             pilotUser.setLastLogin();
             pilotUser.setProfilePicture("default-user-photo.png");
-        
-        userRepository.registerUser(pilotUser); // <-- ใช้งานตัวแปร
+
+            User pilotUser2 = new User(); // <-- ประกาศตัวแปร
+            pilotUser2.setUsername("pilot_test_two");
+            pilotUser2.setPassword("pass123");
+            pilotUser2.setName("Test Pilot 2");
+            pilotUser2.setRole("pilot");
+            pilotUser2.setEmail("pilot2@test.com");
+            pilotUser2.setHasAccess(true);
+            pilotUser2.setLastLogin();
+            pilotUser2.setProfilePicture("default-user-photo.png");
+
             userRepository.registerUser(pilotUser);
 
             Pilot pilotProfile = new Pilot();
@@ -174,10 +204,29 @@ public class DbConnect {
             // pilotProfile.setName("Test Pilot"); // <--- (3) ลบบรรทัดนี้
             pilotRepository.addPilot(pilotProfile);
 
+            userRepository.registerUser(pilotUser2);
+
+            Pilot pilotProfile2 = new Pilot();
+            pilotProfile2.setUsername("pilot_test_two");
+            pilotProfile2.setPilotID("PL002");
+            pilotRepository.addPilot(pilotProfile2);
+
+            System.out.println("Seeding mock schedule...");
+            Schedule schedule1 = new Schedule(
+                    "S001",       // supervisorId
+                    "I001",        // instructorId (คนที่คุณจะเทส)
+                    "PL001",             // pilotId1 (คนที่ 1)
+                    "PL002",           // pilotId2 (คนที่ 2)
+                    "Introduction to Flight", // programName
+                    LocalDateTime.now().plusDays(3).withHour(14).withMinute(0) // วันเวลา (อีก 3 วัน ตอน 14:00)
+            );
+            scheduleRepository.addSchedule(schedule1);
+
             System.out.println("สร้างข้อมูลเริ่มต้น (Seeding) สำเร็จ!");
 
         } catch (Exception e) {
-            // ...
+            System.err.println("เกิดข้อผิดพลาดระหว่างการ Seeding ข้อมูล: " + e.getMessage());
+            e.printStackTrace(); // <--- (เพิ่มบรรทัดนี้)
         }
     }
 }

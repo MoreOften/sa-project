@@ -25,7 +25,7 @@ public class MainApplication extends Application {
             FXRouter.bind(this, stage, "SA Project", 1280, 720);
             configRoutes();
 
-            FXRouter.goTo("instructor-main-page");
+            FXRouter.goTo("login");
 
         } catch (Exception e) {
             System.err.println("เกิดข้อผิดพลาดในการเริ่มแอป: " + e.getMessage());

@@ -52,24 +52,19 @@ public class LoginController {
         // --- สิ้นสุดการเปลี่ยนแปลง ---
     }
 
+    // ใน: LoginController.java
     @FXML
     public void onLoginButtonClick() {
         String username = giveUsernameTextField.getText();
-        String plainPassword = givePasswordTextField.getText(); // .getText() ใช้ได้เหมือนกัน
+        String plainPassword = givePasswordTextField.getText();
 
-        // 1. ค้นหา User จาก Repo
         User user = userRepository.findUserByUsername(username);
 
         if (user != null) {
-            // 2. (ตรรกะใหม่) ให้ Model ตรวจสอบรหัสผ่านเอง
             if (user.validatePassword(plainPassword)) {
                 // Login สำเร็จ!
-                errorLabel.setText(""); // ล้าง error ถ้ามี
-
-                // 4. เก็บ Session
-                UserSession.getInstance().setCurrentUser(user);
-
                 try {
+                    // ไปเรียกเมธอดแยก Role
                     handleLoginBasedOnRole(user);
                 } catch (IOException e) {
                     System.err.println("ไม่สามารถโหลดหน้าหลักตาม Role: " + e.getMessage());
@@ -77,12 +72,10 @@ public class LoginController {
                     errorLabel.setText("ไม่สามารถโหลดหน้าถัดไปได้");
                 }
             } else {
-                // Password ผิด
-                errorLabel.setText("Invalid username or password."); // <-- 3. เพิ่มการแจ้งเตือน
+                errorLabel.setText("Username หรือ Password ไม่ถูกต้อง");
             }
         } else {
-            // Username ผิด
-            errorLabel.setText("Invalid username or password."); // <-- 3. เพิ่มการแจ้งเตือน
+            errorLabel.setText("Username หรือ Password ไม่ถูกต้อง");
         }
     }
 
@@ -109,31 +102,45 @@ public class LoginController {
 
     private void handlePilotLogin(User user) throws IOException {
         Pilot pilot = pilotRepository.findPilotByUsername(user.getUsername());
+
         if (pilot == null) {
             errorLabel.setText("Pilot profile not found for user: " + user.getUsername());
             return;
         }
-        // เราสามารถส่งข้อมูล object ไปยัง Controller ถัดไปได้
+
+        // VVVV (1. ต้องมีบรรทัดนี้) VVVV
+        UserSession.getInstance().setCurrentUser(pilot); // <-- ต้องเก็บ "pilot"
+
         FXRouter.goTo("pilot-home-page", pilot);
     }
 
 
     private void handleInstructorLogin(User user) throws IOException {
         Instructor instructor = instructorRepository.findInstructorByUsername(user.getUsername());
+
         if (instructor == null) {
             errorLabel.setText("Instructor profile not found for user: " + user.getUsername());
             return;
         }
+
+        // VVVV (2. ต้องมีบรรทัดนี้) VVVV
+        UserSession.getInstance().setCurrentUser(instructor); // <-- ต้องเก็บ "instructor"
+
         FXRouter.goTo("instructor-main-page", instructor);
     }
 
 
     private void handleSupervisorLogin(User user) throws IOException {
         Supervisor supervisor = supervisorRepository.findSupervisorByUsername(user.getUsername());
+
         if (supervisor == null) {
             errorLabel.setText("Supervisor profile not found for user: " + user.getUsername());
             return;
         }
+
+        // VVVV (3. ต้องมีบรรทัดนี้) VVVV
+        UserSession.getInstance().setCurrentUser(supervisor); // <-- ต้องเก็บ "supervisor"
+
         FXRouter.goTo("supervisor-home-page", supervisor);
     }
 
