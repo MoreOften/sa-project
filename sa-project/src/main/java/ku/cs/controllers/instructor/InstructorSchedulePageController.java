@@ -41,27 +41,28 @@ public class InstructorSchedulePageController {
     private ObservableList<ScheduleView> scheduleViewList = FXCollections.observableArrayList();
 
     public void initialize() {
-        // 1. (ลบ) ลบบรรทัดที่อ่านจาก FXRouter ทิ้ง
-        // currentInstructor = (Instructor) FXRouter.getData(); // <-- ลบ
-
-        // 2. ดึงข้อมูลจาก UserSession (นี่คือวิธีที่ถูกต้อง)
         User loggedInUser = UserSession.getInstance().getCurrentUser();
+
+        System.out.println("SCHEDULE_PAGE: กำลังโหลด..."); // <-- DEBUG 7
 
         if (loggedInUser instanceof Instructor) {
             this.currentInstructor = (Instructor) loggedInUser;
+            System.out.println("SCHEDULE_PAGE: พบ Instructor ใน Session: " + currentInstructor.getUsername()); // <-- DEBUG 8
+        } else if (loggedInUser != null) {
+            System.err.println("SCHEDULE_PAGE: Error! ข้อมูลใน Session คือ " + loggedInUser.getClass().getName() + " ไม่ใช่ Instructor"); // <-- DEBUG 9
+        } else {
+            System.err.println("SCHEDULE_PAGE: Error! ไม่พบข้อมูลใดๆ ใน Session (UserSession = null)"); // <-- DEBUG 10
         }
 
         scheduleRepository = new ScheduleRepository();
         userRepository = new UserRepository();
-
         setupTableColumns();
 
-        // 3. (สำคัญ) ตรวจสอบว่า currentInstructor ไม่ใช่ null ก่อนโหลด
         if (this.currentInstructor != null) {
+            System.out.println("SCHEDULE_PAGE: currentInstructor ไม่ใช่ null, กำลังโหลดข้อมูล..."); // <-- DEBUG 11
             loadScheduleData();
         } else {
-            // ถ้ายังเป็น null แสดงว่า LoginController (ข้อ 1) ยังแก้ไม่ถูก
-            System.err.println("ไม่สามารถโหลด Schedule: ไม่พบข้อมูล Instructor ใน Session");
+            System.err.println("SCHEDULE_PAGE: currentInstructor เป็น null, ไม่สามารถโหลดข้อมูลได้"); // <-- DEBUG 12
         }
     }
 
@@ -85,7 +86,7 @@ public class InstructorSchedulePageController {
         scheduleViewList.clear();
 
         // 1. ดึง Schedule ทั้งหมดของ Instructor ที่ล็อกอินอยู่
-        List<Schedule> schedules = scheduleRepository.findSchedulesByInstructor(currentInstructor.getUsername());
+        List<Schedule> schedules = scheduleRepository.findSchedulesByInstructor(currentInstructor.getInstructorID());
 
         // 2. วนลูปเพื่อดึง "ชื่อ" ของ Pilot และ Supervisor
         for (Schedule s : schedules) {
