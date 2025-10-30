@@ -131,7 +131,7 @@ public class LoginController {
 
         // สำคัญ: เมื่อเจอแล้ว ให้ไปยังหน้า Instructor
         // และ "ส่ง" object instructor ที่เพิ่งเจอ ไปให้หน้าถัดไป
-        FXRouter.goTo("instructor-home-page");
+        FXRouter.goTo("instructor-main-page");
     }
 
 

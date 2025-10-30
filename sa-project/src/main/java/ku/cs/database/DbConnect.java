@@ -1,5 +1,10 @@
 package ku.cs.database;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+
 import ku.cs.models.instructor.Instructor;
 import ku.cs.models.pilot.Pilot;
 import ku.cs.models.supervisor.Supervisor;
@@ -8,12 +13,6 @@ import ku.cs.services.instructor.InstructorRepository;
 import ku.cs.services.pilot.PilotRepository;
 import ku.cs.services.supervisor.SupervisorRepository;
 import ku.cs.services.user.UserRepository;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.time.LocalDateTime;
 
 public class DbConnect {
 
@@ -106,12 +105,30 @@ public class DbConnect {
 
     public static void seedInitialData() {
         // ... (สร้าง Repositories) ...
+        UserRepository userRepository = new UserRepository();
+        PilotRepository pilotRepository = new PilotRepository();
+        InstructorRepository instructorRepository = new InstructorRepository();
+        SupervisorRepository supervisorRepository = new SupervisorRepository();
         try {
             // ... (if check supervisor_admin) ...
+            if (userRepository.findUserByUsername("supervisor_admin") != null) {
+            System.out.println("ข้อมูลเริ่มต้น (Seed) มีอยู่แล้ว ไม่ต้องสร้างซ้ำ");
+            return;
+        }
             // ... (สร้าง supervisorUser) ...
+            User supervisorUser = new User(); 
+            supervisorUser.setUsername("supervisor_admin");
+            supervisorUser.setPassword("pass123"); 
+            supervisorUser.setName("Admin Supervisor");
+            supervisorUser.setRole("supervisor");
+            supervisorUser.setEmail("supervisor@test.com");
+            supervisorUser.setHasAccess(true);
+            supervisorUser.setLastLogin();
+            supervisorUser.setProfilePicture("default-user-photo.png");
             userRepository.registerUser(supervisorUser);
 
             Supervisor supervisorProfile = new Supervisor();
+            
             supervisorProfile.setUsername("supervisor_admin");
             supervisorProfile.setSupervisorID("S001");
             // supervisorProfile.setName("Admin Supervisor"); // <--- (1) ลบบรรทัดนี้
@@ -119,6 +136,15 @@ public class DbConnect {
 
             // 4. --- สร้าง Instructor ---
             // ... (สร้าง instructorUser) ...
+            User instructorUser = new User(); // <-- ประกาศตัวแปร
+            instructorUser.setUsername("instructor_test");
+            instructorUser.setPassword("pass123");
+            instructorUser.setName("Test Instructor");
+            instructorUser.setRole("instructor");
+            instructorUser.setEmail("instructor@test.com");
+            instructorUser.setHasAccess(true);
+            instructorUser.setLastLogin();
+            instructorUser.setProfilePicture("default-user-photo.png");
             userRepository.registerUser(instructorUser);
 
             Instructor instructorProfile = new Instructor();
@@ -129,6 +155,17 @@ public class DbConnect {
 
             // 5. --- สร้าง Pilot ---
             // ... (สร้าง pilotUser) ...
+            User pilotUser = new User(); // <-- ประกาศตัวแปร
+            pilotUser.setUsername("pilot_test");
+            pilotUser.setPassword("pass123");
+            pilotUser.setName("Test Pilot");
+            pilotUser.setRole("pilot");
+            pilotUser.setEmail("pilot@test.com");
+            pilotUser.setHasAccess(true);
+            pilotUser.setLastLogin();
+            pilotUser.setProfilePicture("default-user-photo.png");
+        
+        userRepository.registerUser(pilotUser); // <-- ใช้งานตัวแปร
             userRepository.registerUser(pilotUser);
 
             Pilot pilotProfile = new Pilot();

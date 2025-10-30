@@ -1,13 +1,12 @@
 package ku.cs.services.pilot;
 
-import ku.cs.database.DbConnect;
-import ku.cs.models.pilot.Pilot; // ตรวจสอบว่า import model ถูกต้อง
-
 import java.sql.Connection;
-import java.sql.PreparedStatement;
+import java.sql.PreparedStatement; // ตรวจสอบว่า import model ถูกต้อง
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp; // ต้อง import Timestamp
+
+import ku.cs.database.DbConnect;
+import ku.cs.models.pilot.Pilot;
 
 public class PilotRepository {
 
@@ -74,16 +73,16 @@ public class PilotRepository {
     }
 
     public void addPilot(Pilot pilot) {
-        // SQL นี้ตรงกับ schema ใหม่ (ไม่มี name)
-        String sql = "INSERT INTO pilots (username, license_number, first_time_login) VALUES (?, ?, ?)";
-        try (Connection conn = DbConnect.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, pilot.getUsername());
-            pstmt.setString(2, pilot.getLicenseNumber()); // (ต้องมี Getter นี้ใน Model)
-            pstmt.setInt(3, 1);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("addPilot failed: " + e.getMessage(), e);
-        }
+    String sql = "INSERT INTO pilots (username, pilot_id) VALUES (?, ?)";
+    try (Connection conn = DbConnect.getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        
+        pstmt.setString(1, pilot.getUsername());
+        pstmt.setString(2, pilot.getPilotID());
+        
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        throw new RuntimeException("addPilot failed: " + e.getMessage(), e);
     }
+}
 }

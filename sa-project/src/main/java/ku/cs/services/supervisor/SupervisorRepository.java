@@ -1,13 +1,12 @@
 package ku.cs.services.supervisor;
 
-import ku.cs.database.DbConnect;
-import ku.cs.models.supervisor.Supervisor; // ตรวจสอบว่า import model ถูกต้อง
-
 import java.sql.Connection;
-import java.sql.PreparedStatement;
+import java.sql.PreparedStatement; // ตรวจสอบว่า import model ถูกต้อง
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp; // ต้อง import Timestamp
+
+import ku.cs.database.DbConnect;
+import ku.cs.models.supervisor.Supervisor;
 
 public class SupervisorRepository {
 
@@ -75,16 +74,16 @@ public class SupervisorRepository {
     }
 
     public void addSupervisor(Supervisor supervisor) {
-        // SQL นี้ตรงกับ schema ใหม่ (ไม่มี name)
-        String sql = "INSERT INTO supervisors (username, employee_id, first_time_login) VALUES (?, ?, ?)";
-        try (Connection conn = DbConnect.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, supervisor.getUsername());
-            pstmt.setString(2, supervisor.getSupervisorID()); // (ต้องมี Getter นี้ใน Model)
-            pstmt.setInt(3, 1);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("addSupervisor failed: " + e.getMessage(), e);
-        }
+    String sql = "INSERT INTO supervisors (username, supervisor_id) VALUES (?, ?)";
+    try (Connection conn = DbConnect.getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        
+        pstmt.setString(1, supervisor.getUsername());
+        pstmt.setString(2, supervisor.getSupervisorID());
+        
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        throw new RuntimeException("addSupervisor failed: " + e.getMessage(), e);
     }
+}
 }

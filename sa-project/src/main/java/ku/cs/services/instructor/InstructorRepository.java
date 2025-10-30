@@ -4,8 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp; // อย่าลืม import Timestamp
-import java.time.LocalDateTime;
+import java.time.LocalDateTime; // อย่าลืม import Timestamp
 
 import ku.cs.database.DbConnect;
 import ku.cs.models.instructor.Instructor;
@@ -66,18 +65,18 @@ public class InstructorRepository {
     }
 
     public void addInstructor(Instructor instructor) {
-        // SQL นี้ตรงกับ schema ใหม่ (ไม่มี name)
-        String sql = "INSERT INTO instructors (username, instructor_id, first_time_login) VALUES (?, ?, ?)";
-        try (Connection conn = DbConnect.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, instructor.getUsername());
-            pstmt.setString(2, instructor.getInstructorID());
-            pstmt.setInt(3, 1); // Default first_time_login = true
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("addInstructor failed: " + e.getMessage(), e);
-        }
+    String sql = "INSERT INTO instructors (username, instructor_id) VALUES (?, ?)";
+    try (Connection conn = DbConnect.getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        
+        pstmt.setString(1, instructor.getUsername());
+        pstmt.setString(2, instructor.getInstructorID());
+        
+        pstmt.executeUpdate();
+    } catch (SQLException e) {
+        throw new RuntimeException("addInstructor failed: " + e.getMessage(), e);
     }
+}
 
     public void updateStatusAfterFirstLogin(String username) {
         // สมมติว่าตาราง instructors มีคอลัมน์ first_time_login (INTEGER 1=true, 0=false)
