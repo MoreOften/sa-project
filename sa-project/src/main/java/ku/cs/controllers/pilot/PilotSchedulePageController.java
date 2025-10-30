@@ -55,7 +55,7 @@ public class PilotSchedulePageController {
         scheduleList.clear();
 
         // [EDIT] เรียกใช้ Repository และส่ง username
-        scheduleList.addAll(scheduleRepository.getSchedulesForPilot(currentPilot.getUsername()));
+//        scheduleList.addAll(scheduleRepository.getSchedulesForPilot(currentPilot.getUsername()));
 
         System.out.println("Loaded " + scheduleList.size() + " schedules for pilot: " + currentPilot.getUsername());
     }

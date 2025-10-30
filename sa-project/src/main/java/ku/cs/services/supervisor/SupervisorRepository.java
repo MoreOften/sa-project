@@ -5,7 +5,7 @@ import java.sql.PreparedStatement; // ตรวจสอบว่า import mode
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import ku.cs.database.DbConnect1;
+import ku.cs.database.DbConnect;
 import ku.cs.models.supervisor.Supervisor;
 
 public class SupervisorRepository {
@@ -16,7 +16,7 @@ public class SupervisorRepository {
      */
     public Supervisor findSupervisorByUsername(String username) {
         Supervisor supervisor = null;
-        Connection conn = DbConnect1.getConnection();
+        Connection conn = DbConnect.getConnection();
 
         // 1. SQL JOIN ระหว่าง 'users' (u) และ 'supervisors' (s)
         String sql = "SELECT * " +
@@ -61,7 +61,7 @@ public class SupervisorRepository {
         // สมมติว่าตาราง supervisors มีคอลัมน์ first_time_login (INTEGER 1=true, 0=false)
         String sql = "UPDATE supervisors SET first_time_login = 0 WHERE username = ?";
 
-        try (Connection conn = DbConnect1.getConnection();
+        try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, username);
@@ -75,7 +75,7 @@ public class SupervisorRepository {
 
     public void addSupervisor(Supervisor supervisor) {
     String sql = "INSERT INTO supervisors (username, supervisor_id) VALUES (?, ?)";
-    try (Connection conn = DbConnect1.getConnection();
+    try (Connection conn = DbConnect.getConnection();
          PreparedStatement pstmt = conn.prepareStatement(sql)) {
         
         pstmt.setString(1, supervisor.getUsername());

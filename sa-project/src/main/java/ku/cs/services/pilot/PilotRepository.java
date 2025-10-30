@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime; // (ต้อง import)
 
-import ku.cs.database.DbConnect1;
+import ku.cs.database.DbConnect;
 import ku.cs.models.pilot.Pilot;
 
 public class PilotRepository {
@@ -17,10 +17,6 @@ public class PilotRepository {
      */
     public Pilot findPilotByUsername(String username) {
         Pilot pilot = null;
-<<<<<<< HEAD
-        Connection conn = DbConnect1.getConnection();
-=======
->>>>>>> 809eab5c8272402505ba653313eb5a9f31e67d46
 
         String sql = "SELECT * " +
                 "FROM users u " +
@@ -74,17 +70,15 @@ public class PilotRepository {
      * (ฉบับแก้ไข)
      */
     public void updateStatusAfterFirstLogin(String username) {
-<<<<<<< HEAD
-        // สมมติว่าตาราง pilot มีคอลัมน์ first_time_login (INTEGER 1=true, 0=false)
-        String sql = "UPDATE pilot_profiles SET first_time_login = 0 WHERE username = ?";
-        try (Connection conn = DbConnect1.getConnection();
-=======
+
+        // [FIX] ลบโค้ดส่วนที่ซ้ำซ้อน (บรรทัด 65-66 เดิม) ออก
+        // โค้ดที่ถูกต้องคือบล็อกนี้
+
         // (แก้ไข 7) ต้องอัปเดตตาราง "pilots" (ไม่ใช่ "pilot_profiles")
         // และคอลัมน์ "first_time_login" (ถ้าคุณมีใน SQL)
         String sql = "UPDATE pilots SET first_time_login = 0 WHERE username = ?";
 
         try (Connection conn = DbConnect.getConnection();
->>>>>>> 809eab5c8272402505ba653313eb5a9f31e67d46
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, username);
@@ -95,24 +89,13 @@ public class PilotRepository {
             System.err.println("PilotRepository (updateStatus) Error: " + e.getMessage());
             throw new RuntimeException("Update pilot status failed: " + e.getMessage(), e);
         }
+        // [FIX] ลบ '}' ที่เกินมา
     }
 
     /**
      * เพิ่ม "โปรไฟล์" Pilot (เมธอดนี้ถูกต้องแล้ว)
      */
     public void addPilot(Pilot pilot) {
-<<<<<<< HEAD
-    String sql = "INSERT INTO pilots (username, pilot_id) VALUES (?, ?)";
-    try (Connection conn = DbConnect1.getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
-        
-        pstmt.setString(1, pilot.getUsername());
-        pstmt.setString(2, pilot.getPilotID());
-        
-        pstmt.executeUpdate();
-    } catch (SQLException e) {
-        throw new RuntimeException("addPilot failed: " + e.getMessage(), e);
-=======
         String sql = "INSERT INTO pilots (username, pilot_id) VALUES (?, ?)";
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -125,6 +108,7 @@ public class PilotRepository {
             // Error "PRIMARY KEY" ที่คุณเจอ ถูกโยนมาจากบรรทัดนี้
             throw new RuntimeException("addPilot failed: " + e.getMessage(), e);
         }
->>>>>>> 809eab5c8272402505ba653313eb5a9f31e67d46
+
+        // [FIX] ลบโค้ดที่ซ้ำกันทั้งหมด (บรรทัด 107-118 เดิม) ออก
     }
 }

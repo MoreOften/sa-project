@@ -72,7 +72,7 @@ public class PilotReportPageController {
 
         // [IMPORTANT] เราจะเรียกใช้เมธอดใหม่จาก Repository
         // (ดู "การเปลี่ยนแปลงที่จำเป็น" ในข้อถัดไป)
-        completedScheduleList.addAll(scheduleRepository.getCompletedSchedulesForPilot(currentPilot.getUsername()));
+//        completedScheduleList.addAll(scheduleRepository.getCompletedSchedulesForPilot(currentPilot.getUsername()));
 
         System.out.println("Loaded " + completedScheduleList.size() + " completed reports for pilot: " + currentPilot.getUsername());
     }
@@ -85,7 +85,7 @@ public class PilotReportPageController {
         if (schedule != null) {
             // [IMPORTANT] เราต้องเพิ่ม field "instructorFeedback" ใน Model
             // (ดู "การเปลี่ยนแปลงที่จำเป็น" ในข้อถัดไป)
-            feedbackTextArea.setText(schedule.getInstructorFeedback());
+//            feedbackTextArea.setText(schedule.getInstructorFeedback());
         } else {
             feedbackTextArea.clear();
             feedbackTextArea.setPromptText("Please select a report from the table to see details.");

@@ -1,6 +1,6 @@
 package ku.cs.services.user;
 
-import ku.cs.database.DbConnect1;
+import ku.cs.database.DbConnect;
 import ku.cs.models.user.User; // ตรวจสอบว่า import model ถูกต้อง
 
 import java.sql.Connection;
@@ -17,7 +17,7 @@ public class UserRepository {
      */
     public User login(String username, String password) {
         User user = null;
-        Connection conn = DbConnect1.getConnection();
+        Connection conn = DbConnect.getConnection();
         // 1. ค้นหา user และ password ที่ตรงกัน
         // (ควรใช้ Hashing ในอนาคต)
         String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
@@ -56,7 +56,7 @@ public class UserRepository {
         String sql = "SELECT * FROM users WHERE username = ?";
         User user = null;
 
-        try (Connection conn = DbConnect1.getConnection();
+        try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, username);
@@ -101,7 +101,7 @@ public class UserRepository {
         String sql = "INSERT INTO users (username, password, name, role, phone, email, profilePicture, lastLogin, hasAccess) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = DbConnect1.getConnection();
+        try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, user.getUsername());
@@ -145,7 +145,7 @@ public class UserRepository {
      * อัปเดตรหัสผ่านในตาราง 'users'
      */
     public void updatePassword(String username, String newPassword) {
-        Connection conn = DbConnect1.getConnection();
+        Connection conn = DbConnect.getConnection();
         String sql = "UPDATE users SET password = ? WHERE username = ?";
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -177,7 +177,7 @@ public class UserRepository {
                 + " hasAccess = ? "        // 8
                 + " WHERE username = ?";  // 9
 
-        try (Connection conn = DbConnect1.getConnection();
+        try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             // 2. ตั้งค่า PreparedStatement
