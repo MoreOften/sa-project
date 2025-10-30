@@ -37,10 +37,6 @@ public class Supervisor extends User {
     public void setName(String name) { this.name = name; }
     public void setEmail(String email) { this.email = email; }
     public void setPassword(String password) { this.password = password; }
-    public void setSupervisorID(String pilotID) { this.supervisorID = supervisorID; }
+    public void setSupervisorID(String supervisorID) { this.supervisorID = supervisorID; }
     public void setPhone(String phone) { this.phone = phone; }
-
-
-    public void setEmployeeId(String s001) {
-    }
 }

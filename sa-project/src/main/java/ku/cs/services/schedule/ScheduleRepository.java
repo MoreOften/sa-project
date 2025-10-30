@@ -1,94 +1,153 @@
 package ku.cs.services.schedule;
 
-import ku.cs.database.DbConnect1;
+import ku.cs.database.DbConnect; // [FIX] แก้ไขชื่อ DbConnect
 import ku.cs.models.schedule.Schedule;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ScheduleRepository {
 
     /**
-     * ดึงข้อมูลตารางเรียนของ Pilot โดยระบุ username
-     * และ JOIN ตาราง users เพื่อดึงชื่อของ Instructor
+     * [MERGED & FIXED]
+     * เพิ่ม Schedule ใหม่ลงในฐานข้อมูล
+     * (อัปเดตให้รองรับ status, grade, และ feedback)
+     */
+    public void addSchedule(Schedule schedule) {
+        // [EDIT] เพิ่มคอลัมน์ status, grade, instructor_feedback
+        String sql = "INSERT INTO schedules (schedule_id, supervisor_id, instructor_id, pilot_id_1, pilot_id_2, " +
+                "program_name, training_timestamp, status, grade, instructor_feedback) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // (มี 10 '?' )
+
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, schedule.getScheduleId());
+            pstmt.setString(2, schedule.getSupervisorId());
+            pstmt.setString(3, schedule.getInstructorId());
+            pstmt.setString(4, schedule.getPilotId1());
+            pstmt.setString(5, schedule.getPilotId2());
+            pstmt.setString(6, schedule.getProgramName());
+            pstmt.setString(7, schedule.getTrainingTimestamp().toString());
+
+            // [ADD] เพิ่ม 3 fields ใหม่
+            pstmt.setString(8, schedule.getStatus());
+            pstmt.setString(9, schedule.getGrade());
+            pstmt.setString(10, schedule.getInstructorFeedback());
+
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.err.println("ScheduleRepository (addSchedule) Error: " + e.getMessage());
+            e.printStackTrace(); // โยน exception เพื่อให้รู้ตัว
+        }
+    }
+
+    // --- เมธอดสำหรับหน้า Pilot's View (ที่ JOIN แล้ว) ---
+
+    /**
+     * [NEW]
+     * ดึงตารางเรียนที่ "ยังไม่เสร็จ" (Booked) สำหรับ Pilot
+     * (ใช้ในหน้า PilotSchedulePageController)
      */
     public List<Schedule> getSchedulesForPilot(String pilotUsername) {
         List<Schedule> schedules = new ArrayList<>();
-        Connection conn = DbConnect1.getConnection();
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
 
-        /*
-         * SQL นี้จะ:
-         * 1. เลือกข้อมูลจากตาราง schedules (ตั้งชื่อย่อ 's')
-         * 2. JOIN ตาราง users (ตั้งชื่อย่อ 'u') โดยใช้ instructor_username
-         * 3. ดึง 'u.name' (ชื่อเต็มของ instructor) และตั้งชื่อคอลัมน์ใหม่ว่า 'instructor_name'
-         * 4. กรองเฉพาะ pilot_username ที่ต้องการ
-         */
-        String sql = "SELECT s.date, s.time, s.program_name, u.name AS instructor_name " +
+        // [NEW SQL] SQL นี้ JOIN ตาราง users เพื่อดึง u.name มาเป็น 'instructor_name'
+        String sql = "SELECT s.*, u.name AS instructor_name " +
                 "FROM schedules s " +
-                "JOIN users u ON s.instructor_username = u.username " +
-                "WHERE s.pilot_username = ? " +
-                "ORDER BY s.date, s.time";
+                "JOIN users u ON s.instructor_id = u.username " +
+                "WHERE (s.pilot_id_1 = ? OR s.pilot_id_2 = ?) " + // ค้นหาทั้ง 2 ช่อง
+                "AND s.status = 'Booked' " + // [FILTER] เอาเฉพาะที่ยังไม่เสร็จ
+                "ORDER BY s.training_timestamp ASC"; // เรียงจากเก่าไปใหม่
 
-        try {
-            stmt = conn.prepareStatement(sql);
-            stmt.setString(1, pilotUsername);
-            rs = stmt.executeQuery();
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            while (rs.next()) {
-                // [สำคัญ] เราสร้าง Schedule object ด้วย Constructor พิเศษ
-                // ที่รับ instructor_name (จาก JOIN) ไม่ใช่ instructor_username
-                Schedule schedule = new Schedule(
-                        rs.getDate("date").toLocalDate(),
-                        rs.getString("time"),
-                        rs.getString("program_name"),
-                        rs.getString("instructor_name") // <-- นี่คือ u.name
-                );
-                schedules.add(schedule);
+            pstmt.setString(1, pilotUsername);
+            pstmt.setString(2, pilotUsername);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    // เรียกใช้ helper ใหม่ที่รองรับ 'instructor_name'
+                    schedules.add(createScheduleFromResultSet_withJoin(rs));
+                }
             }
         } catch (SQLException e) {
+            System.err.println("ScheduleRepository (getSchedulesForPilot) Error: " + e.getMessage());
             e.printStackTrace();
-        } finally {
-            try {
-                if (rs != null) rs.close();
-                if (stmt != null) stmt.close();
-                if (conn != null) conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
         return schedules;
     }
 
     /**
-     * เพิ่มตารางเรียนใหม่ (สำหรับ Seeding)
+     * [NEW]
+     * ดึงตารางเรียนที่ "เสร็จแล้ว" (Completed) สำหรับ Pilot
+     * (ใช้ในหน้า PilotReportPageController)
      */
-    public void addSchedule(Schedule schedule) {
-        Connection conn = DbConnect1.getConnection();
-        PreparedStatement stmt = null;
-        String sql = "INSERT INTO schedules (pilot_username, instructor_username, date, time, program_name, status) " +
-                "VALUES (?, ?, ?, ?, ?, ?)";
-        try {
-            stmt = conn.prepareStatement(sql);
-            stmt.setString(1, schedule.getPilotUsername());
-            stmt.setString(2, schedule.getInstructorUsername());
-            stmt.setString(3, schedule.getDate().toString()); // 'YYYY-MM-DD'
-            stmt.setString(4, schedule.getTime());
-            stmt.setString(5, schedule.getProgramName());
-            stmt.setString(6, schedule.getStatus());
+    public List<Schedule> getCompletedSchedulesForPilot(String pilotUsername) {
+        List<Schedule> schedules = new ArrayList<>();
 
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (stmt != null) stmt.close();
-                if (conn != null) conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
+        String sql = "SELECT s.*, u.name AS instructor_name " +
+                "FROM schedules s " +
+                "JOIN users u ON s.instructor_id = u.username " +
+                "WHERE (s.pilot_id_1 = ? OR s.pilot_id_2 = ?) " +
+                "AND s.status = 'Completed' " + // [FILTER] เอาเฉพาะที่เสร็จแล้ว
+                "ORDER BY s.training_timestamp DESC"; // เรียงจากล่าสุด
+
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, pilotUsername);
+            pstmt.setString(2, pilotUsername);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    schedules.add(createScheduleFromResultSet_withJoin(rs));
+                }
             }
+        } catch (SQLException e) {
+            System.err.println("ScheduleRepository (getCompletedSchedulesForPilot) Error: " + e.getMessage());
+            e.printStackTrace();
         }
+        return schedules;
     }
+
+    // --- เมธอด Helper ---
+
+    /**
+     * [NEW HELPER]
+     * Helper สำหรับสร้าง Schedule object จาก Query ที่ JOIN ตาราง users แล้ว
+     */
+    private Schedule createScheduleFromResultSet_withJoin(ResultSet rs) throws SQLException {
+        Schedule schedule = new Schedule();
+
+        // 1. ดึงข้อมูลจาก 'schedules' table
+        schedule.setScheduleId(rs.getString("schedule_id"));
+        schedule.setSupervisorId(rs.getString("supervisor_id"));
+        schedule.setInstructorId(rs.getString("instructor_id"));
+        schedule.setPilotId1(rs.getString("pilot_id_1"));
+        schedule.setPilotId2(rs.getString("pilot_id_2"));
+        schedule.setProgramName(rs.getString("program_name"));
+        schedule.setTrainingTimestamp(LocalDateTime.parse(rs.getString("training_timestamp")));
+
+        // 2. ดึงคอลัมน์ที่ Merged (status, grade, feedback)
+        schedule.setStatus(rs.getString("status"));
+        schedule.setGrade(rs.getString("grade"));
+        schedule.setInstructorFeedback(rs.getString("instructor_feedback"));
+
+        // 3. ดึงคอลัมน์ที่ JOIN (instructor_name)
+        schedule.setInstructorName(rs.getString("instructor_name"));
+
+        return schedule;
+    }
+
+    // (เมธอด findSchedulesByInstructor และ createScheduleFromResultSet เดิม
+    //  ยังสามารถเก็บไว้ได้ หากส่วนอื่นของโปรแกรม (เช่น หน้าของ Instructor) เรียกใช้
+    //  แต่ต้องอัปเดต createScheduleFromResultSet ให้ดึง status, grade, feedback ด้วย)
 }
