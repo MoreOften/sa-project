@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" stylesheets="@/ku/cs/views/style.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ku.cs.controllers.instructor.InstructorMainPageController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" stylesheets="@/ku/cs/views/style.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ku.cs.controllers.pilot.PilotMainPageController">
 
     <left>
         <BorderPane prefWidth="220.0" styleClass="sidebar" BorderPane.alignment="CENTER">
@@ -18,7 +18,7 @@
             <center>
                 <VBox spacing="30.0" BorderPane.alignment="CENTER">
                     <children>
-                        <Button fx:id="homepageButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onHomepageButtonClick" styleClass="sidebar-button, sidebar-button-active" text="Homepage">
+                        <Button fx:id="homepageButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#handleHomepageButton" styleClass="sidebar-button, sidebar-button-active" text="Homepage">
                             <graphic>
                                 <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
                                     <image>
@@ -31,28 +31,34 @@
                             </padding>
                         </Button>
 
-                        <Button fx:id="scheduleButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onScheduleButtonClick" styleClass="sidebar-button" text="Schedule">
+                        <Button fx:id="scheduleButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#handleScheduleButton" styleClass="sidebar-button" text="Schedule">
                             <padding>
                                 <Insets left="20.0" />
                             </padding>
                         </Button>
 
-                        <Button fx:id="reportButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onReportButtonClick" styleClass="sidebar-button" text="Report">
+                        <Button fx:id="reportButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#handleReportButton" styleClass="sidebar-button" text="Report">
+                            <padding>
+                                <Insets left="20.0" />
+                            </padding>
+                        </Button>
+
+                        <Button fx:id="resignButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#handleResignButton" styleClass="sidebar-button" text="Resign">
                             <padding>
                                 <Insets left="20.0" />
                             </padding>
                         </Button>
                     </children>
-                    <padding>
-                        <Insets top="30.0" />
-                    </padding>
+               <padding>
+                  <Insets top="30.0" />
+               </padding>
                 </VBox>
             </center>
 
             <bottom>
                 <VBox BorderPane.alignment="CENTER">
                     <children>
-                        <Button fx:id="logoutButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onLogoutButtonClick" styleClass="sidebar-button" text="Log Out">
+                        <Button fx:id="logoutButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#handleLogoutButton" styleClass="sidebar-button" text="Log Out">
                             <padding>
                                 <Insets left="20.0" />
                             </padding>

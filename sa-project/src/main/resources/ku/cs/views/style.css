@@ -1,0 +1,39 @@
+/* --- Sidebar --- */
+.sidebar {
+    -fx-background-color: #4870D7; /* สีพื้นหลังสีฟ้าเข้ม (เปลี่ยนสีได้ตามชอบ) */
+}
+
+/* --- ปุ่ม Sidebar (สถานะปกติ) --- */
+.sidebar-button {
+    -fx-background-color: transparent; /* ทำให้ปุ่มโปร่งใส กลืนไปกับ .sidebar */
+    -fx-text-fill: white;              /* สีตัวอักษรเป็นสีขาว */
+
+    -fx-font-size: 15px;               /* ขนาดตัวอักษร */
+    -fx-font-weight: bold;             /* ตัวหนา */
+
+    -fx-alignment: CENTER;        /* จัดข้อความชิดซ้าย (เหมือนในรูป) */
+    -fx-padding: 10 15 10 15;          /* ระยะห่าง (บน ขวา ล่าง ซ้าย) */
+
+    -fx-background-radius: 0;          /* ทำให้ปุ่มเป็นสี่เหลี่ยม (ไม่โค้งมน) */
+
+    -fx-pref-width: 1000;              /* ทำให้ปุ่มขยายเต็มความกว้างของ VBox */
+}
+
+/* --- เมื่อเอาเมาส์ไปชี้ (Hover) --- */
+.sidebar-button:hover {
+    -fx-background-color: #4A69A8; /* สีจะสว่างขึ้นเล็กน้อย */
+}
+
+/* --- ปุ่มที่กำลังถูกเลือก (Active) --- */
+.sidebar-button-active {
+    -fx-background-color: #5A7BC1; /* สีสว่างเหมือนในรูปตัวอย่าง (Homepage) */
+}
+
+/* --- (แถม) ทำให้ไอคอนบนปุ่มเป็นสีขาว --- */
+.sidebar-button .glyph-icon {
+    -fx-fill: white; /* สำหรับ Ikonli */
+}
+.sidebar-button .image-view {
+    /* ถ้าใช้ ImageView อาจจะต้องใช้ effect */
+    /* หรือใช้รูปไอคอนที่เป็นสีขาวอยู่แล้ว */
+}

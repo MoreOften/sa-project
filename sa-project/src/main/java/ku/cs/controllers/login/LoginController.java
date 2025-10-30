@@ -3,47 +3,46 @@ package ku.cs.controllers.login;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.PasswordField; // <-- 1. เพิ่ม Import
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import ku.cs.models.user.User;
-// *** ลบ imports ที่เกี่ยวกับ FileDatasource ออก ***
-
-// *** สมมติว่าคุณมี Model เหล่านี้ (จากโค้ดเดิมของคุณ) ***
 import ku.cs.models.pilot.Pilot;
 import ku.cs.models.instructor.Instructor;
 import ku.cs.models.supervisor.Supervisor;
-
-// *** เพิ่ม imports สำหรับ Repository ที่จะสร้างขึ้นใหม่ ***
-// (เราจะสร้างคลาสเหล่านี้ในขั้นตอนถัดไป)
 import ku.cs.services.UserSession;
 import ku.cs.services.user.UserRepository;
 import ku.cs.services.pilot.PilotRepository;
 import ku.cs.services.instructor.InstructorRepository;
 import ku.cs.services.supervisor.SupervisorRepository;
-
 import ku.cs.services.FXRouter;
+
 import java.io.IOException;
-import java.time.LocalDateTime;
+// ไม่จำเป็นต้องใช้ LocalDateTime ที่นี่แล้ว (ถ้าไม่ได้ใช้)
+// import java.time.LocalDateTime;
 
 public class LoginController {
     @FXML private TextField giveUsernameTextField;
-    @FXML private TextField givePasswordTextField;
+    @FXML private PasswordField givePasswordTextField; // <-- 2. เปลี่ยนเป็น PasswordField
     @FXML private Label errorLabel;
     @FXML private ImageView loginLogoImageView;
 
-    // --- เปลี่ยนจาก List และ Datasource มาเป็น Repository ---
-    // เราไม่จำเป็นต้องเก็บ List ไว้ใน Controller อีกต่อไป
-    // Repository จะทำหน้าที่ดึงข้อมูลจาก DB เมื่อต้องการ
     private UserRepository userRepository;
     private PilotRepository pilotRepository;
     private InstructorRepository instructorRepository;
     private SupervisorRepository supervisorRepository;
-    // --- สิ้นสุดการเปลี่ยนแปลง ---
 
     @FXML private void initialize() {
         errorLabel.setText("");
-        Image image = new Image(getClass().getResource("/images/login-logo.png").toString());
-        loginLogoImageView.setImage(image);
+        // แก้ไขการโหลดรูปภาพให้ปลอดภัยมากขึ้น (เผื่อ build เป็น .jar)
+        try {
+            Image image = new Image(getClass().getResource("/images/login-logo.png").toExternalForm());
+            loginLogoImageView.setImage(image);
+        } catch (Exception e) {
+            System.err.println("ไม่สามารถโหลดรูปภาพ login-logo.png");
+            e.printStackTrace();
+        }
+
 
         // --- เปลี่ยนจากการอ่านไฟล์ มาเป็นการสร้าง instance ของ Repository ---
         userRepository = new UserRepository();
@@ -56,7 +55,7 @@ public class LoginController {
     @FXML
     public void onLoginButtonClick() {
         String username = giveUsernameTextField.getText();
-        String plainPassword = givePasswordTextField.getText();
+        String plainPassword = givePasswordTextField.getText(); // .getText() ใช้ได้เหมือนกัน
 
         // 1. ค้นหา User จาก Repo
         User user = userRepository.findUserByUsername(username);
@@ -65,6 +64,7 @@ public class LoginController {
             // 2. (ตรรกะใหม่) ให้ Model ตรวจสอบรหัสผ่านเอง
             if (user.validatePassword(plainPassword)) {
                 // Login สำเร็จ!
+                errorLabel.setText(""); // ล้าง error ถ้ามี
 
                 // 4. เก็บ Session
                 UserSession.getInstance().setCurrentUser(user);
@@ -78,9 +78,11 @@ public class LoginController {
                 }
             } else {
                 // Password ผิด
+                errorLabel.setText("Invalid username or password."); // <-- 3. เพิ่มการแจ้งเตือน
             }
         } else {
             // Username ผิด
+            errorLabel.setText("Invalid username or password."); // <-- 3. เพิ่มการแจ้งเตือน
         }
     }
 
@@ -106,47 +108,33 @@ public class LoginController {
     // --- เปิดการใช้งานและแก้ไขเมธอด handle...Login ---
 
     private void handlePilotLogin(User user) throws IOException {
-        // ค้นหา Pilot จาก DB ผ่าน Repository
         Pilot pilot = pilotRepository.findPilotByUsername(user.getUsername());
-
         if (pilot == null) {
             errorLabel.setText("Pilot profile not found for user: " + user.getUsername());
             return;
         }
-
-        // สำคัญ: เมื่อเจอแล้ว ให้ไปยังหน้า Pilot
-        // และ "ส่ง" object pilot ที่เพิ่งเจอ ไปให้หน้าถัดไป
-        FXRouter.goTo("pilot-home-page");
+        // เราสามารถส่งข้อมูล object ไปยัง Controller ถัดไปได้
+        FXRouter.goTo("pilot-home-page", pilot);
     }
 
 
     private void handleInstructorLogin(User user) throws IOException {
-        // ค้นหา Instructor จาก DB ผ่าน Repository
         Instructor instructor = instructorRepository.findInstructorByUsername(user.getUsername());
-
         if (instructor == null) {
             errorLabel.setText("Instructor profile not found for user: " + user.getUsername());
             return;
         }
-
-        // สำคัญ: เมื่อเจอแล้ว ให้ไปยังหน้า Instructor
-        // และ "ส่ง" object instructor ที่เพิ่งเจอ ไปให้หน้าถัดไป
-        FXRouter.goTo("instructor-main-page");
+        FXRouter.goTo("instructor-main-page", instructor);
     }
 
 
     private void handleSupervisorLogin(User user) throws IOException {
-        // ค้นหา Supervisor จาก DB ผ่าน Repository
         Supervisor supervisor = supervisorRepository.findSupervisorByUsername(user.getUsername());
-
         if (supervisor == null) {
             errorLabel.setText("Supervisor profile not found for user: " + user.getUsername());
             return;
         }
-
-        // สำคัญ: เมื่อเจอแล้ว ให้ไปยังหน้า Supervisor
-        // และ "ส่ง" object supervisor ที่เพิ่งเจอ ไปให้หน้าถัดไป
-        FXRouter.goTo("supervisor-home-page");
+        FXRouter.goTo("supervisor-home-page", supervisor);
     }
 
     // --- สิ้นสุดการแก้ไข ---
@@ -157,7 +145,9 @@ public class LoginController {
         try {
             FXRouter.goTo("register");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            // ควรใช้ System.err.println หรือ Logger แทน throw RuntimeException
+            System.err.println("ไม่สามารถไปหน้า register: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

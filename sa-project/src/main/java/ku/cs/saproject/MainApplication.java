@@ -25,7 +25,7 @@ public class MainApplication extends Application {
             FXRouter.bind(this, stage, "SA Project", 1280, 720);
             configRoutes();
 
-            FXRouter.goTo("login");
+            FXRouter.goTo("instructor-main-page");
 
         } catch (Exception e) {
             System.err.println("เกิดข้อผิดพลาดในการเริ่มแอป: " + e.getMessage());
@@ -47,6 +47,9 @@ public class MainApplication extends Application {
         FXRouter.when("instructor-schedule-page", viewPath + "instructor-schedule-page.fxml");
         FXRouter.when("instructor-report-page", viewPath + "instructor-report-page.fxml");
         FXRouter.when("report-create",  viewPath + "report-create-form.fxml");
+
+        viewPath = "ku/cs/views/pilot/";
+        FXRouter.when("pilot-main-page", viewPath + "pilot-main-page.fxml");
     }
 
     public static void main(String[] args) {

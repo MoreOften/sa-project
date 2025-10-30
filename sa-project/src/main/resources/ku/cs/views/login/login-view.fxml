@@ -6,6 +6,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.control.PasswordField?>
 
 <AnchorPane prefHeight="720.0" prefWidth="1280.0" style="-fx-background-color: #4870D7;" stylesheets="@../../../../css/styles.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ku.cs.controllers.login.LoginController">
     <children>
@@ -19,14 +20,20 @@
                 <Font size="18.0" />
             </font>
         </Button>
-        <TextField fx:id="giveUsernameTextField" layoutX="590.0" layoutY="206.0" prefHeight="70.0" prefWidth="600.0" styleClass="text-field-naja">
-            <font>
-                <Font size="24.0" />
-            </font></TextField>
-        <TextField fx:id="givePasswordTextField" layoutX="590.0" layoutY="348.0" prefHeight="70.0" prefWidth="600.0">
-            <font>
-                <Font size="24.0" />
-            </font></TextField>
+        <TextField fx:id="giveUsernameTextField" layoutX="590.0" layoutY="206.0"
+                   prefHeight="70.0" prefWidth="600.0"
+                   styleClass="text-field-naja"
+                   promptText="Enter your username..."> <font>
+            <Font size="24.0" />
+        </font>
+        </TextField>
+
+        <PasswordField fx:id="givePasswordTextField" layoutX="590.0" layoutY="348.0"
+                       prefHeight="70.0" prefWidth="600.0"
+                       promptText="Enter your password..."> <font>
+            <Font size="24.0" />
+        </font>
+        </PasswordField>
         <Label fx:id="errorLabel" layoutX="595.0" layoutY="438.0" text="errorLabel" textFill="#faa0a0">
             <font>
                 <Font size="36.0" />
@@ -62,15 +69,5 @@
                 <Font size="24.0" />
             </font>
         </Label>
-      <Label alignment="CENTER" layoutX="609.0" layoutY="223.0" text="Enter your username..." textFill="#bcbaba">
-         <font>
-            <Font size="24.0" />
-         </font>
-      </Label>
-      <Label alignment="CENTER" layoutX="609.0" layoutY="365.0" text="Enter your password..." textFill="#bcbaba">
-         <font>
-            <Font size="24.0" />
-         </font>
-      </Label>
     </children>
 </AnchorPane>
