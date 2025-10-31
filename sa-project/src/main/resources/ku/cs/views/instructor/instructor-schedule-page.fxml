@@ -27,19 +27,19 @@
          </children>
       </VBox>
       <Button layoutX="30.0" layoutY="605.0" mnemonicParsing="false" onAction="#onLogoutButtonClick" prefHeight="59.0" prefWidth="149.0" text="Log out" />
-       <TableView fx:id="scheduleTableView" layoutX="494.0" layoutY="180.0">
+       <TableView fx:id="scheduleTableView" layoutX="237.0" layoutY="180.0" prefHeight="400.0" prefWidth="1011.0">
            <columns>
-               <TableColumn fx:id="colScheduleId" text="Schedule ID" />
+               <TableColumn fx:id="colScheduleId" prefWidth="139.0" text="Schedule ID" />
 
-               <TableColumn fx:id="colPilot1" text="Pilot Name 1" />
+               <TableColumn fx:id="colPilot1" minWidth="9.0" prefWidth="235.0" text="Pilot Name 1" />
 
-               <TableColumn fx:id="colPilot2" text="Pilot Name 2" />
+               <TableColumn fx:id="colPilot2" prefWidth="241.0" text="Pilot Name 2" />
 
-               <TableColumn fx:id="colDateTime" text="Date and Time" />
+               <TableColumn fx:id="colDateTime" prefWidth="105.0" text="Date and Time" />
 
-               <TableColumn fx:id="colProgram" text="Training Program" />
+               <TableColumn fx:id="colProgram" prefWidth="165.0" text="Training Program" />
 
-               <TableColumn fx:id="colSupervisor" text="Supervisor ID" />
+               <TableColumn fx:id="colSupervisor" prefWidth="125.0" text="Supervisor ID" />
            </columns>
        </TableView>
    </children>

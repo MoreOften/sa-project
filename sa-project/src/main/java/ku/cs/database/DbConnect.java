@@ -186,14 +186,27 @@ public class DbConnect {
 
                 + " training_timestamp TEXT NOT NULL,"
 
-                + " FOREIGN KEY (supervisor_id) REFERENCES users (username),"
+                + "FOREIGN KEY (supervisor_id) REFERENCES supervisors (supervisor_id),"
+                + "FOREIGN KEY (instructor_id) REFERENCES instructors (instructor_id),"
+                + "FOREIGN KEY (pilot_id_1) REFERENCES pilots (pilot_id),"
+                + "FOREIGN KEY (pilot_id_2) REFERENCES pilots (pilot_id)"
 
-                + " FOREIGN KEY (instructor_id) REFERENCES users (username),"
+                + ");";
 
-                + " FOREIGN KEY (pilot_id_1) REFERENCES users (username),"
-
-                + " FOREIGN KEY (pilot_id_2) REFERENCES users (username)"
-
+        String reportSql = "CREATE TABLE IF NOT EXISTS reports ("
+                + " report_id TEXT PRIMARY KEY,"
+                + " schedule_id TEXT NOT NULL,"
+                + " pilot_id TEXT NOT NULL,"
+                + " instructor_id TEXT NOT NULL,"
+                + " report_details TEXT,"
+                + " status TEXT NOT NULL,"
+                + " created_at TEXT NOT NULL,"
+                + " updated_at TEXT NOT NULL,"
+                + " FOREIGN KEY (schedule_id) REFERENCES schedules (schedule_id),"
+                // (สันนิษฐานว่า pilot_id และ instructor_id ที่คุณเก็บใน report
+                // คือ ID เฉพาะตัว (เช่น PL001, I001) ไม่ใช่ username)
+                + " FOREIGN KEY (pilot_id) REFERENCES pilots (pilot_id),"
+                + " FOREIGN KEY (instructor_id) REFERENCES instructors (instructor_id)"
                 + ");";
 
 
@@ -235,6 +248,9 @@ public class DbConnect {
             stmt.execute(scheduleSql);
 
             System.out.println("ตรวจสอบ/สร้างตาราง Schedules สำเร็จ");
+
+            stmt.execute(reportSql);
+            System.out.println("ตรวจสอบ/สร้างตาราง Reports สำเร็จ");
 
 
 

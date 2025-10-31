@@ -27,7 +27,7 @@
          </children>
       </VBox>
       <Button layoutX="30.0" layoutY="605.0" mnemonicParsing="false" onAction="#onLogoutButtonClick" prefHeight="59.0" prefWidth="149.0" text="Log out" />
-      <Button layoutX="597.0" layoutY="562.0" mnemonicParsing="false" onAction="#onCreateButtonClick" prefHeight="87.0" prefWidth="302.0" text="Create">
+      <Button layoutX="597.0" layoutY="562.0" mnemonicParsing="false" onAction="#handleSubmitButtonAction" prefHeight="87.0" prefWidth="302.0" text="Create">
          <font>
             <Font size="30.0" />
          </font>
@@ -37,7 +37,7 @@
             <Font size="28.0" />
          </font>
       </Text>
-      <Text layoutX="280.0" layoutY="357.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Pilot Name :" wrappingWidth="163.0">
+      <Text layoutX="280.0" layoutY="304.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Pilot Name :" wrappingWidth="163.0">
          <font>
             <Font size="28.0" />
          </font>
@@ -47,7 +47,7 @@
             <Font size="28.0" />
          </font>
       </Label>
-      <ChoiceBox fx:id="pilotNameChoiceBox" layoutX="547.0" layoutY="332.0" prefHeight="31.0" prefWidth="341.0" />
+      <ChoiceBox fx:id="pilotNameChoiceBox" layoutX="547.0" layoutY="277.0" prefHeight="31.0" prefWidth="341.0" />
       <Text layoutX="276.0" layoutY="487.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Training Program :" wrappingWidth="232.0">
          <font>
             <Font size="28.0" />
@@ -63,5 +63,11 @@
             <Font size="16.0" />
          </font>
       </Label>
+      <Text layoutX="280.0" layoutY="391.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Schedule ID :" wrappingWidth="163.0">
+         <font>
+            <Font size="28.0" />
+         </font>
+      </Text>
+      <ChoiceBox fx:id="scheduleIDChoiceBox" layoutX="547.0" layoutY="366.0" prefHeight="31.0" prefWidth="341.0" />
    </children>
 </AnchorPane>

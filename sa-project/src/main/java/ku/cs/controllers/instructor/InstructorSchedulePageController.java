@@ -9,10 +9,12 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import ku.cs.models.instructor.Instructor;
+import ku.cs.models.pilot.Pilot;
 import ku.cs.models.schedule.Schedule;
 import ku.cs.models.user.User;
 import ku.cs.services.FXRouter;
 import ku.cs.services.UserSession;
+import ku.cs.services.pilot.PilotRepository;
 import ku.cs.services.schedule.ScheduleRepository; // (1) Import Repo
 import ku.cs.services.user.UserRepository;       // (2) Import Repo
 
@@ -38,6 +40,7 @@ public class InstructorSchedulePageController {
     // (5) เพิ่ม Repositories และ ObservableList
     private ScheduleRepository scheduleRepository;
     private UserRepository userRepository;
+    private PilotRepository pilotRepository;
     private ObservableList<ScheduleView> scheduleViewList = FXCollections.observableArrayList();
 
     public void initialize() {
@@ -56,6 +59,7 @@ public class InstructorSchedulePageController {
 
         scheduleRepository = new ScheduleRepository();
         userRepository = new UserRepository();
+        pilotRepository = new PilotRepository();
         setupTableColumns();
 
         if (this.currentInstructor != null) {
@@ -91,8 +95,8 @@ public class InstructorSchedulePageController {
         // 2. วนลูปเพื่อดึง "ชื่อ" ของ Pilot และ Supervisor
         for (Schedule s : schedules) {
             // (นี่คือการทำ N+1 Query ซึ่งสำหรับโปรเจกต์ขนาดเล็กถือว่ายอมรับได้)
-            User pilot1 = userRepository.findUserByUsername(s.getPilotId1());
-            User pilot2 = userRepository.findUserByUsername(s.getPilotId2());
+            Pilot pilot1 = pilotRepository.findPilotById(s.getPilotId1());
+            Pilot pilot2 = pilotRepository.findPilotById(s.getPilotId2());
 
             // 3. (แก้ไขตามคำขอ) ใช้ ID ของ Supervisor
             String supervisorId = s.getSupervisorId();
