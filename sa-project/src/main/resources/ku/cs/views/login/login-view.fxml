@@ -2,35 +2,25 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.control.PasswordField?>
 
 <AnchorPane prefHeight="720.0" prefWidth="1280.0" style="-fx-background-color: #4870D7;" stylesheets="@../../../../css/styles.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ku.cs.controllers.login.LoginController">
     <children>
-        <Button layoutX="590.0" layoutY="502.0" mnemonicParsing="false" onAction="#onLoginButtonClick" prefHeight="70.0" prefWidth="600.0" styleClass="login-button" text="Login" textFill="WHITE">
+        <Button layoutX="590.0" layoutY="502.0" mnemonicParsing="false" onAction="#onLoginButtonClick" prefHeight="70.0" prefWidth="600.0" styleClass="login-button" text="Login">
             <font>
                 <Font size="48.0" />
             </font>
         </Button>
-        <Button layoutX="970.0" layoutY="626.0" mnemonicParsing="false" onAction="#onRegisterButtonClick" styleClass="register-button" text="Register">
-            <font>
-                <Font size="18.0" />
-            </font>
-        </Button>
-        <TextField fx:id="giveUsernameTextField" layoutX="590.0" layoutY="206.0"
-                   prefHeight="70.0" prefWidth="600.0"
-                   styleClass="text-field-naja"
-                   promptText="Enter your username..."> <font>
+        <TextField fx:id="giveUsernameTextField" layoutX="590.0" layoutY="206.0" prefHeight="70.0" prefWidth="600.0" promptText="Enter your username..." styleClass="text-field-naja"> <font>
             <Font size="24.0" />
         </font>
         </TextField>
 
-        <PasswordField fx:id="givePasswordTextField" layoutX="590.0" layoutY="348.0"
-                       prefHeight="70.0" prefWidth="600.0"
-                       promptText="Enter your password..."> <font>
+        <PasswordField fx:id="givePasswordTextField" layoutX="590.0" layoutY="348.0" prefHeight="70.0" prefWidth="600.0" promptText="Enter your password..."> <font>
             <Font size="24.0" />
         </font>
         </PasswordField>
@@ -52,11 +42,6 @@
         <Label alignment="CENTER" layoutX="564.0" layoutY="41.0" text="Login to your account" textFill="WHITE">
             <font>
                 <Font size="72.0" />
-            </font>
-        </Label>
-        <Label alignment="CENTER" layoutX="712.0" layoutY="630.0" text="Dont have an account ?" textFill="WHITE">
-            <font>
-                <Font size="24.0" />
             </font>
         </Label>
         <Label alignment="CENTER" layoutX="590.0" layoutY="311.0" text="Password:" textFill="WHITE">

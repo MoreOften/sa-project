@@ -4,10 +4,15 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
@@ -15,7 +20,6 @@
 
     <left>
         <BorderPane prefWidth="220.0" styleClass="sidebar" BorderPane.alignment="CENTER">
-
             <center>
                 <VBox prefHeight="720.0" prefWidth="220.0" spacing="30.0" BorderPane.alignment="CENTER">
                     <children>
@@ -31,27 +35,24 @@
                                 <Insets left="20.0" />
                             </padding>
                         </Button>
-
                         <Button fx:id="scheduleButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#handleScheduleButton" styleClass="sidebar-button" text="Schedule">
                             <padding>
                                 <Insets left="20.0" />
                             </padding>
                         </Button>
-
                         <Button fx:id="reportButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#handleReportButton" styleClass="sidebar-button" text="Report">
                             <padding>
                                 <Insets left="20.0" />
                             </padding>
                         </Button>
-
                         <Button fx:id="resignButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#handleResignButton" text="Resign">
                             <padding>
                                 <Insets left="20.0" />
                             </padding>
-                     <styleClass>
-                        <String fx:value="sidebar-button" />
-                        <String fx:value="sidebar-button-active" />
-                     </styleClass>
+                            <styleClass>
+                                <String fx:value="sidebar-button" />
+                                <String fx:value="sidebar-button-active" />
+                            </styleClass>
                         </Button>
                     </children>
                     <padding>
@@ -59,7 +60,6 @@
                     </padding>
                 </VBox>
             </center>
-
             <bottom>
                 <VBox BorderPane.alignment="CENTER">
                     <children>
@@ -76,63 +76,59 @@
             </bottom>
         </BorderPane>
     </left>
-
     <center>
-        <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+        <VBox prefHeight="200.0" prefWidth="100.0" spacing="20.0" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+            </padding>
             <children>
-                <Label layoutX="395.0" layoutY="74.0" text="Information" AnchorPane.leftAnchor="395.0" AnchorPane.topAnchor="74.0">
+                <Label styleClass="header-label" text="Resignation From">
                     <font>
                         <Font name="System Bold" size="24.0" />
                     </font>
                 </Label>
-                <Label layoutX="390.0" layoutY="132.0" text="Name:">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-                <Label layoutX="390.0" layoutY="172.0" text="Email:">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-                <Label layoutX="393.0" layoutY="207.0" text="ID:">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-                <Label layoutX="393.0" layoutY="247.0" text="Role:">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-
-                <Label fx:id="nameLabel" layoutX="460.0" layoutY="132.0" text="nameLabel">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-                <Label fx:id="emailLabel" layoutX="460.0" layoutY="172.0" text="emailLabel">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-                <Label fx:id="idLabel" layoutX="463.0" layoutY="207.0" text="idLabel">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-                <Label fx:id="roleLabel" layoutX="457.0" layoutY="247.0" text="roleLabel">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-            <Button layoutX="544.0" layoutY="416.0" mnemonicParsing="false" text="ตกลง" />
-            <Label layoutX="332.0" layoutY="411.0" text="กรอกฟอร์มลาออก">
-               <font>
-                  <Font name="System Bold" size="24.0" />
-               </font>
-            </Label>
+                <GridPane hgap="10.0" maxWidth="600.0" vgap="15.0">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="180.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                    <children>
+                        <Label text="Pilot Name:">
+                            <font>
+                                <Font name="System Bold" size="14.0" />
+                            </font>
+                        </Label>
+                        <Label fx:id="pilotNameLabel" text="[Pilot Name Here]" GridPane.columnIndex="1">
+                            <font>
+                                <Font name="System Bold" size="14.0" />
+                            </font>
+                        </Label>
+                        <Label text="Reason" GridPane.rowIndex="1" GridPane.valignment="TOP" />
+                        <TextArea fx:id="reasonTextArea" prefHeight="100.0" promptText="feedback" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Label text="Confirm Password" GridPane.rowIndex="2" />
+                        <PasswordField fx:id="passwordField" promptText="Enter your password" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                    </children>
+                </GridPane>
+                <Label fx:id="errorLabel" styleClass="text-danger" text="" />
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <children>
+                        <Button fx:id="confirmResignButton" mnemonicParsing="false" onAction="#handleConfirmResignButton" text="Confirm Resignation">
+                            <styleClass>
+                                <String fx:value="button-danger" />
+                            </styleClass>
+                        </Button>
+                        <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#handleCancelButton" styleClass="button-secondary" text="Cancel" />
+                    </children>
+                    <VBox.margin>
+                        <Insets top="20.0" />
+                    </VBox.margin>
+                </HBox>
             </children>
-        </AnchorPane>
+        </VBox>
     </center>
 </BorderPane>

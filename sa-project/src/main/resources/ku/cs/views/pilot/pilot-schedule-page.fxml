@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.cell.PropertyValueFactory?>
-
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -90,6 +89,11 @@
 
                 <TableView fx:id="scheduleTableView" layoutX="50.0" layoutY="100.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="100.0">
                     <columns>
+                  <TableColumn fx:id="scheduleIdColumn" prefWidth="150.0" text="Schedule ID">
+                     <cellValueFactory>
+                        <PropertyValueFactory property="date" />
+                     </cellValueFactory>
+                  </TableColumn>
                         <TableColumn fx:id="dateColumn" prefWidth="150.0" text="Date">
                             <cellValueFactory>
                                 <PropertyValueFactory property="date" /> </cellValueFactory>
@@ -98,7 +102,7 @@
                             <cellValueFactory>
                                 <PropertyValueFactory property="time" /> </cellValueFactory>
                         </TableColumn>
-                        <TableColumn fx:id="programColumn" minWidth="300.0" prefWidth="400.0" text="Program">
+                        <TableColumn fx:id="trainingProgramColumn" minWidth="300.0" prefWidth="400.0" text="Training Program">
                             <cellValueFactory>
                                 <PropertyValueFactory property="programName" /> </cellValueFactory>
                         </TableColumn>

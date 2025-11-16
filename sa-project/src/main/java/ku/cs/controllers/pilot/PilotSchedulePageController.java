@@ -9,45 +9,69 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import ku.cs.models.pilot.Pilot;
 import ku.cs.models.schedule.Schedule;
-import ku.cs.services.DataBox; // (สมมติว่ามี)
-import ku.cs.services.schedule.ScheduleRepository; // [EDIT] ใช้ Repository
+import ku.cs.models.user.User; // **NEW: Import User for type checking**
+import ku.cs.services.FXRouter;
+import ku.cs.services.pilot.PilotRepository; // **NEW: Import PilotRepository if needed for lookup**
+import ku.cs.services.schedule.ScheduleRepository;
 
+import java.io.IOException;
 import java.time.LocalDate;
 
 public class PilotSchedulePageController {
 
     // --- Sidebar Menu ---
     @FXML private Button homepageButton;
-    // ... (ปุ่มอื่นๆ) ...
+    @FXML private Button scheduleButton;
+    @FXML private Button reportButton;
+    @FXML private Button resignButton;
     @FXML private Button logoutButton;
 
     // --- Schedule Table (ต้องตรงกับ Model Schedule) ---
     @FXML private TableView<Schedule> scheduleTableView;
     @FXML private TableColumn<Schedule, LocalDate> dateColumn;
     @FXML private TableColumn<Schedule, String> timeColumn;
-    @FXML private TableColumn<Schedule, String> programColumn;  // (ชื่อใน FXML ไม่ต้องตรงกับ Model)
-    @FXML private TableColumn<Schedule, String> instructorColumn; // (ชื่อใน FXML ไม่ต้องตรงกับ Model)
+    @FXML private TableColumn<Schedule, String> programColumn;
+    @FXML private TableColumn<Schedule, String> instructorColumn;
 
     private ObservableList<Schedule> scheduleList;
-    private ScheduleRepository scheduleRepository; // [EDIT]
+    private ScheduleRepository scheduleRepository;
     private Pilot currentPilot;
+    private PilotRepository pilotRepository; // **NEW: Needed for data lookup if only User object is passed**
+
 
     @FXML
     public void initialize() {
         System.out.println("PilotSchedulePageController initialized.");
 
-        // (ข้อสมมติ) ดึง Pilot ที่ login อยู่ (ซึ่งควรจะมี username)
-        currentPilot = (Pilot) DataBox.get("currentPilot");
+        pilotRepository = new PilotRepository(); // Initialize pilot repository
+        scheduleRepository = new ScheduleRepository();
 
-        scheduleRepository = new ScheduleRepository(); // [EDIT]
+        // **FIX: UNIFIED DATA LOGIC**
+        Object data = FXRouter.getData();
+
+        if (data instanceof Pilot) {
+            // Case 1: Pilot object passed directly (from another sidebar button)
+            this.currentPilot = (Pilot) data;
+        } else if (data instanceof User) {
+            // Case 2: Base User object passed (unlikely for internal navigation, but safe to check)
+            User user = (User) data;
+            this.currentPilot = pilotRepository.findPilotByUsername(user.getUsername());
+        }
+        // End Fix
+
         scheduleList = FXCollections.observableArrayList();
-        scheduleTableView.setItems(scheduleList);
 
-        loadScheduleData();
+        if (currentPilot != null) {
+            scheduleTableView.setItems(scheduleList);
+            loadScheduleData();
+        } else {
+            System.err.println("Error: Pilot data is null. Cannot initialize schedule data.");
+            // You might want to display an error or navigate back to login
+        }
     }
 
     private void loadScheduleData() {
-        if (currentPilot == null || currentPilot.getUsername() == null) { // [EDIT]
+        if (currentPilot == null || currentPilot.getUsername() == null) {
             System.err.println("Cannot load schedule data: currentPilot or username is null.");
             return;
         }
@@ -60,10 +84,52 @@ public class PilotSchedulePageController {
         System.out.println("Loaded " + scheduleList.size() + " schedules for pilot: " + currentPilot.getUsername());
     }
 
-    // --- Sidebar Handlers ---
-    @FXML void handleHomepageButton(ActionEvent event) { /* ... */ }
-    @FXML void handleScheduleButton(ActionEvent event) { /* ... */ }
-    @FXML void handleReportButton(ActionEvent event) { /* ... */ }
-    @FXML void handleResignButton(ActionEvent event) { /* ... */ }
-    @FXML void handleLogoutButton(ActionEvent event) { /* ... */ }
+    @FXML
+    public void handleHomepageButton() {
+        try {
+            // แก้ปลายทางเป็นหน้าของ pilot
+            FXRouter.goTo("pilot-main-page", currentPilot);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleScheduleButton() {
+        try {
+            // แก้ปลายทางเป็นหน้าของ pilot (No navigation needed, already on this page, but safe to call)
+            FXRouter.goTo("pilot-schedule-page", currentPilot);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleReportButton() {
+        try {
+            // แก้ปลายทางเป็นหน้าของ pilot
+            FXRouter.goTo("pilot-report-page", currentPilot);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleResignButton() {
+        try {
+            FXRouter.goTo("pilot-resign-page", currentPilot);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @FXML
+    public void handleLogoutButton() {
+        try {
+            FXRouter.goTo("login");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

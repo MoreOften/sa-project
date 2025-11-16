@@ -10,9 +10,12 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import ku.cs.models.pilot.Pilot;
 import ku.cs.models.schedule.Schedule;
-import ku.cs.services.DataBox;
+import ku.cs.models.user.User; // **NEW: Import User for type checking**
+import ku.cs.services.FXRouter;
+import ku.cs.services.pilot.PilotRepository; // **NEW: Import PilotRepository if needed for lookup**
 import ku.cs.services.schedule.ScheduleRepository;
 
+import java.io.IOException;
 import java.time.LocalDate;
 
 public class PilotReportPageController {
@@ -36,24 +39,46 @@ public class PilotReportPageController {
     private ObservableList<Schedule> completedScheduleList;
     private ScheduleRepository scheduleRepository;
     private Pilot currentPilot;
+    // **NEW: If the Pilot object isn't passed directly, we'll need this to look it up**
+    private PilotRepository pilotRepository;
+
 
     @FXML
     public void initialize() {
         System.out.println("PilotReportPageController initialized.");
 
-        currentPilot = (Pilot) DataBox.get("currentPilot");
+        pilotRepository = new PilotRepository(); // Initialize repository
         scheduleRepository = new ScheduleRepository();
+
+        // **FIX: UNIFIED DATA LOGIC**
+        Object data = FXRouter.getData();
+
+        if (data instanceof Pilot) {
+            // Case 1: Pilot object passed directly (from another sidebar button)
+            this.currentPilot = (Pilot) data;
+        } else if (data instanceof User) {
+            // Case 2: Base User object passed (unlikely for internal navigation, but safe to check)
+            User user = (User) data;
+            this.currentPilot = pilotRepository.findPilotByUsername(user.getUsername());
+        }
+        // End Fix
+
         completedScheduleList = FXCollections.observableArrayList();
 
-        reportTableView.setItems(completedScheduleList);
+        if (currentPilot != null) {
+            reportTableView.setItems(completedScheduleList);
 
-        // โหลดข้อมูล Report
-        loadReportData();
+            // โหลดข้อมูล Report
+            loadReportData();
 
-        // [IMPORTANT] เพิ่ม Listener สำหรับการเลือกแถวใน TableView
-        reportTableView.getSelectionModel().selectedItemProperty().addListener(
-                (observable, oldValue, newValue) -> showReportDetails(newValue)
-        );
+            // [IMPORTANT] เพิ่ม Listener สำหรับการเลือกแถวใน TableView
+            reportTableView.getSelectionModel().selectedItemProperty().addListener(
+                    (observable, oldValue, newValue) -> showReportDetails(newValue)
+            );
+        } else {
+            System.err.println("Error: Pilot data is null. Cannot load report page data.");
+            // You might want to navigate to an error page or back to login here.
+        }
 
         // เคลียร์ feedbackTextArea ในตอนเริ่มต้น
         showReportDetails(null);
@@ -71,8 +96,7 @@ public class PilotReportPageController {
         completedScheduleList.clear();
 
         // [IMPORTANT] เราจะเรียกใช้เมธอดใหม่จาก Repository
-        // (ดู "การเปลี่ยนแปลงที่จำเป็น" ในข้อถัดไป)
-//        completedScheduleList.addAll(scheduleRepository.getCompletedSchedulesForPilot(currentPilot.getUsername()));
+        // completedScheduleList.addAll(scheduleRepository.getCompletedSchedulesForPilot(currentPilot.getUsername()));
 
         System.out.println("Loaded " + completedScheduleList.size() + " completed reports for pilot: " + currentPilot.getUsername());
     }
@@ -84,8 +108,7 @@ public class PilotReportPageController {
     private void showReportDetails(Schedule schedule) {
         if (schedule != null) {
             // [IMPORTANT] เราต้องเพิ่ม field "instructorFeedback" ใน Model
-            // (ดู "การเปลี่ยนแปลงที่จำเป็น" ในข้อถัดไป)
-//            feedbackTextArea.setText(schedule.getInstructorFeedback());
+            // feedbackTextArea.setText(schedule.getInstructorFeedback());
         } else {
             feedbackTextArea.clear();
             feedbackTextArea.setPromptText("Please select a report from the table to see details.");
@@ -93,11 +116,54 @@ public class PilotReportPageController {
     }
 
     // --- Sidebar Handlers ---
-    // (ใส่ logic การเปลี่ยนหน้า FXRouter ของคุณที่นี่)
+    // (logic การเปลี่ยนหน้า FXRouter ของคุณถูกต้องแล้ว โดยมีการส่ง currentPilot)
 
-    @FXML void handleHomepageButton(ActionEvent event) { /* ... */ }
-    @FXML void handleScheduleButton(ActionEvent event) { /* ... */ }
-    @FXML void handleReportButton(ActionEvent event) { System.out.println("Already on Report Page."); }
-    @FXML void handleResignButton(ActionEvent event) { /* ... */ }
-    @FXML void handleLogoutButton(ActionEvent event) { /* ... */ }
+    @FXML
+    public void handleHomepageButton() {
+        try {
+            // แก้ปลายทางเป็นหน้าของ pilot
+            FXRouter.goTo("pilot-main-page", currentPilot);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleScheduleButton() {
+        try {
+            // แก้ปลายทางเป็นหน้าของ pilot
+            FXRouter.goTo("pilot-schedule-page", currentPilot);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleReportButton() {
+        try {
+            // แก้ปลายทางเป็นหน้าของ pilot
+            FXRouter.goTo("pilot-report-page", currentPilot);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleResignButton() {
+        try {
+            FXRouter.goTo("pilot-resign-page", currentPilot);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @FXML
+    public void handleLogoutButton() {
+        try {
+            FXRouter.goTo("login");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
