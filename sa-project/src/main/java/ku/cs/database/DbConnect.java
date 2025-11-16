@@ -92,174 +92,108 @@ public class DbConnect {
 
     public static void initializeDatabase() {
 
-// SQL สำหรับสร้างตาราง (ตัวอย่างคือตาราง "users")
-
+        // --- 1. ตาราง User (ไม่เปลี่ยนแปลง) ---
         String userSql = "CREATE TABLE IF NOT EXISTS users ("
-
-                + " username TEXT PRIMARY KEY," // ใช้ username เป็น PK ไปเลยง่ายกว่า
-
+                + " username TEXT PRIMARY KEY,"
                 + " password TEXT NOT NULL,"
-
                 + " name TEXT NOT NULL,"
-
                 + " role TEXT,"
-
                 + " phone TEXT,"
-
                 + " email TEXT UNIQUE,"
-
                 + " profilePicture TEXT,"
-
-                + " lastLogin TEXT," // 1. เปลี่ยนเป็น TEXT เพื่อเก็บ LocalDateTime.toString()
-
-                + " hasAccess INTEGER NOT NULL DEFAULT 1" // 2. เปลี่ยนเป็น INTEGER (1=true, 0=false)
-
+                + " lastLogin TEXT,"
+                + " hasAccess INTEGER NOT NULL DEFAULT 1"
                 + ");";
 
-
-
+        // --- 2. ตาราง Instructor (อัปเดตตาม ERD) ---
         String instructorSql = "CREATE TABLE IF NOT EXISTS instructors ("
-
-// 1. ใช้ username เป็น "กุญแจหลัก" และ "กุญแจต่างประเทศ" (Foreign Key)
-
-// เพื่อเชื่อมโยงไปยังตาราง users
-
                 + " username TEXT PRIMARY KEY,"
-
-
-
-// 2. เก็บเฉพาะข้อมูลของ Instructor ที่ User ไม่มี
-
                 + " instructor_id TEXT NOT NULL UNIQUE,"
-
-
-
-// 5. สร้าง Foreign Key constraint
-
+                + " instructor_is_available INTEGER DEFAULT 1," // Field ใหม่
                 + " FOREIGN KEY (username) REFERENCES users (username)"
-
                 + ");";
 
-
-
+        // --- 3. ตาราง Supervisor (ไม่เปลี่ยนแปลง) ---
         String supervisorSql = "CREATE TABLE IF NOT EXISTS supervisors ("
-
                 + " username TEXT PRIMARY KEY,"
-
                 + " supervisor_id TEXT NOT NULL UNIQUE,"
-
-// + " name TEXT NOT NULL," // <--- (1) ลบบรรทัดนี้
-
                 + " FOREIGN KEY (username) REFERENCES users (username)"
-
                 + ");";
 
-
-
+        // --- 4. ตาราง Pilot (อัปเดตตาม ERD) ---
         String pilotSql = "CREATE TABLE IF NOT EXISTS pilots ("
-
                 + " username TEXT PRIMARY KEY,"
-
                 + " pilot_id TEXT NOT NULL UNIQUE,"
-
-// + " name TEXT NOT NULL," // <--- (2) ลบบรรทัดนี้
-
+                + " pilot_type TEXT," // Field ใหม่
+                + " pilot_is_failed INTEGER DEFAULT 0," // Field ใหม่
+                + " pilot_fail_count INTEGER DEFAULT 0," // Field ใหม่
+                + " pilot_status TEXT," // Field ใหม่
+                + " pilot_progress TEXT," // Field ใหม่
+                + " pilot_is_available INTEGER DEFAULT 1," // Field ใหม่
                 + " FOREIGN KEY (username) REFERENCES users (username)"
-
                 + ");";
 
-
-
+        // --- 5. ตาราง Schedule (***แก้ไขตามที่คุณต้องการ***) ---
         String scheduleSql = "CREATE TABLE IF NOT EXISTS schedules ("
-
                 + " schedule_id TEXT PRIMARY KEY,"
-
                 + " supervisor_id TEXT NOT NULL,"
-
                 + " instructor_id TEXT NOT NULL,"
-
+                // (คงไว้ตามที่คุณขอ) ยังคงเก็บ 2 Pilots
                 + " pilot_id_1 TEXT NOT NULL,"
-
                 + " pilot_id_2 TEXT NOT NULL,"
-
-                + " program_name TEXT NOT NULL,"
-
-                + " training_timestamp TEXT NOT NULL,"
-
-                + "FOREIGN KEY (supervisor_id) REFERENCES supervisors (supervisor_id),"
-                + "FOREIGN KEY (instructor_id) REFERENCES instructors (instructor_id),"
-                + "FOREIGN KEY (pilot_id_1) REFERENCES pilots (pilot_id),"
-                + "FOREIGN KEY (pilot_id_2) REFERENCES pilots (pilot_id)"
-
+                // (อัปเดต) Field ใหม่จาก ERD
+                + " practice_program TEXT NOT NULL," // (แทน program_name)
+                + " schedule_date TEXT NOT NULL,"    // (แทน training_timestamp)
+                + " schedule_time TEXT NOT NULL,"    // (แทน training_timestamp)
+                + " simulator TEXT,"                 // Field ใหม่
+                + " FOREIGN KEY (supervisor_id) REFERENCES supervisors (supervisor_id),"
+                + " FOREIGN KEY (instructor_id) REFERENCES instructors (instructor_id),"
+                // (คงไว้ตามที่คุณขอ) Foreign Key สำหรับ 2 Pilots
+                + " FOREIGN KEY (pilot_id_1) REFERENCES pilots (pilot_id),"
+                + " FOREIGN KEY (pilot_id_2) REFERENCES pilots (pilot_id)"
                 + ");";
 
+        // --- 6. ตาราง Report (อัปเดตตาม ERD) ---
         String reportSql = "CREATE TABLE IF NOT EXISTS reports ("
                 + " report_id TEXT PRIMARY KEY,"
                 + " schedule_id TEXT NOT NULL,"
                 + " pilot_id TEXT NOT NULL,"
                 + " instructor_id TEXT NOT NULL,"
-                + " report_details TEXT,"
-                + " status TEXT NOT NULL,"
+                + " approval_status TEXT NOT NULL," // (แทน status)
+                + " report_result TEXT,"            // Field ใหม่
+                + " report_notes TEXT,"             // (แทน report_details)
                 + " created_at TEXT NOT NULL,"
                 + " updated_at TEXT NOT NULL,"
                 + " FOREIGN KEY (schedule_id) REFERENCES schedules (schedule_id),"
-                // (สันนิษฐานว่า pilot_id และ instructor_id ที่คุณเก็บใน report
-                // คือ ID เฉพาะตัว (เช่น PL001, I001) ไม่ใช่ username)
                 + " FOREIGN KEY (pilot_id) REFERENCES pilots (pilot_id),"
                 + " FOREIGN KEY (instructor_id) REFERENCES instructors (instructor_id)"
                 + ");";
 
-
-
-// ใช้ try-with-resources เพื่อให้แน่ใจว่า Connection และ Statement ถูกปิดเสมอ
-
+        // --- (ส่วน Execute ไม่เปลี่ยนแปลง) ---
         try (Connection conn = getConnection();
-
              Statement stmt = conn.createStatement()) {
 
-
-
-// สั่งให้ SQL ทำงาน
-
             stmt.execute(userSql);
-
             System.out.println("ตรวจสอบ/สร้างตาราง Users สำเร็จ");
 
-
-
             stmt.execute(instructorSql);
-
             System.out.println("ตรวจสอบ/สร้างตาราง Instructor สำเร็จ");
 
-
-
             stmt.execute(supervisorSql);
-
             System.out.println("ตรวจสอบ/สร้างตาราง Supervisor สำเร็จ");
 
-
-
             stmt.execute(pilotSql);
-
             System.out.println("ตรวจสอบ/สร้างตาราง Pilot สำเร็จ");
 
-
-
             stmt.execute(scheduleSql);
-
             System.out.println("ตรวจสอบ/สร้างตาราง Schedules สำเร็จ");
 
             stmt.execute(reportSql);
             System.out.println("ตรวจสอบ/สร้างตาราง Reports สำเร็จ");
 
-
-
         } catch (SQLException e) {
-
             System.err.println("เกิดข้อผิดพลาดในการสร้างตาราง: " + e.getMessage());
-
         }
-
     }
 
 
@@ -442,19 +376,14 @@ public class DbConnect {
             System.out.println("Seeding mock schedule...");
 
             Schedule schedule1 = new Schedule(
-
                     "S001", // supervisorId
-
-                    "I001", // instructorId (คนที่คุณจะเทส)
-
-                    "PL001", // pilotId1 (คนที่ 1)
-
-                    "PL002", // pilotId2 (คนที่ 2)
-
-                    "Introduction to Flight", // programName
-
-                    LocalDateTime.now().plusDays(3).withHour(14).withMinute(0) // วันเวลา (อีก 3 วัน ตอน 14:00)
-
+                    "I001", // instructorId
+                    "PL001", // pilotId1
+                    "PL002", // pilotId2
+                    "Introduction to Flight", // practice_program
+                    java.time.LocalDate.now().plusDays(3).toString(), // schedule_date (TEXT)
+                    "14:00", // schedule_time (TEXT)
+                    "SIM-A380" // simulator
             );
 
             scheduleRepository.addSchedule(schedule1);

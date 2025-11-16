@@ -78,7 +78,7 @@ public class InstructorSchedulePageController {
         colPilot1.setCellValueFactory(new PropertyValueFactory<>("pilot1Name"));
         colPilot2.setCellValueFactory(new PropertyValueFactory<>("pilot2Name"));
         colDateTime.setCellValueFactory(new PropertyValueFactory<>("dateTime"));
-        colProgram.setCellValueFactory(new PropertyValueFactory<>("programName"));
+        colProgram.setCellValueFactory(new PropertyValueFactory<>("practiceProgram"));
         colSupervisor.setCellValueFactory(new PropertyValueFactory<>("supervisorId"));
     }
 
@@ -164,22 +164,19 @@ public class InstructorSchedulePageController {
         private String pilot1Name;
         private String pilot2Name;
         private String dateTime;
-        private String programName;
+        private String practiceProgram;
         private String supervisorId;
-
-        // Formatter สำหรับแปลง LocalDateTime
-        private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
         public ScheduleView(Schedule schedule, String pilot1Name, String pilot2Name, String supervisorId) {
             this.scheduleId = schedule.getScheduleId();
             this.pilot1Name = pilot1Name;
             this.pilot2Name = pilot2Name;
-            this.programName = schedule.getProgramName();
             this.supervisorId = supervisorId;
+            this.practiceProgram = schedule.getPracticeProgram();
 
             // แปลง LocalDateTime เป็น String ที่อ่านง่าย
-            if (schedule.getTrainingTimestamp() != null) {
-                this.dateTime = schedule.getTrainingTimestamp().format(formatter);
+            if (schedule.getScheduleDate() != null && !schedule.getScheduleDate().isEmpty()) {
+                this.dateTime = schedule.getScheduleDate() + " " + schedule.getScheduleTime();
             } else {
                 this.dateTime = "N/A";
             }
@@ -190,7 +187,7 @@ public class InstructorSchedulePageController {
         public String getPilot1Name() { return pilot1Name; }
         public String getPilot2Name() { return pilot2Name; }
         public String getDateTime() { return dateTime; }
-        public String getProgramName() { return programName; }
+        public String getPracticeProgram() { return practiceProgram; }
         public String getSupervisorId() { return supervisorId; }
     }
 }

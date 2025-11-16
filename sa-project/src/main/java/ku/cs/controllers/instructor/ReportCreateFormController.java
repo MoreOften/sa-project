@@ -16,6 +16,8 @@ import ku.cs.services.FXRouter;
 import ku.cs.services.UserSession;
 import ku.cs.services.pilot.PilotRepository;       // (2) Import Repositories
 import ku.cs.services.schedule.ScheduleRepository; // (2) Import Repositories
+import ku.cs.models.report.Report;
+import ku.cs.services.report.ReportRepository;
 
 import java.io.IOException;
 import java.util.List;
@@ -29,11 +31,12 @@ public class ReportCreateFormController {
     @FXML private ChoiceBox<Pilot> pilotNameChoiceBox;
 
     // (3) สันนิษฐานว่าคุณมี TextArea สำหรับกรอกรายละเอียด Report
-    // @FXML private TextArea reportDetailsTextArea;
+    @FXML private TextArea reportDetailsTextArea;
 
     private Instructor currentInstructor;
     private ScheduleRepository scheduleRepository;
     private PilotRepository pilotRepository;
+    private ReportRepository reportRepository;
 
     // (4) ObservableLists for binding to ChoiceBoxes
     private ObservableList<Schedule> instructorSchedules = FXCollections.observableArrayList();
@@ -45,6 +48,7 @@ public class ReportCreateFormController {
         // (5) Initialize Repositories
         scheduleRepository = new ScheduleRepository();
         pilotRepository = new PilotRepository();
+        reportRepository = new ReportRepository();
 
         // (6) Load the logged-in user from the session
         loadCurrentUser();
@@ -52,8 +56,8 @@ public class ReportCreateFormController {
         // (7) Check if instructor is valid before proceeding
         if (this.currentInstructor != null) {
             setupChoiceBoxes();
-            loadSchedulesForInstructor();
             addScheduleSelectionListener();
+            loadSchedulesForInstructor();
         } else {
             // Handle error - user not found or not an instructor
             errorLabel.setText("Error: Instructor user not found in session.");
@@ -89,7 +93,7 @@ public class ReportCreateFormController {
             public String toString(Schedule schedule) {
                 // Display Schedule ID and date
                 return (schedule != null) ?
-                        schedule.getScheduleId() + " (" + schedule.getTrainingTimestamp().toLocalDate() + ")"
+                        schedule.getScheduleId() + " (" + schedule.getScheduleDate() + ")"
                         : "Select Schedule";
             }
 
@@ -153,7 +157,7 @@ public class ReportCreateFormController {
      */
     private void updateFormForSelectedSchedule(Schedule selectedSchedule) {
         // (9) Update Training Program Label
-        trainingProgramLabel.setText(selectedSchedule.getProgramName());
+        trainingProgramLabel.setText(selectedSchedule.getPracticeProgram());
 
         // (10) Update Pilot ChoiceBox
         schedulePilots.clear(); // Clear old pilots
@@ -184,7 +188,7 @@ public class ReportCreateFormController {
         // Get all selected data
         Schedule selectedSchedule = scheduleIDChoiceBox.getValue();
         Pilot selectedPilot = pilotNameChoiceBox.getValue();
-        // String details = reportDetailsTextArea.getText(); // (จาก TextArea)
+        String details = reportDetailsTextArea.getText(); // (จาก TextArea)
 
         // --- Validation ---
         if (selectedSchedule == null) {
@@ -197,13 +201,12 @@ public class ReportCreateFormController {
             errorLabel.setVisible(true);
             return;
         }
-        /*
+
         if (details == null || details.trim().isEmpty()) {
             errorLabel.setText("Please enter report details.");
             errorLabel.setVisible(true);
             return;
         }
-        */
 
         // --- All data is valid, create report object ---
         errorLabel.setVisible(false);
@@ -213,15 +216,33 @@ public class ReportCreateFormController {
         System.out.println("Pilot: " + selectedPilot.getName());
         // System.out.println("Details: " + details);
 
-        // --- TODO: ---
         // 1. Create a new Report object
-        // Report newReport = new Report(..., selectedSchedule, selectedPilot, details, ...);
-        // 2. Get a ReportRepository
-        // ReportRepository reportRepo = new ReportRepository();
-        // 3. Save the report
-        // reportRepo.save(newReport);
-        // 4. Navigate back to the report list page
-        // onReportButtonClick();
+        Report newReport = new Report(
+                selectedSchedule.getScheduleId(),
+                selectedPilot.getPilotID(), // ใช้ Pilot ID
+                currentInstructor.getInstructorID(), // ใช้ Instructor ID
+                selectedSchedule.getPracticeProgram(),
+                details
+        );
+
+        reportRepository.save(newReport);
+
+        try {
+            // (แนะนำ) แสดง Alert Box ว่าสร้างสำเร็จก่อน
+            // Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            // alert.setTitle("Success");
+            // alert.setHeaderText(null);
+            // alert.setContentText("Report created successfully.");
+            // alert.showAndWait();
+
+            // กลับไปหน้า Report (เมธอด onReportButtonClick() มี FXRouter อยู่แล้ว)
+            onReportButtonClick();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorLabel.setText("Error: Could not navigate back to report page.");
+            errorLabel.setVisible(true);
+        }
     }
 
 

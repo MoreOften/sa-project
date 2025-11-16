@@ -3,6 +3,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
@@ -11,63 +12,69 @@
 <?import javafx.scene.text.Text?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ku.cs.controllers.instructor.ReportCreateFormController">
-   <children>
-      <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#4870d7" height="727.0" layoutY="-3.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="207.0" />
-      <Text layoutX="280.0" layoutY="113.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Create Report" wrappingWidth="246.0">
-         <font>
-            <Font size="38.0" />
-         </font>
-      </Text>
-      <ImageView fx:id="logoImageView" fitHeight="131.0" fitWidth="132.0" layoutX="38.0" layoutY="49.0" pickOnBounds="true" preserveRatio="true" />
-      <VBox layoutX="38.0" layoutY="223.0" prefHeight="180.0" prefWidth="132.0">
-         <children>
-            <Button mnemonicParsing="false" onAction="#onHomepageButtonClick" prefHeight="59.0" prefWidth="149.0" text="Homepage" />
-            <Button mnemonicParsing="false" onAction="#onScheduleButtonClick" prefHeight="59.0" prefWidth="149.0" text="Schedule" />
-            <Button mnemonicParsing="false" onAction="#onReportButtonClick" prefHeight="59.0" prefWidth="149.0" text="Report" />
-         </children>
-      </VBox>
-      <Button layoutX="30.0" layoutY="605.0" mnemonicParsing="false" onAction="#onLogoutButtonClick" prefHeight="59.0" prefWidth="149.0" text="Log out" />
-      <Button layoutX="597.0" layoutY="562.0" mnemonicParsing="false" onAction="#handleSubmitButtonAction" prefHeight="87.0" prefWidth="302.0" text="Create">
-         <font>
-            <Font size="30.0" />
-         </font>
-      </Button>
-      <Text layoutX="280.0" layoutY="224.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Instructor Name :" wrappingWidth="223.0">
-         <font>
-            <Font size="28.0" />
-         </font>
-      </Text>
-      <Text layoutX="280.0" layoutY="304.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Pilot Name :" wrappingWidth="163.0">
-         <font>
-            <Font size="28.0" />
-         </font>
-      </Text>
-      <Label fx:id="instructorNameLabel" layoutX="547.0" layoutY="193.0" text="instructorNameLabel">
-         <font>
-            <Font size="28.0" />
-         </font>
-      </Label>
-      <ChoiceBox fx:id="pilotNameChoiceBox" layoutX="547.0" layoutY="277.0" prefHeight="31.0" prefWidth="341.0" />
-      <Text layoutX="276.0" layoutY="487.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Training Program :" wrappingWidth="232.0">
-         <font>
-            <Font size="28.0" />
-         </font>
-      </Text>
-      <Label fx:id="trainingProgramLabel" layoutX="547.0" layoutY="457.0" text="trainingProgramLabel">
-         <font>
-            <Font size="28.0" />
-         </font>
-      </Label>
-      <Label fx:id="errorLabel" layoutX="597.0" layoutY="664.0" text="errorLabel" textFill="RED">
-         <font>
-            <Font size="16.0" />
-         </font>
-      </Label>
-      <Text layoutX="280.0" layoutY="391.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Schedule ID :" wrappingWidth="163.0">
-         <font>
-            <Font size="28.0" />
-         </font>
-      </Text>
-      <ChoiceBox fx:id="scheduleIDChoiceBox" layoutX="547.0" layoutY="366.0" prefHeight="31.0" prefWidth="341.0" />
-   </children>
+    <children>
+        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#4870d7" height="727.0" layoutY="-3.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="207.0" />
+        <Text layoutX="280.0" layoutY="113.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Create Report" wrappingWidth="246.0">
+            <font>
+                <Font size="38.0" />
+            </font>
+        </Text>
+        <ImageView fx:id="logoImageView" fitHeight="131.0" fitWidth="132.0" layoutX="38.0" layoutY="49.0" pickOnBounds="true" preserveRatio="true" />
+        <VBox layoutX="38.0" layoutY="223.0" prefHeight="180.0" prefWidth="132.0">
+            <children>
+                <Button mnemonicParsing="false" onAction="#onHomepageButtonClick" prefHeight="59.0" prefWidth="149.0" text="Homepage" />
+                <Button mnemonicParsing="false" onAction="#onScheduleButtonClick" prefHeight="59.0" prefWidth="149.0" text="Schedule" />
+                <Button mnemonicParsing="false" onAction="#onReportButtonClick" prefHeight="59.0" prefWidth="149.0" text="Report" />
+            </children>
+        </VBox>
+        <Button layoutX="30.0" layoutY="605.0" mnemonicParsing="false" onAction="#onLogoutButtonClick" prefHeight="59.0" prefWidth="149.0" text="Log out" />
+        <Button layoutX="597.0" layoutY="615.0" mnemonicParsing="false" onAction="#handleSubmitButtonAction" prefHeight="87.0" prefWidth="302.0" text="Create">
+            <font>
+                <Font size="30.0" />
+            </font>
+        </Button>
+        <Text layoutX="280.0" layoutY="224.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Instructor Name :" wrappingWidth="223.0">
+            <font>
+                <Font size="28.0" />
+            </font>
+        </Text>
+        <Text layoutX="280.0" layoutY="304.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Pilot Name :" wrappingWidth="163.0">
+            <font>
+                <Font size="28.0" />
+            </font>
+        </Text>
+        <Label fx:id="instructorNameLabel" layoutX="547.0" layoutY="193.0" text="instructorNameLabel">
+            <font>
+                <Font size="28.0" />
+            </font>
+        </Label>
+        <ChoiceBox fx:id="pilotNameChoiceBox" layoutX="547.0" layoutY="277.0" prefHeight="31.0" prefWidth="341.0" />
+        <Text layoutX="276.0" layoutY="487.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Training Program :" wrappingWidth="232.0">
+            <font>
+                <Font size="28.0" />
+            </font>
+        </Text>
+        <Label fx:id="trainingProgramLabel" layoutX="547.0" layoutY="457.0" text="trainingProgramLabel">
+            <font>
+                <Font size="28.0" />
+            </font>
+        </Label>
+        <Text layoutX="276.0" layoutY="525.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Report Details :">
+            <font>
+                <Font size="28.0" />
+            </font>
+        </Text>
+        <TextArea fx:id="reportDetailsTextArea" layoutX="547.0" layoutY="498.0" prefHeight="100.0" prefWidth="341.0" wrapText="true" />
+        <Label fx:id="errorLabel" layoutX="547.0" layoutY="600.0" text="errorLabel" textFill="RED">
+            <font>
+                <Font size="16.0" />
+            </font>
+        </Label>
+        <Text layoutX="280.0" layoutY="391.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Schedule ID :" wrappingWidth="163.0">
+            <font>
+                <Font size="28.0" />
+            </font>
+        </Text>
+        <ChoiceBox fx:id="scheduleIDChoiceBox" layoutX="547.0" layoutY="366.0" prefHeight="31.0" prefWidth="341.0" />
+    </children>
 </AnchorPane>
