@@ -85,5 +85,7 @@ public class SupervisorRepository {
     } catch (SQLException e) {
         throw new RuntimeException("addSupervisor failed: " + e.getMessage(), e);
     }
+
+
 }
 }

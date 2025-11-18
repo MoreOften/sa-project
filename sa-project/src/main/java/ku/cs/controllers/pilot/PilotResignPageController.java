@@ -10,6 +10,7 @@ import ku.cs.models.pilot.Pilot;
 import ku.cs.models.user.User;
 import ku.cs.services.FXRouter;
 import ku.cs.services.pilot.PilotRepository;
+import ku.cs.services.user.UserRepository;
 
 import java.io.IOException;
 
@@ -29,10 +30,12 @@ public class PilotResignPageController {
 
     private Pilot currentPilot;
     private PilotRepository pilotRepository;
+    private UserRepository userRepository;
 
     @FXML
     public void initialize() {
         pilotRepository = new PilotRepository();
+        userRepository = new UserRepository();
 
         // **UNIFIED DATA LOGIC FIX:** Prioritize checking for Pilot object
         Object data = FXRouter.getData();
@@ -67,15 +70,65 @@ public class PilotResignPageController {
         if (errorLabel != null) errorLabel.setText("");
     }
 
+//    @FXML
+//    public void handleConfirmResignButton(ActionEvent event) {
+//        // Add your resignation logic here (e.g., validation, database removal)
+//        System.out.println("Pilot: " + currentPilot.getUsername() + " is resigning.");
+//
+//        try {
+//            // Placeholder: Go to login after resignation
+//            FXRouter.goTo("pilot-resign-page");
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+
     @FXML
     public void handleConfirmResignButton(ActionEvent event) {
-        // Add your resignation logic here (e.g., validation, database removal)
+
+        // 1. รับรหัสผ่านที่ผู้ใช้กรอก
+        String plainPassword = passwordField.getText();
+
+
+        User user = userRepository.findUserByUsername(currentPilot.getUsername());
+
+        // 2. ล้างข้อความผิดพลาดเดิม และตรวจสอบว่า currentPilotUser ถูกโหลดมาแล้ว
+        errorLabel.setText("");
+
+        if (currentPilot == null) {
+            errorLabel.setText("⚠️ ข้อผิดพลาดทางระบบ: ไม่พบข้อมูลผู้ใช้งานปัจจุบัน.");
+            return;
+        }
+
+        // 3. ตรวจสอบความว่างเปล่า
+        if (plainPassword.isEmpty()) {
+            errorLabel.setText("⚠️ กรุณากรอกรหัสผ่านปัจจุบันเพื่อยืนยันการลาออก.");
+            return;
+        }
+
+        // 4. ตรวจสอบรหัสผ่าน
+        // **สำคัญ:** ในระบบจริง ต้องใช้การแฮช (Hashing) เช่น BCrypt ในการเปรียบเทียบรหัสผ่าน
+        // ในที่นี้ เราใช้เมธอด getPassword() ของ User model เพื่อจำลองการเปรียบเทียบ
+        if (!user.validatePassword(plainPassword)) {
+
+            // รหัสผ่านไม่ถูกต้อง: แสดงข้อผิดพลาดและยกเลิกการลาออก
+            errorLabel.setText("❌ รหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบและลองอีกครั้ง.");
+            passwordField.setText(""); // ล้างรหัสผ่านที่กรอกเพื่อความปลอดภัย
+            return;
+        }
+
+        // --- รหัสผ่านถูกต้อง: ดำเนินการตามตรรกะการลาออก (Resignation Logic) ---
         System.out.println("Pilot: " + currentPilot.getUsername() + " is resigning.");
 
         try {
-            // Placeholder: Go to login after resignation
-            FXRouter.goTo("login");
+            // [*** วางโค้ดเรียก Resignation Service ของคุณที่นี่ ***]
+            // Example: resignationService.processResignation(currentPilotUser.getPilotID());
+
+            // Placeholder: ไปหน้า Login หลังจากลาออกสำเร็จ
+            FXRouter.goTo("pilot-resign-page");
+
         } catch (IOException e) {
+            System.err.println("Error navigating after successful resignation.");
             throw new RuntimeException(e);
         }
     }

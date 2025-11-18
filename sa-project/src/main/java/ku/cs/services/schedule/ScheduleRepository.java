@@ -9,9 +9,41 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 // (ลบ) import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ScheduleRepository {
+    private static final List<Schedule> schedules = List.of();
+
+    // ... (Existing methods) ...
+
+    /**
+     * Use Case Step 4 & 5: ค้นหาและยกเลิกตารางฝึกที่ยังไม่เสร็จสิ้น
+     */
+    public List<Schedule> cancelIncompleteSchedulesForPilot(String pilotID) {
+        // สถานะที่ต้องยกเลิกตาม Use Case: status IN ('scheduled', 'pending')
+        List<String> statusesToCancel = Arrays.asList("scheduled", "pending");
+
+        // Step 4: SELECT (หาตารางที่เกี่ยวข้อง)
+        List<Schedule> schedulesToCancel = schedules.stream()
+                // ตรวจสอบสถานะและว่านักบินเกี่ยวข้องกับตารางนั้นๆ
+                .filter(s -> statusesToCancel.contains(s.getScheduleStatus().toLowerCase()))
+                .filter(s -> s.getPilotId1().equals(pilotID) || s.getPilotId2().equals(pilotID))
+                .collect(Collectors.toList());
+
+        // Step 5: DELETE/UPDATE (จำลองการยกเลิกโดยเปลี่ยนสถานะ)
+        List<Schedule> cancelledSchedules = new ArrayList<>();
+
+        for (Schedule schedule : schedulesToCancel) {
+            schedule.setScheduleStatus("cancelled_resignation"); // เปลี่ยนสถานะเป็นยกเลิก
+            cancelledSchedules.add(schedule);
+            System.out.printf("-> [ScheduleRepo] ยกเลิกตาราง %s (Program: %s) แล้ว%n",
+                    schedule.getScheduleId(), schedule.getPracticeProgram());
+        }
+
+        return cancelledSchedules;
+    }
 
     /**
      * เพิ่ม Schedule ใหม่ลงในฐานข้อมูล

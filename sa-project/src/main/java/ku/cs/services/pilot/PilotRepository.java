@@ -9,7 +9,32 @@ import java.time.LocalDateTime;
 import ku.cs.database.DbConnect;
 import ku.cs.models.pilot.Pilot;
 
+import java.util.List;
+import java.util.Optional;
+
 public class PilotRepository {
+
+    private static final List<Pilot> pilots = List.of();
+
+    // ... (Existing methods: addPilot, findPilotByID, etc.) ...
+
+    /**
+     * Use Case Step 7: เปลี่ยนสถานะ Pilot เป็น 'resigned' และ Pilot_Is_Available = False
+     */
+    public boolean updatePilotToResigned(String pilotID) {
+        Optional<Pilot> optionalPilot = pilots.stream()
+                .filter(p -> p.getPilotID().equals(pilotID))
+                .findFirst();
+
+        if (optionalPilot.isPresent()) {
+            Pilot pilot = optionalPilot.get();
+            pilot.setPilotStatus("resigned");        // UPDATE pilots SET status = 'resigned'
+            pilot.setPilotIsAvailable(String.valueOf(false));          // Pilot_Is_Available = False
+            System.out.printf("-> [PilotRepo] Pilot ID %s สถานะเปลี่ยนเป็น 'ลาออก' (resigned).%n", pilotID);
+            return true;
+        }
+        return false;
+    }
 
     /**
      * ค้นหา Pilot (พร้อมข้อมูล User) จาก username

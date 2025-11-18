@@ -94,5 +94,13 @@ public class InstructorRepository {
         }
     }
 
+    public String getEmailById(String instructorID) {
+        // ในระบบจริงจะไปค้นจากฐานข้อมูล
+        if (instructorID.equals("I001")) {
+            return "heartofficial16@gmail.com";
+        }
+        return null;
+    }
+
     // ... (เมธอด updatePasswordAndStatus อยู่ที่นี่) ...
 }
