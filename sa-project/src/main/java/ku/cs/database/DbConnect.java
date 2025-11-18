@@ -384,6 +384,7 @@ public class DbConnect {
                     java.time.LocalDate.now().plusDays(3).toString(), // schedule_date (TEXT)
                     "14:00", // schedule_time (TEXT)
                     "SIM-A380" // simulator
+
             );
 
             scheduleRepository.addSchedule(schedule1);

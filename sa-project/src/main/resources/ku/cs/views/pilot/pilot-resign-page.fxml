@@ -114,7 +114,6 @@
                         <PasswordField fx:id="passwordField" promptText="Enter your password" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                     </children>
                 </GridPane>
-                <Label fx:id="errorLabel" styleClass="text-danger" text="" />
                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                     <children>
                         <Button fx:id="confirmResignButton" mnemonicParsing="false" onAction="#handleConfirmResignButton" text="Confirm Resignation">
@@ -128,6 +127,7 @@
                         <Insets top="20.0" />
                     </VBox.margin>
                 </HBox>
+                <Label fx:id="errorLabel" styleClass="text-danger" text="" />
             </children>
         </VBox>
     </center>

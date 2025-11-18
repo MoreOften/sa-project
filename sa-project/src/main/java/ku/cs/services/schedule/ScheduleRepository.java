@@ -94,9 +94,27 @@ public class ScheduleRepository {
         return schedules;
     }
 
-    // (คุณต้องเพิ่มเมธอดอื่นๆ ที่นี่ เช่น...)
-    // public Schedule findScheduleById(String scheduleId) { ... }
+    public Schedule findScheduleById(String scheduleId) {
+        String sql = "SELECT * FROM schedules WHERE schedule_id = ?";
+        Schedule schedule = null;
 
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, scheduleId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    // เราใช้ helper method ที่มีอยู่แล้วได้เลย
+                    schedule = createScheduleFromResultSet(rs);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("ScheduleRepository (findScheduleById) Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return schedule;
+    }
 
     /**
      * Helper method สำหรับสร้าง Schedule object จาก ResultSet
