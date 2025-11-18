@@ -13,26 +13,19 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Manages the persistence of Report objects using an SQLite database.
- */
 public class ReportRepository {
-    // In-memory list of all reports (Cache)
     private List<Report> reports;
 
-    /**
-     * Constructor: Initializes the repository and loads data from the database.
-     */
     public ReportRepository() {
         this.reports = new ArrayList<>();
         load(); // (3) Load data from Database
     }
 
     /**
-     * Loads all reports from the database into the in-memory list.
+     * (FIX 1: Update load() method)
      */
     private void load() {
-        this.reports.clear(); // Clear cache before loading
+        this.reports.clear();
         String sql = "SELECT * FROM reports";
 
         try (Connection conn = DbConnect.getConnection();
@@ -40,19 +33,24 @@ public class ReportRepository {
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                // Parse data from database columns
                 String reportId = rs.getString("report_id");
                 String scheduleId = rs.getString("schedule_id");
                 String pilotId = rs.getString("pilot_id");
                 String instructorId = rs.getString("instructor_id");
-                String trainingProgram = rs.getString("training_program");
-                String reportDetails = rs.getString("report_details");
-                ReportStatus status = ReportStatus.valueOf(rs.getString("status"));
+
+                // --- (New Columns) ---
+                String reportNotes = rs.getString("report_notes");     // (Was report_details)
+                String reportResult = rs.getString("report_result");
+                ReportStatus approvalStatus = ReportStatus.valueOf(rs.getString("approval_status")); // (Was status)
+                // --- (End Change) ---
+
                 LocalDateTime createdAt = LocalDateTime.parse(rs.getString("created_at"));
                 LocalDateTime updatedAt = LocalDateTime.parse(rs.getString("updated_at"));
 
-                // Create Report object and add to list
-                Report report = new Report(reportId, scheduleId, pilotId, instructorId, trainingProgram, reportDetails, status, createdAt, updatedAt);
+                // --- (Call New Constructor) ---
+                Report report = new Report(reportId, scheduleId, pilotId, instructorId,
+                        reportNotes, reportResult,
+                        approvalStatus, createdAt, updatedAt);
                 this.reports.add(report);
             }
         } catch (SQLException | IllegalArgumentException e) {
@@ -62,18 +60,16 @@ public class ReportRepository {
     }
 
     /**
-     * Saves a new report (INSERT) or updates an existing one (UPDATE).
-     *
-     * @param report The Report object to save.
+     * (FIX 2: Update save() method)
      */
     public void save(Report report) {
-        // Check if the report already exists in the database
         Report existingReport = findReportById(report.getReportId());
 
         if (existingReport == null) {
-            // (4) --- INSERT new report ---
-            String sql = "INSERT INTO reports (report_id, schedule_id, pilot_id, instructor_id, training_program, report_details, status, created_at, updated_at) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            // (4) --- INSERT new report (Updated SQL) ---
+            String sql = "INSERT INTO reports (report_id, schedule_id, pilot_id, instructor_id, " +
+                    "report_notes, report_result, approval_status, created_at, updated_at) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"; // (10 params)
 
             try (Connection conn = DbConnect.getConnection();
                  PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -82,15 +78,17 @@ public class ReportRepository {
                 ps.setString(2, report.getScheduleId());
                 ps.setString(3, report.getPilotId());
                 ps.setString(4, report.getInstructorId());
-                ps.setString(5, report.getTrainingProgram());
-                ps.setString(6, report.getReportDetails());
-                ps.setString(7, report.getStatus().name()); // "DRAFT", etc.
+
+                // --- (Updated Setters) ---
+                ps.setString(5, report.getReportNotes());
+                ps.setString(6, report.getReportResult());
+                ps.setString(7, report.getApprovalStatus().name()); // (Was getStatus)
+                // --- (End Change) ---
+
                 ps.setString(8, report.getCreatedAt().toString());
                 ps.setString(9, report.getUpdatedAt().toString());
 
                 ps.executeUpdate();
-
-                // Add to in-memory list as well
                 this.reports.add(report);
 
             } catch (SQLException e) {
@@ -98,14 +96,15 @@ public class ReportRepository {
                 e.printStackTrace();
             }
         } else {
-            // (5) --- UPDATE existing report ---
+            // (5) --- UPDATE existing report (Updated SQL) ---
             String sql = "UPDATE reports SET " +
                     "schedule_id = ?, " +
                     "pilot_id = ?, " +
                     "instructor_id = ?, " +
-                    "training_program = ?, " +
-                    "report_details = ?, " +
-                    "status = ?, " +
+                    "practice_program = ?, " +
+                    "report_notes = ?, " +
+                    "report_result = ?, " +
+                    "approval_status = ?, " +
                     "updated_at = ? " +
                     "WHERE report_id = ?";
 
@@ -115,15 +114,18 @@ public class ReportRepository {
                 ps.setString(1, report.getScheduleId());
                 ps.setString(2, report.getPilotId());
                 ps.setString(3, report.getInstructorId());
-                ps.setString(4, report.getTrainingProgram());
-                ps.setString(5, report.getReportDetails());
-                ps.setString(6, report.getStatus().name());
-                ps.setString(7, report.getUpdatedAt().toString()); // Update timestamp
+
+                // --- (Updated Setters) ---
+                ps.setString(4, report.getReportNotes());
+                ps.setString(5, report.getReportResult());
+                ps.setString(6, report.getApprovalStatus().name());
+                // --- (End Change) ---
+
+                ps.setString(7, report.getUpdatedAt().toString());
                 ps.setString(8, report.getReportId()); // WHERE clause
 
                 ps.executeUpdate();
 
-                // Update in-memory list
                 this.reports.remove(existingReport);
                 this.reports.add(report);
 
@@ -134,11 +136,9 @@ public class ReportRepository {
         }
     }
 
-    /**
-     * Deletes a report from the database.
-     *
-     * @param reportId The ID of the report to delete.
-     */
+    // ... (delete, flushToCsv, findReportById, findReportsByInstructor, findAll methods are fine) ...
+    // [REST OF THE FILE IS OMITTED FOR BREVITY, NO CHANGES NEEDED BELOW THIS LINE]
+
     public void delete(String reportId) {
         Report reportToRemove = findReportById(reportId);
         if (reportToRemove == null) {
@@ -155,7 +155,6 @@ public class ReportRepository {
             int rowsAffected = ps.executeUpdate();
 
             if (rowsAffected > 0) {
-                // Also remove from in-memory list
                 this.reports.remove(reportToRemove);
             }
 
@@ -165,25 +164,10 @@ public class ReportRepository {
         }
     }
 
-    /**
-     * Writes the entire in-memory list of reports back to the CSV file.
-     * (This method is no longer needed with a database)
-     */
     private void flushToCsv() {
-        // (6) This method is now obsolete.
-        // We save data instantly (INSERT/UPDATE/DELETE)
-        // instead of flushing all at once.
+        // Obsolete
     }
 
-    // --- Finder Methods (Used by Controllers) ---
-    // (These methods now search the in-memory list first)
-
-    /**
-     * Finds a single report by its unique ID from the in-memory list.
-     *
-     * @param reportId The ID to search for.
-     * @return The Report object if found, or null otherwise.
-     */
     public Report findReportById(String reportId) {
         for (Report report : this.reports) {
             if (report.getReportId().equals(reportId)) {
@@ -191,21 +175,11 @@ public class ReportRepository {
             }
         }
         return null;
-        // (Optional: If not found in cache, could query DB again,
-        // but 'load()' should be comprehensive)
     }
 
-    /**
-     * Finds all reports associated with a specific instructor from the in-memory list.
-     *
-     * @param instructorId The Instructor's ID.
-     * @return A list of matching reports.
-     */
     public List<Report> findReportsByInstructor(String instructorId) {
         List<Report> found = new ArrayList<>();
         for (Report report : this.reports) {
-            // Note: Make sure the ID you store (instructor_id) matches
-            // what you are searching for.
             if (report.getInstructorId().equals(instructorId)) {
                 found.add(report);
             }
@@ -213,13 +187,7 @@ public class ReportRepository {
         return found;
     }
 
-    /**
-     * (Optional) Finds all reports.
-     * @return A new list containing all reports.
-     */
     public List<Report> findAll() {
-        // Return a copy to prevent modification of the internal list
         return new ArrayList<>(this.reports);
     }
 }
-

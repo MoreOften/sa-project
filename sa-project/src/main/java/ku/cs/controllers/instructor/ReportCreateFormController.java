@@ -221,7 +221,6 @@ public class ReportCreateFormController {
                 selectedSchedule.getScheduleId(),
                 selectedPilot.getPilotID(), // ใช้ Pilot ID
                 currentInstructor.getInstructorID(), // ใช้ Instructor ID
-                selectedSchedule.getPracticeProgram(),
                 details
         );
 

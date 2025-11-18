@@ -11,12 +11,13 @@ import ku.cs.models.instructor.Instructor;
 import ku.cs.models.pilot.Pilot;
 import ku.cs.models.report.Report;
 import ku.cs.models.report.ReportStatus;
-import ku.cs.models.schedule.Schedule;
 import ku.cs.models.user.User;
 import ku.cs.services.FXRouter;
 import ku.cs.services.UserSession;
 import ku.cs.services.pilot.PilotRepository;
 import ku.cs.services.report.ReportRepository;
+import ku.cs.services.schedule.ScheduleRepository; // ‼️ เพิ่ม Import
+import ku.cs.models.schedule.Schedule; // ‼️ เพิ่ม Import
 
 import java.io.IOException;
 import java.util.List;
@@ -34,6 +35,7 @@ public class InstructorReportPageController {
     private Instructor currentInstructor;
     private ReportRepository reportRepository;
     private PilotRepository pilotRepository;
+    private ScheduleRepository scheduleRepository;
     private ObservableList<ReportView> reportViewList = FXCollections.observableArrayList();
 
     public void initialize() {
@@ -49,6 +51,7 @@ public class InstructorReportPageController {
         // (6) เริ่มต้น Repositories
         reportRepository = new ReportRepository();
         pilotRepository = new PilotRepository();
+        scheduleRepository = new ScheduleRepository();
 
         setupTableColumns();
         setupRowClickListener(); // (7) เพิ่มตัวดักจับการคลิก
@@ -61,8 +64,8 @@ public class InstructorReportPageController {
     private void setupTableColumns() {
         colScheduleId.setCellValueFactory(new PropertyValueFactory<>("scheduleId"));
         colPilotName.setCellValueFactory(new PropertyValueFactory<>("pilotName"));
-        colProgram.setCellValueFactory(new PropertyValueFactory<>("trainingProgram"));
-        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        colProgram.setCellValueFactory(new PropertyValueFactory<>("practiceProgram"));
+        colStatus.setCellValueFactory(new PropertyValueFactory<>("approvalStatus"));
     }
 
     private void loadReportData() {
@@ -76,8 +79,11 @@ public class InstructorReportPageController {
             Pilot pilot = pilotRepository.findPilotById(r.getPilotId());
             String pilotName = (pilot != null) ? pilot.getName() : "N/A";
 
+            Schedule schedule = scheduleRepository.findScheduleById(r.getScheduleId());
+            String programName = (schedule != null) ? schedule.getPracticeProgram() : "Schedule N/A";
+
             // 3. สร้าง ReportView และเพิ่มลงใน List
-            reportViewList.add(new ReportView(r, pilotName));
+            reportViewList.add(new ReportView(r, pilotName, programName));
         }
 
         // 4. แสดงผลบนตาราง
@@ -125,7 +131,7 @@ public class InstructorReportPageController {
     public void onSendButtonClick() {
         // (ตัวอย่างการทำงาน) ส่ง Report ที่เลือก
         ReportView selectedReport = reportTableView.getSelectionModel().getSelectedItem();
-        if (selectedReport != null && selectedReport.getStatus() == ReportStatus.DRAFT) {
+        if (selectedReport != null && selectedReport.getApprovalStatus() == ReportStatus.DRAFT) {
             System.out.println("REPORT_PAGE: กำลังส่ง Report ID: " + selectedReport.getReportId());
             // 1. หา Report ตัวจริง
             Report report = reportRepository.findReportById(selectedReport.getReportId());
@@ -197,22 +203,22 @@ public class InstructorReportPageController {
         private String reportId;
         private String scheduleId;
         private String pilotName;
-        private String trainingProgram;
-        private ReportStatus status;
+        private String practiceProgram;
+        private ReportStatus approvalStatus;
 
-        public ReportView(Report report, String pilotName) {
+        public ReportView(Report report, String pilotName, String programName) {
             this.reportId = report.getReportId();
             this.scheduleId = report.getScheduleId();
             this.pilotName = pilotName;
-            this.trainingProgram = report.getTrainingProgram();
-            this.status = report.getStatus();
+            this.practiceProgram = programName;
+            this.approvalStatus = report.getApprovalStatus();
         }
 
         // --- Getters (สำคัญสำหรับ PropertyValueFactory) ---
         public String getReportId() { return reportId; }
         public String getScheduleId() { return scheduleId; }
         public String getPilotName() { return pilotName; }
-        public String getTrainingProgram() { return trainingProgram; }
-        public ReportStatus getStatus() { return status; }
+        public String getPracticeProgram() { return practiceProgram; }
+        public ReportStatus getApprovalStatus() { return approvalStatus; }
     }
 }
