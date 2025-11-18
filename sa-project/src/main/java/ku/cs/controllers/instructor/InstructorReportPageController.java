@@ -5,6 +5,8 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Alert;      // สำหรับสร้างหน้าต่างแจ้งเตือน
+import javafx.scene.control.ButtonType; // สำหรับปุ่ม OK/Cancel
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import ku.cs.models.instructor.Instructor;
@@ -21,6 +23,7 @@ import ku.cs.models.schedule.Schedule; // ‼️ เพิ่ม Import
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;              // สำหรับรับค่าผลลัพธ์การกดปุ่ม
 
 public class InstructorReportPageController {
     @FXML TableView<ReportView> reportTableView;
@@ -128,36 +131,99 @@ public class InstructorReportPageController {
         }
     }
 
+    @FXML
     public void onSendButtonClick() {
-        // (ตัวอย่างการทำงาน) ส่ง Report ที่เลือก
+        // 1. ดึง Report ที่ถูกเลือก
         ReportView selectedReport = reportTableView.getSelectionModel().getSelectedItem();
+
+        // ตรวจสอบว่ามีการเลือก และสถานะเป็น DRAFT (ถึงจะส่งได้)
         if (selectedReport != null && selectedReport.getApprovalStatus() == ReportStatus.DRAFT) {
-            System.out.println("REPORT_PAGE: กำลังส่ง Report ID: " + selectedReport.getReportId());
-            // 1. หา Report ตัวจริง
-            Report report = reportRepository.findReportById(selectedReport.getReportId());
-            // 2. เปลี่ยนสถานะ
-            report.sendToSupervisor();
-            // 3. บันทึก
-            reportRepository.save(report); // (คุณต้องมีเมธอด save ใน Repository)
-            // 4. โหลดข้อมูลใหม่
-            loadReportData();
+
+            // 2. สร้างหน้าต่างยืนยัน (Confirmation Dialog)
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("ยืนยันการส่ง (Send Confirmation)");
+            alert.setHeaderText(null);
+            alert.setContentText("คุณต้องการส่ง Report ID: " + selectedReport.getReportId() + " ให้ Supervisor ตรวจสอบใช่หรือไม่?");
+
+            // 3. รอรับผลการกดปุ่ม
+            Optional<ButtonType> result = alert.showAndWait();
+
+            // 4. ถ้ากด OK ให้ดำเนินการส่ง
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                System.out.println("REPORT_PAGE: กำลังส่ง Report ID: " + selectedReport.getReportId());
+
+                // --- Logic การส่ง ---
+                Report report = reportRepository.findReportById(selectedReport.getReportId());
+                report.sendToSupervisor(); // เปลี่ยนสถานะเป็น PENDING_REVIEW
+                reportRepository.save(report); // บันทึกลง DB (เรียก UPDATE)
+
+                // โหลดข้อมูลใหม่
+                loadReportData();
+
+                // (ทางเลือก) อาจจะแสดง Alert บอกว่าส่งสำเร็จแล้ว
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setTitle("Success");
+                successAlert.setHeaderText(null);
+                successAlert.setContentText("ส่ง Report เรียบร้อยแล้ว");
+                successAlert.showAndWait();
+            } else {
+                System.out.println("REPORT_PAGE: ยกเลิกการส่ง");
+            }
+
         } else {
-            System.out.println("REPORT_PAGE: กรุณาเลือก Report (สถานะ DRAFT) ที่ต้องการส่ง");
+            // กรณีไม่ได้เลือก หรือสถานะไม่ใช่ DRAFT
+            Alert warningAlert = new Alert(Alert.AlertType.WARNING);
+            warningAlert.setTitle("Warning");
+            warningAlert.setHeaderText(null);
+
+            if (selectedReport == null) {
+                warningAlert.setContentText("กรุณาเลือก Report ที่ต้องการส่ง");
+            } else {
+                warningAlert.setContentText("สามารถส่งได้เฉพาะ Report ที่มีสถานะ DRAFT เท่านั้น");
+            }
+
+            warningAlert.showAndWait();
         }
     }
 
+    @FXML
     public void onDeleteButtonClick() {
-        // (ตัวอย่างการทำงาน) ลบ Report ที่เลือก
+        // 1. ดึง Report ที่ถูกเลือกจากตาราง
         ReportView selectedReport = reportTableView.getSelectionModel().getSelectedItem();
+
         if (selectedReport != null) {
-            System.out.println("REPORT_PAGE: กำลังลบ Report ID: " + selectedReport.getReportId());
-            // 1. (ควรมี Pop-up ยืนยัน)
-            // 2. ลบออกจาก Repository
-            reportRepository.delete(selectedReport.getReportId()); // (คุณต้องมีเมธอด delete)
-            // 3. โหลดข้อมูลใหม่ (หรือลบจาก List)
-            loadReportData();
+            // 2. สร้างหน้าต่างยืนยัน (Confirmation Dialog)
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("ยืนยันการลบ (Delete Confirmation)");
+            alert.setHeaderText(null); // ไม่ต้องมี Header
+            alert.setContentText("คุณแน่ใจหรือไม่ว่าต้องการลบ Report ID: " + selectedReport.getReportId() + " ?");
+
+            // 3. แสดงหน้าต่างและรอให้ผู้ใช้กดปุ่ม
+            Optional<ButtonType> result = alert.showAndWait();
+
+            // 4. ตรวจสอบว่าผู้ใช้กดปุ่ม "OK" (ตกลง) หรือไม่
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+
+                // --- ดำเนินการลบจริง ---
+                System.out.println("REPORT_PAGE: กำลังลบ Report ID: " + selectedReport.getReportId());
+
+                // เรียก Repository เพื่อลบข้อมูลจาก Database
+                reportRepository.delete(selectedReport.getReportId());
+
+                // โหลดข้อมูลใหม่เพื่อให้ตารางอัปเดตทันที
+                loadReportData();
+            } else {
+                // ผู้ใช้กด Cancel หรือปิดหน้าต่าง -> ไม่ทำอะไร
+                System.out.println("REPORT_PAGE: ยกเลิกการลบ");
+            }
+
         } else {
-            System.out.println("REPORT_PAGE: กรุณาเลือก Report ที่ต้องการลบ");
+            // กรณีไม่ได้เลือกแถวใดๆ ให้แจ้งเตือน
+            Alert errorAlert = new Alert(Alert.AlertType.WARNING);
+            errorAlert.setTitle("Warning");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText("กรุณาเลือก Report ที่ต้องการลบก่อน");
+            errorAlert.showAndWait();
         }
     }
 

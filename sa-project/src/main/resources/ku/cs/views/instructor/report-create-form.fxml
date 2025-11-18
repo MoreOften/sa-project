@@ -33,48 +33,48 @@
                 <Font size="30.0" />
             </font>
         </Button>
-        <Text layoutX="280.0" layoutY="224.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Instructor Name :" wrappingWidth="223.0">
+        <Text layoutX="276.0" layoutY="171.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Instructor Name :" wrappingWidth="223.0">
             <font>
                 <Font size="28.0" />
             </font>
         </Text>
-        <Text layoutX="280.0" layoutY="304.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Pilot Name :" wrappingWidth="163.0">
+        <Text layoutX="279.0" layoutY="324.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Pilot Name :" wrappingWidth="163.0">
             <font>
                 <Font size="28.0" />
             </font>
         </Text>
-        <Label fx:id="instructorNameLabel" layoutX="547.0" layoutY="193.0" text="instructorNameLabel">
+        <Label fx:id="instructorNameLabel" layoutX="543.0" layoutY="140.0" text="instructorNameLabel">
             <font>
                 <Font size="28.0" />
             </font>
         </Label>
-        <ChoiceBox fx:id="pilotNameChoiceBox" layoutX="547.0" layoutY="277.0" prefHeight="31.0" prefWidth="341.0" />
-        <Text layoutX="276.0" layoutY="487.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Training Program :" wrappingWidth="232.0">
+        <ChoiceBox fx:id="pilotNameChoiceBox" layoutX="546.0" layoutY="297.0" prefHeight="31.0" prefWidth="341.0" />
+        <Text layoutX="274.0" layoutY="413.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Training Program :" wrappingWidth="232.0">
             <font>
                 <Font size="28.0" />
             </font>
         </Text>
-        <Label fx:id="trainingProgramLabel" layoutX="547.0" layoutY="457.0" text="trainingProgramLabel">
+        <Label fx:id="trainingProgramLabel" layoutX="545.0" layoutY="383.0" text="trainingProgramLabel">
             <font>
                 <Font size="28.0" />
             </font>
         </Label>
-        <Text layoutX="276.0" layoutY="525.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Report Details :">
+        <Text layoutX="276.0" layoutY="496.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Report Details :">
             <font>
                 <Font size="28.0" />
             </font>
         </Text>
-        <TextArea fx:id="reportDetailsTextArea" layoutX="547.0" layoutY="498.0" prefHeight="100.0" prefWidth="341.0" wrapText="true" />
-        <Label fx:id="errorLabel" layoutX="547.0" layoutY="600.0" text="errorLabel" textFill="RED">
+        <TextArea fx:id="reportDetailsTextArea" layoutX="547.0" layoutY="469.0" prefHeight="100.0" prefWidth="341.0" wrapText="true" />
+        <Label fx:id="errorLabel" layoutX="547.0" layoutY="571.0" text="errorLabel" textFill="RED">
             <font>
                 <Font size="16.0" />
             </font>
         </Label>
-        <Text layoutX="280.0" layoutY="391.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Schedule ID :" wrappingWidth="163.0">
+        <Text layoutX="276.0" layoutY="234.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Schedule ID :" wrappingWidth="163.0">
             <font>
                 <Font size="28.0" />
             </font>
         </Text>
-        <ChoiceBox fx:id="scheduleIDChoiceBox" layoutX="547.0" layoutY="366.0" prefHeight="31.0" prefWidth="341.0" />
+        <ChoiceBox fx:id="scheduleIDChoiceBox" layoutX="543.0" layoutY="212.0" prefHeight="31.0" prefWidth="341.0" />
     </children>
 </AnchorPane>

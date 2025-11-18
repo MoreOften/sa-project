@@ -40,12 +40,12 @@
             <Font size="30.0" />
          </font>
       </Button>
-      <Button layoutX="632.0" layoutY="562.0" mnemonicParsing="false" onAction="#onDeleteButtonClick" prefHeight="59.0" prefWidth="207.0" text="Send Report">
+      <Button layoutX="632.0" layoutY="562.0" mnemonicParsing="false" onAction="#onDeleteButtonClick" prefHeight="59.0" prefWidth="207.0" text="Delete">
          <font>
             <Font size="30.0" />
          </font>
       </Button>
-      <Button layoutX="971.0" layoutY="562.0" mnemonicParsing="false" onAction="#onSendButtonClick" prefHeight="59.0" prefWidth="207.0" text="Delete">
+      <Button layoutX="971.0" layoutY="562.0" mnemonicParsing="false" onAction="#onSendButtonClick" prefHeight="59.0" prefWidth="207.0" text="Sent Report">
          <font>
             <Font size="30.0" />
          </font>

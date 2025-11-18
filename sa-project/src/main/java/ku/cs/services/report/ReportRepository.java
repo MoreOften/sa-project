@@ -101,7 +101,6 @@ public class ReportRepository {
                     "schedule_id = ?, " +
                     "pilot_id = ?, " +
                     "instructor_id = ?, " +
-                    "practice_program = ?, " +
                     "report_notes = ?, " +
                     "report_result = ?, " +
                     "approval_status = ?, " +
