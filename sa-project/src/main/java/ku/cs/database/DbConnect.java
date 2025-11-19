@@ -196,7 +196,34 @@ public class DbConnect {
 
                 + ");";
 
+        // ... (ต่อจาก scheduleSql) ...
 
+        String reportSql = "CREATE TABLE IF NOT EXISTS reports ("
+                + " report_id TEXT PRIMARY KEY,"
+                + " instructor_id TEXT NOT NULL,"
+                + " schedule_id TEXT,"
+                + " create_date TEXT NOT NULL,"
+                + " status TEXT NOT NULL,"
+                + " feedback TEXT,"
+                + " grade TEXT,"
+                + " FOREIGN KEY (instructor_id) REFERENCES users (username)"
+                + ");";
+
+// ... (ใน try-with-resources) ...
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            // ... (stmt.execute ของตารางอื่นๆ) ...
+            stmt.execute(scheduleSql);
+            System.out.println("ตรวจสอบ/สร้างตาราง Schedules สำเร็จ");
+
+            // (เพิ่มบรรทัดนี้)
+            stmt.execute(reportSql);
+            System.out.println("ตรวจสอบ/สร้างตาราง Reports สำเร็จ");
+
+        } catch (SQLException e) {
+            // ...
+        }
 
 // ใช้ try-with-resources เพื่อให้แน่ใจว่า Connection และ Statement ถูกปิดเสมอ
 

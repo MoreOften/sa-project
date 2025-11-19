@@ -128,6 +128,28 @@ public class ScheduleRepository {
 
     }
 
+    public List<Schedule> findSchedulesBySupervisor(String supervisorId) {
+        List<Schedule> schedules = new ArrayList<>();
+        // (แก้ไข SQL ให้ค้นหาด้วย supervisor_id)
+        String sql = "SELECT * FROM schedules WHERE supervisor_id = ?";
+
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, supervisorId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    schedules.add(createScheduleFromResultSet(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("ScheduleRepository (findSchedulesBySupervisor) Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return schedules;
+    }
+
 
 
     public List<Schedule> findSchedulesByPilot(String pilotId) {
