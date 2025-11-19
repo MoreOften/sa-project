@@ -107,25 +107,55 @@ public class InstructorReportPageController {
         });
     }
 
-    private void handleReportClick(ReportView reportView) {
-        System.out.println("REPORT_PAGE: คลิกที่ Report ID: " + reportView.getReportId());
-        System.out.println("                 สำหรับ Pilot: " + reportView.getPilotName());
-
-        // --- TODO: (ในอนาคต) ---
-        // เมื่อคุณสร้างหน้า "report-detail-page"
-        // ให้คุณใช้ FXRouter.goTo() ที่นี่เพื่อส่ง reportId ไป
-        /*
-        try {
-            FXRouter.goTo("report-detail-page", reportView.getReportId());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        */
-    }
-
     public void onCreateButtonClick() {
         try {
             FXRouter.goTo("report-create", currentInstructor);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // 1. เมธอดสำหรับ Double Click (ไปหน้า View)
+    private void handleReportClick(ReportView reportView) {
+        System.out.println("REPORT_PAGE: ดูรายละเอียด Report ID: " + reportView.getReportId());
+        try {
+            // ส่ง reportId หรือ object ไปที่หน้า View
+            // ต้องแน่ใจว่า MainApplication.java มี route "report-view" แล้ว
+            FXRouter.goTo("report-view", reportView.getReportId());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // 2. เมธอดสำหรับปุ่ม Edit (ไปหน้า Edit)
+    @FXML
+    public void onEditButtonClick() {
+        ReportView selectedReport = reportTableView.getSelectionModel().getSelectedItem();
+
+        if (selectedReport == null) {
+            // แจ้งเตือนถ้าไม่ได้เลือกแถว
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Warning");
+            alert.setHeaderText(null);
+            alert.setContentText("กรุณาเลือก Report ที่ต้องการแก้ไข");
+            alert.showAndWait();
+            return;
+        }
+
+        // ตรวจสอบสถานะ: แก้ไขได้เฉพาะ DRAFT เท่านั้น (ตาม Business Logic)
+        if (selectedReport.getApprovalStatus() != ReportStatus.DRAFT) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Warning");
+            alert.setHeaderText(null);
+            alert.setContentText("ไม่สามารถแก้ไข Report ที่ส่งไปแล้วได้");
+            alert.showAndWait();
+            return;
+        }
+
+        try {
+            System.out.println("REPORT_PAGE: กำลังไปหน้าแก้ไข Report ID: " + selectedReport.getReportId());
+            // ส่ง reportId ไปที่หน้า Edit
+            FXRouter.goTo("report-edit", selectedReport.getReportId());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

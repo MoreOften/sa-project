@@ -3,6 +3,7 @@ package ku.cs.controllers.instructor;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea; // (1) Import TextArea (สันนิษฐานว่าคุณมี)
@@ -202,12 +203,6 @@ public class ReportCreateFormController {
             return;
         }
 
-        if (details == null || details.trim().isEmpty()) {
-            errorLabel.setText("Please enter report details.");
-            errorLabel.setVisible(true);
-            return;
-        }
-
         // --- All data is valid, create report object ---
         errorLabel.setVisible(false);
         System.out.println("CREATING REPORT:");
@@ -227,12 +222,11 @@ public class ReportCreateFormController {
         reportRepository.save(newReport);
 
         try {
-            // (แนะนำ) แสดง Alert Box ว่าสร้างสำเร็จก่อน
-            // Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            // alert.setTitle("Success");
-            // alert.setHeaderText(null);
-            // alert.setContentText("Report created successfully.");
-            // alert.showAndWait();
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Success");
+            alert.setHeaderText(null);
+            alert.setContentText("Report created successfully.");
+            alert.showAndWait();
 
             // กลับไปหน้า Report (เมธอด onReportButtonClick() มี FXRouter อยู่แล้ว)
             onReportButtonClick();

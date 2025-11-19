@@ -54,6 +54,26 @@ public class SupervisorRepository {
         return supervisor;
     }
 
+    public Supervisor findSupervisorById(String supervisorId) {
+        String sql = "SELECT * FROM users u " +
+                "JOIN supervisors s ON u.username = s.username " +
+                "WHERE s.supervisor_id = ?";
+        Supervisor supervisor = null;
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, supervisorId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    supervisor = new Supervisor();
+                    supervisor.setName(rs.getString("name")); // เราต้องการแค่ชื่อ
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return supervisor;
+    }
+
     /**
      * อัปเดตสถานะ firstTimeLogin และรหัสผ่าน (ถ้ามี) ในตาราง 'supervisors'
      */
