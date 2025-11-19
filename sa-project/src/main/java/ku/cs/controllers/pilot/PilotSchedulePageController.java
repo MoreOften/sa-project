@@ -195,4 +195,14 @@ public class PilotSchedulePageController {
         public String getPracticeProgram() { return practiceProgram; }
         public String getInstructorName() { return instructorName; }
     }
+
+    @FXML
+    public void handleNotificationButton() {
+        try {
+            // **Crucial:** Always pass the currentPilot object
+            FXRouter.goTo("pilot-notification-page", currentPilot);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

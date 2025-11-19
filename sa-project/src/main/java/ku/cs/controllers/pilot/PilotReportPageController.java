@@ -157,6 +157,16 @@ public class PilotReportPageController {
         }
     }
 
+    @FXML
+    public void handleNotificationButton() {
+        try {
+            // **Crucial:** Always pass the currentPilot object
+            FXRouter.goTo("pilot-notification-page", currentPilot);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     @FXML
     public void handleLogoutButton() {
