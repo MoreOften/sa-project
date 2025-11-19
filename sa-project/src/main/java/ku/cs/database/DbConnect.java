@@ -18,9 +18,12 @@ import ku.cs.models.instructor.Instructor;
 
 import ku.cs.models.pilot.Pilot;
 
+import ku.cs.models.report.ReportStatus;
 import ku.cs.models.schedule.Schedule;
 
 import ku.cs.models.supervisor.Supervisor;
+
+import ku.cs.models.report.Report;
 
 import ku.cs.models.user.User;
 
@@ -28,6 +31,7 @@ import ku.cs.services.instructor.InstructorRepository;
 
 import ku.cs.services.pilot.PilotRepository;
 
+import ku.cs.services.report.ReportRepository;
 import ku.cs.services.schedule.ScheduleRepository;
 
 import ku.cs.services.supervisor.SupervisorRepository;
@@ -212,6 +216,8 @@ public class DbConnect {
 
         ScheduleRepository scheduleRepository = new ScheduleRepository();
 
+        ReportRepository reportRepository = new ReportRepository();
+
         try {
 
 // ... (if check supervisor_admin) ...
@@ -380,10 +386,12 @@ public class DbConnect {
                     "I001", // instructorId
                     "PL001", // pilotId1
                     "PL002", // pilotId2
+                    "Scheduled",
                     "Introduction to Flight", // practice_program
                     java.time.LocalDate.now().plusDays(3).toString(), // schedule_date (TEXT)
                     "14:00", // schedule_time (TEXT)
                     "SIM-A380" // simulator
+
             );
 
             scheduleRepository.addSchedule(schedule1);
@@ -391,6 +399,45 @@ public class DbConnect {
 
 
             System.out.println("สร้างข้อมูลเริ่มต้น (Seeding) สำเร็จ!");
+
+            // report
+
+            System.out.println("Seeding mock reports...");
+            // Assumes Schedule ID SC-001 is the one created earlier.
+            String mockScheduleId = "SC-001";
+
+// 1. Report 1: Simulator Malfunction
+//    (Matches the constructor: reportId, scheduleId, pilotId, instructorId, reportNotes, reportResult, approvalStatus, createdAt, updatedAt)
+            Report report1 = new Report(
+                    "R001", // reportId
+                    mockScheduleId, // scheduleId (Reference to the seeded schedule)
+                    "PL001", // pilotId (The pilot associated with the report)
+                    "I001", // instructorId (The instructor associated with the report)
+                    "Simulator Malfunction: The autopilot system failed to disengage during approach to runway 30.", // reportNotes (Combined Subject + Detail)
+                    "", // reportResult (Empty, as status is PENDING_REVIEW)
+                    ReportStatus.PENDING_REVIEW, // approvalStatus (Mapped from old "Pending")
+                    LocalDateTime.now().minusDays(1), // createdAt
+                    LocalDateTime.now().minusDays(1) // updatedAt
+            );
+
+// 2. Report 2: Late arrival of PL002
+//    (Matches the constructor: reportId, scheduleId, pilotId, instructorId, reportNotes, reportResult, approvalStatus, createdAt, updatedAt)
+            Report report2 = new Report(
+                    "R002", // reportId
+                    mockScheduleId, // scheduleId
+                    "PL002", // pilotId (The subject of the report)
+                    "I001", // instructorId (The reporter)
+                    "Pilot PL002 was 15 minutes late for the 14:00 session.", // reportNotes
+                    "Pilot was counselled and documented. Approved by supervisor.", // reportResult (Mocked result for a resolved issue)
+                    ReportStatus.APPROVED, // approvalStatus (Mapped from old "Resolved")
+                    LocalDateTime.now().minusDays(5), // createdAt
+                    LocalDateTime.now().minusDays(4) // updatedAt (Updated when resolved)
+            );
+
+
+            System.out.println("สร้างข้อมูลเริ่มต้น (Seeding) สำเร็จ!");
+
+
 
 
 

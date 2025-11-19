@@ -111,7 +111,7 @@ public class LoginController {
         // VVVV (1. ต้องมีบรรทัดนี้) VVVV
         UserSession.getInstance().setCurrentUser(pilot); // <-- ต้องเก็บ "pilot"
 
-        FXRouter.goTo("pilot-home-page", pilot);
+        FXRouter.goTo("pilot-main-page", pilot);
     }
 
 

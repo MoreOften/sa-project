@@ -10,6 +10,7 @@ public class Schedule {
     private String instructorId; // ID (username) ของ Instructor
     private String pilotId1; // ID (username) ของ Pilot คนที่ 1
     private String pilotId2; // ID (username) ของ Pilot คนที่ 2
+    private String scheduleStatus;
 
     // --- (เปลี่ยนแปลง) ---
     private String practiceProgram; // (แทน programName)
@@ -29,7 +30,7 @@ public class Schedule {
      * (อัปเดต Constructor นี้ให้รับ Parameters ใหม่)
      */
     public Schedule(String supervisorId, String instructorId, String pilotId1, String pilotId2,
-                    String practiceProgram, String scheduleDate, String scheduleTime, String simulator) {
+                    String scheduleStatus, String practiceProgram, String scheduleDate, String scheduleTime, String simulator) {
 
         this.scheduleId = UUID.randomUUID().toString();
         this.supervisorId = supervisorId;
@@ -111,7 +112,13 @@ public class Schedule {
     public void setSimulator(String simulator) {
         this.simulator = simulator;
     }
-    // --- (สิ้นสุด) ---
 
-    // (ลบ Getters/Setters ของ programName และ trainingTimestamp ที่เคยมีอยู่ออก)
+    public String getScheduleStatus() {
+        return scheduleStatus;
+    }
+
+    public void setScheduleStatus(String scheduleStatus) {
+        this.scheduleStatus = scheduleStatus;
+    }
+
 }

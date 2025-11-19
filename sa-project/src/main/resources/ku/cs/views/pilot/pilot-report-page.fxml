@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.layout.VBox?>
-
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" stylesheets="@/ku/cs/views/style.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ku.cs.controllers.pilot.PilotReportPageController">
@@ -71,26 +68,26 @@
                     </font>
                 </Label>
 
-                <SplitPane dividerPositions="0.70" layoutX="50.0" layoutY="100.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="100.0">
+                <SplitPane dividerPositions="0.7" layoutX="50.0" layoutY="100.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="100.0">
                     <items>
                         <TableView fx:id="reportTableView">
                             <columns>
-                                <TableColumn fx:id="dateColumn" prefWidth="120.0" text="Date">
+                                <TableColumn fx:id="reportIdColumn" prefWidth="147.19995419979114" text="Report ID">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="date" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn fx:id="programColumn" prefWidth="250.0" text="Program">
+                                <TableColumn fx:id="pilotIdColumn" prefWidth="170.40003967285156" text="Pilot ID">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="programName" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn fx:id="instructorColumn" prefWidth="150.0" text="Instructor">
+                                <TableColumn fx:id="instructorIdColumn" prefWidth="175.20004272460938" text="Instructor ID">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="instructorName" />
                                     </cellValueFactory>
                                 </TableColumn>
-                                <TableColumn fx:id="gradeColumn" prefWidth="100.0" text="Grade">
+                                <TableColumn fx:id="resultColumn" prefWidth="173.59991455078125" text="Report Result">
                                     <cellValueFactory>
                                         <PropertyValueFactory property="grade" />
                                     </cellValueFactory>
@@ -103,7 +100,7 @@
 
                         <VBox alignment="TOP_LEFT" spacing="10.0" styleClass="form-container">
                             <children>
-                                <Label text="Report Details">
+                                <Label text="Report Notes">
                                     <font>
                                         <Font name="System Bold" size="18.0" />
                                     </font>
