@@ -37,6 +37,9 @@ public class PilotResignPageController {
         pilotRepository = new PilotRepository();
         userRepository = new UserRepository();
 
+        errorLabel.setText("");
+
+
         // **UNIFIED DATA LOGIC FIX:** Prioritize checking for Pilot object
         Object data = FXRouter.getData();
 

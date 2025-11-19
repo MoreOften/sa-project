@@ -52,6 +52,7 @@ public class MainApplication extends Application {
         FXRouter.when("resign-form-page", viewPath + "resign-create-form.fxml");
         FXRouter.when("pilot-schedule-page", viewPath + "pilot-schedule-page.fxml");
         FXRouter.when("pilot-report-page", viewPath + "pilot-report-page.fxml");
+        FXRouter.when("pilot-notification-page", viewPath + "pilot-notification-page.fxml");
     }
 
     public static void main(String[] args) {
