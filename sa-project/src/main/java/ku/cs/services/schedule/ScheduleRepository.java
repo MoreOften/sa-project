@@ -168,5 +168,7 @@ public class ScheduleRepository {
         schedule.setSimulator(rs.getString("simulator")); // (getString() จะคืนค่า null ถ้าใน DB เป็น null)
 
         return schedule;
+
     }
+
 }

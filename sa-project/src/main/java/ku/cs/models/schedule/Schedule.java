@@ -120,7 +120,5 @@ public class Schedule {
     public void setScheduleStatus(String scheduleStatus) {
         this.scheduleStatus = scheduleStatus;
     }
-    // --- (สิ้นสุด) ---
 
-    // (ลบ Getters/Setters ของ programName และ trainingTimestamp ที่เคยมีอยู่ออก)
 }

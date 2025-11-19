@@ -189,4 +189,54 @@ public class PilotRepository {
             throw new RuntimeException("addPilot failed: " + e.getMessage(), e);
         }
     }
+
+    public Pilot findPilotById(String pilotId) {
+        // 1. SQL JOIN ระหว่าง 'users' (u) และ 'pilots' (p)
+        //    แต่ครั้งนี้เราจะ "ค้นหา" ด้วยคอลัมน์ 'pilot_id' ของตาราง 'pilots'
+        String sql = "SELECT * " +
+                "FROM users u " +
+                "JOIN pilots p ON u.username = p.username " +
+                "WHERE p.pilot_id = ?"; // <-- ค้นหาด้วย pilot_id
+
+        Pilot pilot = null;
+
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // 2. ตั้งค่า Parameter เป็น pilotId
+            pstmt.setString(1, pilotId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    // 3. (ตรรกะประกอบร่าง) สร้างอ็อบเจกต์ว่าง
+                    pilot = new Pilot();
+
+                    // 4. ตั้งค่าข้อมูล "User" (Parent) จากตาราง 'users'
+                    pilot.setUsername(rs.getString("username"));
+                    pilot.setName(rs.getString("name"));
+                    pilot.setEmail(rs.getString("email"));
+                    pilot.setPhone(rs.getString("phone"));
+                    pilot.setRole(rs.getString("role"));
+                    pilot.setProfilePicture(rs.getString("profilePicture"));
+                    pilot.setHasAccess(rs.getInt("hasAccess") == 1);
+                    pilot.setHashedPassword(rs.getString("password"));
+
+                    // 5. ตั้งค่าเวลา Login
+                    String dbLastLogin = rs.getString("lastLogin");
+                    if (dbLastLogin != null) {
+                        pilot.setLastLogin(LocalDateTime.parse(dbLastLogin));
+                    }
+
+                    // 6. ตั้งค่าข้อมูล "Pilot" (Child) จากตาราง 'pilots'
+                    pilot.setPilotID(rs.getString("pilot_id"));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("PilotRepository (findPilotById) Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return pilot; // คืนค่า pilot (ที่มีข้อมูลครบ) หรือ null
+    }
 }
