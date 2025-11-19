@@ -8,6 +8,7 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import ku.cs.services.FXRouter;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -148,4 +149,50 @@ public class ResignCreateFormController {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
+//    @FXML
+//    public void handleHomepageButton() {
+//        // ไม่ต้องทำอะไร เพราะนี่คือหน้า Homepage อยู่แล้ว
+//        // หรือจะให้ refresh ข้อมูลก็ได้
+//    }
+//
+//    @FXML
+//    public void handleScheduleButton() { // แก้ชื่อจาก onScheduleButtonClick
+//        try {
+//            // แก้ปลายทางเป็นหน้าของ pilot
+//            FXRouter.goTo("pilot-schedule-page", currentPilot);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+//
+//    @FXML
+//    public void handleReportButton() { // แก้ชื่อจาก onReportButtonClick
+//        try {
+//            // แก้ปลายทางเป็นหน้าของ pilot
+//            FXRouter.goTo("pilot-report-page", currentPilot);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+//
+//    // (เพิ่มปุ่ม Resign ที่เห็นใน FXML Screenshot ของคุณ)
+//    @FXML
+//    public void handleResignButton() {
+//        try {
+//            FXRouter.goTo("pilot-resign-page", currentPilot);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+//
+//
+//    @FXML
+//    public void handleLogoutButton() { // แก้ชื่อจาก onLogoutButtonClick
+//        try {
+//            FXRouter.goTo("login");
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 }

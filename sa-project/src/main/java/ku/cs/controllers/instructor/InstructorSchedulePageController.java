@@ -9,10 +9,12 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import ku.cs.models.instructor.Instructor;
+import ku.cs.models.pilot.Pilot;
 import ku.cs.models.schedule.Schedule;
 import ku.cs.models.user.User;
 import ku.cs.services.FXRouter;
 import ku.cs.services.UserSession;
+import ku.cs.services.pilot.PilotRepository;
 import ku.cs.services.schedule.ScheduleRepository; // (1) Import Repo
 import ku.cs.services.user.UserRepository;       // (2) Import Repo
 
@@ -38,6 +40,7 @@ public class InstructorSchedulePageController {
     // (5) เพิ่ม Repositories และ ObservableList
     private ScheduleRepository scheduleRepository;
     private UserRepository userRepository;
+    private PilotRepository pilotRepository;
     private ObservableList<ScheduleView> scheduleViewList = FXCollections.observableArrayList();
 
     public void initialize() {
@@ -56,6 +59,7 @@ public class InstructorSchedulePageController {
 
         scheduleRepository = new ScheduleRepository();
         userRepository = new UserRepository();
+        pilotRepository = new PilotRepository();
         setupTableColumns();
 
         if (this.currentInstructor != null) {
@@ -74,7 +78,7 @@ public class InstructorSchedulePageController {
         colPilot1.setCellValueFactory(new PropertyValueFactory<>("pilot1Name"));
         colPilot2.setCellValueFactory(new PropertyValueFactory<>("pilot2Name"));
         colDateTime.setCellValueFactory(new PropertyValueFactory<>("dateTime"));
-        colProgram.setCellValueFactory(new PropertyValueFactory<>("programName"));
+        colProgram.setCellValueFactory(new PropertyValueFactory<>("practiceProgram"));
         colSupervisor.setCellValueFactory(new PropertyValueFactory<>("supervisorId"));
     }
 
@@ -91,8 +95,8 @@ public class InstructorSchedulePageController {
         // 2. วนลูปเพื่อดึง "ชื่อ" ของ Pilot และ Supervisor
         for (Schedule s : schedules) {
             // (นี่คือการทำ N+1 Query ซึ่งสำหรับโปรเจกต์ขนาดเล็กถือว่ายอมรับได้)
-            User pilot1 = userRepository.findUserByUsername(s.getPilotId1());
-            User pilot2 = userRepository.findUserByUsername(s.getPilotId2());
+            Pilot pilot1 = pilotRepository.findPilotById(s.getPilotId1());
+            Pilot pilot2 = pilotRepository.findPilotById(s.getPilotId2());
 
             // 3. (แก้ไขตามคำขอ) ใช้ ID ของ Supervisor
             String supervisorId = s.getSupervisorId();
@@ -160,22 +164,19 @@ public class InstructorSchedulePageController {
         private String pilot1Name;
         private String pilot2Name;
         private String dateTime;
-        private String programName;
+        private String practiceProgram;
         private String supervisorId;
-
-        // Formatter สำหรับแปลง LocalDateTime
-        private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
         public ScheduleView(Schedule schedule, String pilot1Name, String pilot2Name, String supervisorId) {
             this.scheduleId = schedule.getScheduleId();
             this.pilot1Name = pilot1Name;
             this.pilot2Name = pilot2Name;
-            this.programName = schedule.getProgramName();
             this.supervisorId = supervisorId;
+            this.practiceProgram = schedule.getPracticeProgram();
 
             // แปลง LocalDateTime เป็น String ที่อ่านง่าย
-            if (schedule.getTrainingTimestamp() != null) {
-                this.dateTime = schedule.getTrainingTimestamp().format(formatter);
+            if (schedule.getScheduleDate() != null && !schedule.getScheduleDate().isEmpty()) {
+                this.dateTime = schedule.getScheduleDate() + " " + schedule.getScheduleTime();
             } else {
                 this.dateTime = "N/A";
             }
@@ -186,7 +187,7 @@ public class InstructorSchedulePageController {
         public String getPilot1Name() { return pilot1Name; }
         public String getPilot2Name() { return pilot2Name; }
         public String getDateTime() { return dateTime; }
-        public String getProgramName() { return programName; }
+        public String getPracticeProgram() { return practiceProgram; }
         public String getSupervisorId() { return supervisorId; }
     }
 }

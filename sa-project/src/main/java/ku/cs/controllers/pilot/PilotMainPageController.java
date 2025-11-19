@@ -7,7 +7,7 @@ import javafx.scene.image.ImageView;
 import ku.cs.models.pilot.Pilot;
 import ku.cs.models.user.User;
 import ku.cs.services.FXRouter;
-import ku.cs.services.pilot.PilotRepository; // ต้องใช้ Repository เพื่อดึงข้อมูล
+import ku.cs.services.pilot.PilotRepository;
 
 import java.io.IOException;
 
@@ -16,12 +16,11 @@ public class PilotMainPageController {
     @FXML Label emailLabel;
     @FXML Label idLabel;
     @FXML Label roleLabel;
+    @FXML Label typeLabel;
 
-    // (ImageViews นี่ยังไม่ได้ใช้งาน แต่เก็บไว้ได้ครับ)
     @FXML ImageView instructorImageView;
     @FXML ImageView logoImageView;
 
-    // --- เพิ่มตัวแปรสำหรับเก็บข้อมูล Pilot ---
     private Pilot currentPilot;
     private PilotRepository pilotRepository;
 
@@ -29,35 +28,33 @@ public class PilotMainPageController {
     public void initialize() {
         pilotRepository = new PilotRepository();
 
-        // 1. ดึงข้อมูล User (ที่ส่งมาจากหน้า Login)
-        User user = (User) FXRouter.getData();
+        // **UNIFIED DATA LOGIC FIX:** Prioritize checking for Pilot object
+        Object data = FXRouter.getData();
 
-        if (user != null) {
-            // 2. ใช้ username จาก User ไปค้นหาข้อมูล Pilot ทั้งหมด
+        if (data instanceof Pilot) {
+            // Case 1: Pilot object passed directly (from another sidebar button)
+            this.currentPilot = (Pilot) data;
+        } else if (data instanceof User) {
+            // Case 2: Base User object passed (likely from initial login) - fetch full profile
+            User user = (User) data;
             this.currentPilot = pilotRepository.findPilotByUsername(user.getUsername());
+        }
 
-            if (this.currentPilot != null) {
-                // 3. แสดงข้อมูล Pilot ที่ถูกต้อง
-                showPilotData();
-            } else {
-                clearLabel();
-                nameLabel.setText("Error: Pilot profile not found.");
-            }
+        if (this.currentPilot != null) {
+            showPilotData();
         } else {
             clearLabel();
+            // Since this is the main page, we use nameLabel (assuming fx:id="nameLabel" in its FXML)
             nameLabel.setText("Error: Cannot get user data.");
         }
     }
 
-    // --- เมธอดสำหรับแสดงข้อมูล (แยกออกมาให้ชัดเจน) ---
     private void showPilotData() {
-        // (เมธอดเหล่านี้ .getName(), .getEmail(), .getPilotID()
-        // ต้องมีอยู่ใน Model Pilot.java ของคุณ
-        // ซึ่งเราได้ออกแบบไว้ตอนสร้าง PilotRepository แล้ว)
         nameLabel.setText(currentPilot.getName());
         emailLabel.setText(currentPilot.getEmail());
-        idLabel.setText(currentPilot.getPilotID()); // สมมติว่าเมธอดนี้คืนค่า ID ของ Pilot
-        roleLabel.setText(currentPilot.getRole());  // จะแสดงค่า "pilot"
+        idLabel.setText(currentPilot.getPilotID());
+        roleLabel.setText(currentPilot.getRole());
+        typeLabel.setText(currentPilot.getPilotType());
     }
 
     public void clearLabel() {
@@ -65,22 +62,21 @@ public class PilotMainPageController {
         emailLabel.setText("");
         idLabel.setText("");
         roleLabel.setText("");
+        typeLabel.setText("");
     }
 
-    // --- แก้ไขชื่อเมธอดให้ตรงกับ FXML (handle...Button) ---
-    // --- และแก้ไขปลายทาง FXRouter ให้เป็นของ "pilot" ---
+    // --- Sidebar Handlers ---
 
     @FXML
     public void handleHomepageButton() {
-        // ไม่ต้องทำอะไร เพราะนี่คือหน้า Homepage อยู่แล้ว
-        // หรือจะให้ refresh ข้อมูลก็ได้
+        // On the main page, just refresh data
         showPilotData();
     }
 
     @FXML
-    public void handleScheduleButton() { // แก้ชื่อจาก onScheduleButtonClick
+    public void handleScheduleButton() {
         try {
-            // แก้ปลายทางเป็นหน้าของ pilot
+            // **Crucial:** Always pass the currentPilot object
             FXRouter.goTo("pilot-schedule-page", currentPilot);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -88,28 +84,37 @@ public class PilotMainPageController {
     }
 
     @FXML
-    public void handleReportButton() { // แก้ชื่อจาก onReportButtonClick
+    public void handleReportButton() {
         try {
-            // แก้ปลายทางเป็นหน้าของ pilot
-            FXRouter.goTo("pilot-report-page.fxml", currentPilot);
+            // **Crucial:** Always pass the currentPilot object
+            FXRouter.goTo("pilot-report-page", currentPilot);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    // (เพิ่มปุ่ม Resign ที่เห็นใน FXML Screenshot ของคุณ)
     @FXML
     public void handleResignButton() {
         try {
+            // **Crucial:** Always pass the currentPilot object
             FXRouter.goTo("pilot-resign-page", currentPilot);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
+    @FXML
+    public void handleNotificationButton() {
+        try {
+            // **Crucial:** Always pass the currentPilot object
+            FXRouter.goTo("pilot-notification-page", currentPilot);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @FXML
-    public void handleLogoutButton() { // แก้ชื่อจาก onLogoutButtonClick
+    public void handleLogoutButton() {
         try {
             FXRouter.goTo("login");
         } catch (IOException e) {

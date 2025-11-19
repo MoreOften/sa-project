@@ -56,44 +56,42 @@ public class UserRepository {
         String sql = "SELECT * FROM users WHERE username = ?";
         User user = null;
 
+        // (1) ใช้ try-with-resources ที่ถูกต้อง
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, username);
-            ResultSet rs = pstmt.executeQuery();
 
-            if (rs.next()) {
-                // 1. ดึงข้อมูลดิบจาก DB
-                String dbUsername = rs.getString("username");
-                String dbHashedPassword = rs.getString("password"); // นี่คือ Hash
-                String dbRole = rs.getString("role");
-                String dbName = rs.getString("name");
-                String dbProfilePic = rs.getString("profilePicture");
-                String dbLastLogin = rs.getString("lastLogin"); // นี่คือ TEXT
-                boolean dbHasAccess = rs.getInt("hasAccess") == 1; // นี่คือ 0 หรือ 1
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    // (2) สร้างอ็อบเจกต์ว่าง
+                    user = new User();
 
-                // 2. แปลงค่าที่ต้องแปลง
-                LocalDateTime lastLoginTime = null;
-                if (dbLastLogin != null) {
-                    lastLoginTime = LocalDateTime.parse(dbLastLogin);
+                    // (3) ตั้งค่าข้อมูล "User" (Parent) ทั้งหมด
+                    user.setUsername(rs.getString("username"));
+                    user.setName(rs.getString("name")); // <-- (นี่คือส่วนสำคัญที่ขาดไป)
+                    user.setEmail(rs.getString("email"));
+                    user.setPhone(rs.getString("phone"));
+                    user.setRole(rs.getString("role"));
+                    user.setProfilePicture(rs.getString("profilePicture"));
+                    user.setHasAccess(rs.getInt("hasAccess") == 1);
+
+                    // (4) ตั้งค่า Hashed Password (ต้องมี setHashedPassword ใน User.java)
+                    user.setHashedPassword(rs.getString("password"));
+
+                    // (5) ตั้งค่าเวลา Login
+                    String dbLastLogin = rs.getString("lastLogin");
+                    if (dbLastLogin != null) {
+                        user.setLastLogin(LocalDateTime.parse(dbLastLogin));
+                    }
                 }
-
-                // 3. (สำคัญมาก) เรียก Constructor ที่ "ไม่ Hash ซ้ำ"
-                // เราใช้: User(String username, String password, String role, String name, String profilePicture, LocalDateTime lastLogin, boolean isPasswordHashed, boolean hasAccess)
-                user = new User(dbUsername, dbHashedPassword, dbRole, dbName,
-                        dbProfilePic, lastLoginTime,
-                        true, // <-- บอก Model ว่านี่คือ Hash แล้ว (isPasswordHashed = true)
-                        dbHasAccess);
-
-                // 4. (Optional) เติมส่วนที่เหลือ (ถ้า Constructor ไม่มี)
-                user.setEmail(rs.getString("email"));
-                user.setPhone(rs.getString("phone"));
             }
         } catch (SQLException e) {
             System.err.println("UserRepository (findUserByUsername) Error: " + e.getMessage());
             e.printStackTrace();
         }
-        return user;
+
+        return user; // คืนค่า user (ที่มี name) หรือ null
     }
 
     public void registerUser(User user) {

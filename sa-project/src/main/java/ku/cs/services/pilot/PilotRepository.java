@@ -4,16 +4,40 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime; // (ต้อง import)
+import java.time.LocalDateTime;
 
 import ku.cs.database.DbConnect;
 import ku.cs.models.pilot.Pilot;
 
+import java.util.List;
+import java.util.Optional;
+
 public class PilotRepository {
+
+    private static final List<Pilot> pilots = List.of();
+
+    // ... (Existing methods: addPilot, findPilotByID, etc.) ...
+
+    /**
+     * Use Case Step 7: เปลี่ยนสถานะ Pilot เป็น 'resigned' และ Pilot_Is_Available = False
+     */
+    public boolean updatePilotToResigned(String pilotID) {
+        Optional<Pilot> optionalPilot = pilots.stream()
+                .filter(p -> p.getPilotID().equals(pilotID))
+                .findFirst();
+
+        if (optionalPilot.isPresent()) {
+            Pilot pilot = optionalPilot.get();
+            pilot.setPilotStatus("resigned");        // UPDATE pilots SET status = 'resigned'
+            pilot.setPilotIsAvailable(String.valueOf(false));          // Pilot_Is_Available = False
+            System.out.printf("-> [PilotRepo] Pilot ID %s สถานะเปลี่ยนเป็น 'ลาออก' (resigned).%n", pilotID);
+            return true;
+        }
+        return false;
+    }
 
     /**
      * ค้นหา Pilot (พร้อมข้อมูล User) จาก username
-     * โดยใช้ SQL JOIN (ฉบับแก้ไข)
      */
     public Pilot findPilotByUsername(String username) {
         Pilot pilot = null;
@@ -23,7 +47,6 @@ public class PilotRepository {
                 "JOIN pilots p ON u.username = p.username " +
                 "WHERE u.username = ?";
 
-        // (แก้ไข 1) ใช้ try-with-resources ที่ครอบคลุม
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -33,7 +56,7 @@ public class PilotRepository {
                 if (rs.next()) {
                     pilot = new Pilot();
 
-                    // (แก้ไข 2) ตั้งค่าข้อมูล "User" (Parent)
+                    // ตั้งค่าข้อมูล "User" (Parent)
                     pilot.setUsername(rs.getString("username"));
                     pilot.setName(rs.getString("name"));
                     pilot.setEmail(rs.getString("email"));
@@ -42,17 +65,25 @@ public class PilotRepository {
                     pilot.setProfilePicture(rs.getString("profilePicture"));
                     pilot.setHasAccess(rs.getInt("hasAccess") == 1);
 
-                    // (แก้ไข 3) ตั้งค่า Hashed Password (ต้องมี setHashedPassword ใน User.java)
+                    // ตั้งค่า Hashed Password (ต้องมี setHashedPassword ใน User.java)
                     pilot.setHashedPassword(rs.getString("password"));
 
-                    // (แก้ไข 4) ตั้งค่าเวลา Login
+                    // ตั้งค่าเวลา Login
                     String dbLastLogin = rs.getString("lastLogin");
                     if (dbLastLogin != null) {
                         pilot.setLastLogin(LocalDateTime.parse(dbLastLogin));
                     }
 
-                    // (แก้ไข 5) ตั้งค่าข้อมูล "Pilot" (Child)
+                    // *** FIXED: ตั้งค่าข้อมูล "Pilot" (Child) ทั้งหมด ***
                     pilot.setPilotID(rs.getString("pilot_id"));
+                    pilot.setPilotType(rs.getString("pilot_type"));
+                    // Note: Assuming '0' or '1' from DB maps to String in Pilot model
+                    pilot.setPilotIsFailed(rs.getString("pilot_is_failed"));
+                    pilot.setPilotFailCount(rs.getString("pilot_fail_count"));
+                    pilot.setPilotStatus(rs.getString("pilot_status"));
+                    pilot.setPilotProgress(rs.getString("pilot_progress"));
+                    pilot.setPilotIsAvailable(rs.getString("pilot_is_available"));
+                    // *** END FIXED ***
                 }
             }
 
@@ -60,22 +91,74 @@ public class PilotRepository {
             System.err.println("PilotRepository (findPilotByUsername) Error: " + e.getMessage());
             e.printStackTrace();
         }
-        // (แก้ไข 6) ไม่ต้องใช้ finally { conn.close(); }
 
         return pilot;
     }
 
     /**
+     * *** ADDED: ค้นหา Pilot (พร้อมข้อมูล User) จาก pilot ID ***
+     * (จำเป็นสำหรับ InstructorSchedulePageController)
+     */
+    public Pilot findPilotById(String pilotId) {
+        Pilot pilot = null;
+
+        String sql = "SELECT * " +
+                "FROM users u " +
+                "JOIN pilots p ON u.username = p.username " +
+                "WHERE p.pilot_id = ?";
+
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, pilotId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    pilot = new Pilot();
+
+                    // ตั้งค่าข้อมูล "User" (Parent)
+                    pilot.setUsername(rs.getString("username"));
+                    pilot.setName(rs.getString("name"));
+                    pilot.setEmail(rs.getString("email"));
+                    pilot.setPhone(rs.getString("phone"));
+                    pilot.setRole(rs.getString("role"));
+                    pilot.setProfilePicture(rs.getString("profilePicture"));
+                    pilot.setHasAccess(rs.getInt("hasAccess") == 1);
+
+                    // ตั้งค่า Hashed Password
+                    pilot.setHashedPassword(rs.getString("password"));
+
+                    // ตั้งค่าเวลา Login
+                    String dbLastLogin = rs.getString("lastLogin");
+                    if (dbLastLogin != null) {
+                        pilot.setLastLogin(LocalDateTime.parse(dbLastLogin));
+                    }
+
+                    // ตั้งค่าข้อมูล "Pilot" (Child) ทั้งหมด
+                    pilot.setPilotID(rs.getString("pilot_id"));
+                    pilot.setPilotType(rs.getString("pilot_type"));
+                    pilot.setPilotIsFailed(rs.getString("pilot_is_failed"));
+                    pilot.setPilotFailCount(rs.getString("pilot_fail_count"));
+                    pilot.setPilotStatus(rs.getString("pilot_status"));
+                    pilot.setPilotProgress(rs.getString("pilot_progress"));
+                    pilot.setPilotIsAvailable(rs.getString("pilot_is_available"));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("PilotRepository (findPilotById) Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return pilot;
+    }
+
+
+    /**
      * อัปเดตสถานะ firstTimeLogin
-     * (ฉบับแก้ไข)
      */
     public void updateStatusAfterFirstLogin(String username) {
-
-        // [FIX] ลบโค้ดส่วนที่ซ้ำซ้อน (บรรทัด 65-66 เดิม) ออก
-        // โค้ดที่ถูกต้องคือบล็อกนี้
-
-        // (แก้ไข 7) ต้องอัปเดตตาราง "pilots" (ไม่ใช่ "pilot_profiles")
-        // และคอลัมน์ "first_time_login" (ถ้าคุณมีใน SQL)
+        // SQL assuming you have 'first_time_login' column in 'pilots' table
         String sql = "UPDATE pilots SET first_time_login = 0 WHERE username = ?";
 
         try (Connection conn = DbConnect.getConnection();
@@ -85,15 +168,13 @@ public class PilotRepository {
             pstmt.executeUpdate();
 
         } catch (SQLException e) {
-            // (ต้องเช็คก่อนว่าตาราง pilots มีคอลัมน์ first_time_login จริง)
             System.err.println("PilotRepository (updateStatus) Error: " + e.getMessage());
             throw new RuntimeException("Update pilot status failed: " + e.getMessage(), e);
         }
-        // [FIX] ลบ '}' ที่เกินมา
     }
 
     /**
-     * เพิ่ม "โปรไฟล์" Pilot (เมธอดนี้ถูกต้องแล้ว)
+     * เพิ่ม "โปรไฟล์" Pilot
      */
     public void addPilot(Pilot pilot) {
         String sql = "INSERT INTO pilots (username, pilot_id) VALUES (?, ?)";
@@ -105,10 +186,57 @@ public class PilotRepository {
 
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            // Error "PRIMARY KEY" ที่คุณเจอ ถูกโยนมาจากบรรทัดนี้
             throw new RuntimeException("addPilot failed: " + e.getMessage(), e);
         }
+    }
 
-        // [FIX] ลบโค้ดที่ซ้ำกันทั้งหมด (บรรทัด 107-118 เดิม) ออก
+    public Pilot findPilotById(String pilotId) {
+        // 1. SQL JOIN ระหว่าง 'users' (u) และ 'pilots' (p)
+        //    แต่ครั้งนี้เราจะ "ค้นหา" ด้วยคอลัมน์ 'pilot_id' ของตาราง 'pilots'
+        String sql = "SELECT * " +
+                "FROM users u " +
+                "JOIN pilots p ON u.username = p.username " +
+                "WHERE p.pilot_id = ?"; // <-- ค้นหาด้วย pilot_id
+
+        Pilot pilot = null;
+
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // 2. ตั้งค่า Parameter เป็น pilotId
+            pstmt.setString(1, pilotId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    // 3. (ตรรกะประกอบร่าง) สร้างอ็อบเจกต์ว่าง
+                    pilot = new Pilot();
+
+                    // 4. ตั้งค่าข้อมูล "User" (Parent) จากตาราง 'users'
+                    pilot.setUsername(rs.getString("username"));
+                    pilot.setName(rs.getString("name"));
+                    pilot.setEmail(rs.getString("email"));
+                    pilot.setPhone(rs.getString("phone"));
+                    pilot.setRole(rs.getString("role"));
+                    pilot.setProfilePicture(rs.getString("profilePicture"));
+                    pilot.setHasAccess(rs.getInt("hasAccess") == 1);
+                    pilot.setHashedPassword(rs.getString("password"));
+
+                    // 5. ตั้งค่าเวลา Login
+                    String dbLastLogin = rs.getString("lastLogin");
+                    if (dbLastLogin != null) {
+                        pilot.setLastLogin(LocalDateTime.parse(dbLastLogin));
+                    }
+
+                    // 6. ตั้งค่าข้อมูล "Pilot" (Child) จากตาราง 'pilots'
+                    pilot.setPilotID(rs.getString("pilot_id"));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("PilotRepository (findPilotById) Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return pilot; // คืนค่า pilot (ที่มีข้อมูลครบ) หรือ null
     }
 }

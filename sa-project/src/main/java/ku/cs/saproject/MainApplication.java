@@ -45,6 +45,9 @@ public class MainApplication extends Application {
         FXRouter.when("instructor-schedule-page", viewPath + "instructor-schedule-page.fxml");
         FXRouter.when("instructor-report-page", viewPath + "instructor-report-page.fxml");
         FXRouter.when("report-create",  viewPath + "report-create-form.fxml");
+        FXRouter.when("report-view",  viewPath + "report-view-form.fxml");
+        FXRouter.when("report-edit",  viewPath + "report-edit-form.fxml");
+        FXRouter.when("report-send",  viewPath + "report-send-form.fxml");
 
         viewPath = "ku/cs/views/pilot/";
         FXRouter.when("pilot-main-page", viewPath + "pilot-main-page.fxml");
@@ -57,6 +60,7 @@ public class MainApplication extends Application {
         FXRouter.when("supervisor-main-page", viewPath + "supervisor-main-page.fxml");
         FXRouter.when("supervisor-schedule-page", viewPath + "supervisor-schedule-page.fxml");
         FXRouter.when("supervisor-report-page", viewPath + "supervisor-report-page.fxml");
+        FXRouter.when("pilot-notification-page", viewPath + "pilot-notification-page.fxml");
     }
 
     public static void main(String[] args) {

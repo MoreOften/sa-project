@@ -157,73 +157,53 @@ public class DbConnect {
 
 
         String pilotSql = "CREATE TABLE IF NOT EXISTS pilots ("
-
                 + " username TEXT PRIMARY KEY,"
-
                 + " pilot_id TEXT NOT NULL UNIQUE,"
-
-// + " name TEXT NOT NULL," // <--- (2) ลบบรรทัดนี้
-
+                + " pilot_type TEXT," // Field ใหม่
+                + " pilot_is_failed INTEGER DEFAULT 0," // Field ใหม่
+                + " pilot_fail_count INTEGER DEFAULT 0," // Field ใหม่
+                + " pilot_status TEXT," // Field ใหม่
+                + " pilot_progress TEXT," // Field ใหม่
+                + " pilot_is_available INTEGER DEFAULT 1," // Field ใหม่
                 + " FOREIGN KEY (username) REFERENCES users (username)"
 
                 + ");";
 
-
-
+        // --- 5. ตาราง Schedule (***แก้ไขตามที่คุณต้องการ***) ---
         String scheduleSql = "CREATE TABLE IF NOT EXISTS schedules ("
-
                 + " schedule_id TEXT PRIMARY KEY,"
-
                 + " supervisor_id TEXT NOT NULL,"
-
                 + " instructor_id TEXT NOT NULL,"
-
+                // (คงไว้ตามที่คุณขอ) ยังคงเก็บ 2 Pilots
                 + " pilot_id_1 TEXT NOT NULL,"
-
                 + " pilot_id_2 TEXT NOT NULL,"
-
-                + " program_name TEXT NOT NULL,"
-
-                + " training_timestamp TEXT NOT NULL,"
-
-                + " FOREIGN KEY (supervisor_id) REFERENCES users (username),"
-
-                + " FOREIGN KEY (instructor_id) REFERENCES users (username),"
-
-                + " FOREIGN KEY (pilot_id_1) REFERENCES users (username),"
-
-                + " FOREIGN KEY (pilot_id_2) REFERENCES users (username)"
-
+                // (อัปเดต) Field ใหม่จาก ERD
+                + " practice_program TEXT NOT NULL," // (แทน program_name)
+                + " schedule_date TEXT NOT NULL,"    // (แทน training_timestamp)
+                + " schedule_time TEXT NOT NULL,"    // (แทน training_timestamp)
+                + " simulator TEXT,"                 // Field ใหม่
+                + " FOREIGN KEY (supervisor_id) REFERENCES supervisors (supervisor_id),"
+                + " FOREIGN KEY (instructor_id) REFERENCES instructors (instructor_id),"
+                // (คงไว้ตามที่คุณขอ) Foreign Key สำหรับ 2 Pilots
+                + " FOREIGN KEY (pilot_id_1) REFERENCES pilots (pilot_id),"
+                + " FOREIGN KEY (pilot_id_2) REFERENCES pilots (pilot_id)"
                 + ");";
 
-        // ... (ต่อจาก scheduleSql) ...
-
+        // --- 6. ตาราง Report (อัปเดตตาม ERD) ---
         String reportSql = "CREATE TABLE IF NOT EXISTS reports ("
                 + " report_id TEXT PRIMARY KEY,"
+                + " schedule_id TEXT NOT NULL,"
+                + " pilot_id TEXT NOT NULL,"
                 + " instructor_id TEXT NOT NULL,"
-                + " schedule_id TEXT,"
-                + " create_date TEXT NOT NULL,"
-                + " status TEXT NOT NULL,"
-                + " feedback TEXT,"
-                + " grade TEXT,"
-                + " FOREIGN KEY (instructor_id) REFERENCES users (username)"
+                + " approval_status TEXT NOT NULL," // (แทน status)
+                + " report_result TEXT,"            // Field ใหม่
+                + " report_notes TEXT,"             // (แทน report_details)
+                + " created_at TEXT NOT NULL,"
+                + " updated_at TEXT NOT NULL,"
+                + " FOREIGN KEY (schedule_id) REFERENCES schedules (schedule_id),"
+                + " FOREIGN KEY (pilot_id) REFERENCES pilots (pilot_id),"
+                + " FOREIGN KEY (instructor_id) REFERENCES instructors (instructor_id)"
                 + ");";
-
-// ... (ใน try-with-resources) ...
-        try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement()) {
-
-            // ... (stmt.execute ของตารางอื่นๆ) ...
-            stmt.execute(scheduleSql);
-            System.out.println("ตรวจสอบ/สร้างตาราง Schedules สำเร็จ");
-
-            // (เพิ่มบรรทัดนี้)
-            stmt.execute(reportSql);
-            System.out.println("ตรวจสอบ/สร้างตาราง Reports สำเร็จ");
-
-        } catch (SQLException e) {
-            // ...
-        }
 
 // ใช้ try-with-resources เพื่อให้แน่ใจว่า Connection และ Statement ถูกปิดเสมอ
 
@@ -263,7 +243,8 @@ public class DbConnect {
 
             System.out.println("ตรวจสอบ/สร้างตาราง Schedules สำเร็จ");
 
-
+            stmt.execute(reportSql);
+            System.out.println("ตรวจสอบ/สร้างตาราง Reports สำเร็จ");
 
         } catch (SQLException e) {
 
@@ -288,6 +269,8 @@ public class DbConnect {
         SupervisorRepository supervisorRepository = new SupervisorRepository();
 
         ScheduleRepository scheduleRepository = new ScheduleRepository();
+
+        ReportRepository reportRepository = new ReportRepository();
 
         try {
 
@@ -455,16 +438,14 @@ public class DbConnect {
             Schedule schedule1 = new Schedule(
 
                     "S001", // supervisorId
-
-                    "I001", // instructorId (คนที่คุณจะเทส)
-
-                    "PL001", // pilotId1 (คนที่ 1)
-
-                    "PL002", // pilotId2 (คนที่ 2)
-
-                    "Introduction to Flight", // programName
-
-                    LocalDateTime.now().plusDays(3).withHour(14).withMinute(0) // วันเวลา (อีก 3 วัน ตอน 14:00)
+                    "I001", // instructorId
+                    "PL001", // pilotId1
+                    "PL002", // pilotId2
+                    "Scheduled",
+                    "Introduction to Flight", // practice_program
+                    java.time.LocalDate.now().plusDays(3).toString(), // schedule_date (TEXT)
+                    "14:00", // schedule_time (TEXT)
+                    "SIM-A380" // simulator
 
             );
 
@@ -473,6 +454,45 @@ public class DbConnect {
 
 
             System.out.println("สร้างข้อมูลเริ่มต้น (Seeding) สำเร็จ!");
+
+            // report
+
+            System.out.println("Seeding mock reports...");
+            // Assumes Schedule ID SC-001 is the one created earlier.
+            String mockScheduleId = "SC-001";
+
+// 1. Report 1: Simulator Malfunction
+//    (Matches the constructor: reportId, scheduleId, pilotId, instructorId, reportNotes, reportResult, approvalStatus, createdAt, updatedAt)
+            Report report1 = new Report(
+                    "R001", // reportId
+                    mockScheduleId, // scheduleId (Reference to the seeded schedule)
+                    "PL001", // pilotId (The pilot associated with the report)
+                    "I001", // instructorId (The instructor associated with the report)
+                    "Simulator Malfunction: The autopilot system failed to disengage during approach to runway 30.", // reportNotes (Combined Subject + Detail)
+                    "", // reportResult (Empty, as status is PENDING_REVIEW)
+                    ReportStatus.PENDING_REVIEW, // approvalStatus (Mapped from old "Pending")
+                    LocalDateTime.now().minusDays(1), // createdAt
+                    LocalDateTime.now().minusDays(1) // updatedAt
+            );
+
+// 2. Report 2: Late arrival of PL002
+//    (Matches the constructor: reportId, scheduleId, pilotId, instructorId, reportNotes, reportResult, approvalStatus, createdAt, updatedAt)
+            Report report2 = new Report(
+                    "R002", // reportId
+                    mockScheduleId, // scheduleId
+                    "PL002", // pilotId (The subject of the report)
+                    "I001", // instructorId (The reporter)
+                    "Pilot PL002 was 15 minutes late for the 14:00 session.", // reportNotes
+                    "Pilot was counselled and documented. Approved by supervisor.", // reportResult (Mocked result for a resolved issue)
+                    ReportStatus.APPROVED, // approvalStatus (Mapped from old "Resolved")
+                    LocalDateTime.now().minusDays(5), // createdAt
+                    LocalDateTime.now().minusDays(4) // updatedAt (Updated when resolved)
+            );
+
+
+            System.out.println("สร้างข้อมูลเริ่มต้น (Seeding) สำเร็จ!");
+
+
 
 
 

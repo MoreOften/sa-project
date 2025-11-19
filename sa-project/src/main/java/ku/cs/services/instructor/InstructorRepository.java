@@ -64,6 +64,27 @@ public class InstructorRepository {
         return instructor;
     }
 
+    public Instructor findInstructorById(String instructorId) {
+        String sql = "SELECT * FROM users u " +
+                "JOIN instructors i ON u.username = i.username " +
+                "WHERE i.instructor_id = ?";
+        Instructor instructor = null;
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, instructorId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    instructor = new Instructor();
+                    instructor.setName(rs.getString("name")); // เราต้องการแค่ชื่อ
+                    // (คุณสามารถ set ค่าอื่นๆ เพิ่มได้ถ้าจำเป็น)
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return instructor;
+    }
+
     public void addInstructor(Instructor instructor) {
     String sql = "INSERT INTO instructors (username, instructor_id) VALUES (?, ?)";
     try (Connection conn = DbConnect.getConnection();
@@ -92,6 +113,14 @@ public class InstructorRepository {
             System.err.println("InstructorRepository (updateStatus) Error: " + e.getMessage());
             throw new RuntimeException("Database update instructor status failed: " + e.getMessage(), e);
         }
+    }
+
+    public String getEmailById(String instructorID) {
+        // ในระบบจริงจะไปค้นจากฐานข้อมูล
+        if (instructorID.equals("I001")) {
+            return "heartofficial16@gmail.com";
+        }
+        return null;
     }
 
     // ... (เมธอด updatePasswordAndStatus อยู่ที่นี่) ...
