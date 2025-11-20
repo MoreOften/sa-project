@@ -137,7 +137,6 @@
                         <Insets top="20.0" />
                     </VBox.margin>
                 </HBox>
-                <Label fx:id="errorLabel" styleClass="text-danger" text="" />
             </children>
         </VBox>
     </center>

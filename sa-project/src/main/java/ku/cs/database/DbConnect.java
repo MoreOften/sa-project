@@ -414,7 +414,7 @@ public class DbConnect {
                     "PL001", // pilotId (The pilot associated with the report)
                     "I001", // instructorId (The instructor associated with the report)
                     "Simulator Malfunction: The autopilot system failed to disengage during approach to runway 30.", // reportNotes (Combined Subject + Detail)
-                    "", // reportResult (Empty, as status is PENDING_REVIEW)
+                    "test", // reportResult (Empty, as status is PENDING_REVIEW)
                     ReportStatus.PENDING_REVIEW, // approvalStatus (Mapped from old "Pending")
                     LocalDateTime.now().minusDays(1), // createdAt
                     LocalDateTime.now().minusDays(1) // updatedAt
@@ -436,6 +436,16 @@ public class DbConnect {
 
 
             System.out.println("สร้างข้อมูลเริ่มต้น (Seeding) สำเร็จ!");
+
+            // ... (Report report2 definition) ...
+
+            // ‼️ FIX: Add these two lines to save the mock data to the database ‼️
+            reportRepository.save(report1);
+            reportRepository.save(report2);
+            // ‼️ END FIX ‼️
+
+            System.out.println("สร้างข้อมูลเริ่มต้น (Seeding) สำเร็จ!");
+            // ... (rest of the file)
 
 
 

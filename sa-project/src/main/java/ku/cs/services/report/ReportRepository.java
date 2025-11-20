@@ -186,6 +186,23 @@ public class ReportRepository {
         return found;
     }
 
+    // ... (existing methods: constructor, load, save, delete, findReportById, findReportsByInstructor) ...
+
+    /**
+     * [FIX: Added method]
+     * Finds all reports associated with a specific pilot ID.
+     */
+    public List<Report> findReportsByPilotId(String pilotId) {
+        List<Report> found = new ArrayList<>();
+        // We assume reports list is loaded from DB in the constructor
+        for (Report report : this.reports) {
+            if (report.getPilotId().equals(pilotId)) {
+                found.add(report);
+            }
+        }
+        return found;
+    }
+
     public List<Report> findAll() {
         return new ArrayList<>(this.reports);
     }
