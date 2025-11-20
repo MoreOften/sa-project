@@ -10,112 +10,110 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" stylesheets="@/ku/cs/views/style.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ku.cs.controllers.instructor.InstructorMainPageController">
-
-    <left>
-        <BorderPane prefWidth="220.0" styleClass="sidebar" BorderPane.alignment="CENTER">
-
-            <center>
-                <VBox spacing="30.0" BorderPane.alignment="CENTER">
-                    <children>
-                        <Button fx:id="homepageButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onHomepageButtonClick" styleClass="sidebar-button, sidebar-button-active" text="Homepage">
-                            <graphic>
-                                <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
-                                    <image>
-                                        <Image url="@/images/home-icon.png" />
-                                    </image>
-                                </ImageView>
-                            </graphic>
-                            <padding>
-                                <Insets left="20.0" />
-                            </padding>
-                        </Button>
-
-                        <Button fx:id="scheduleButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onScheduleButtonClick" styleClass="sidebar-button" text="Schedule">
-                            <padding>
-                                <Insets left="20.0" />
-                            </padding>
-                        </Button>
-
-                        <Button fx:id="reportButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onReportButtonClick" styleClass="sidebar-button" text="Report">
-                            <padding>
-                                <Insets left="20.0" />
-                            </padding>
-                        </Button>
-                    </children>
-                    <padding>
-                        <Insets top="30.0" />
-                    </padding>
-                </VBox>
-            </center>
-
-            <bottom>
-                <VBox BorderPane.alignment="CENTER">
-                    <children>
-                        <Button fx:id="logoutButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onLogoutButtonClick" styleClass="sidebar-button" text="Log Out">
-                            <padding>
-                                <Insets left="20.0" />
-                            </padding>
-                        </Button>
-                    </children>
-                    <padding>
-                        <Insets bottom="10.0" />
-                    </padding>
-                </VBox>
-            </bottom>
-        </BorderPane>
-    </left>
-
-    <center>
-        <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-            <children>
-                <Label layoutX="46.0" layoutY="36.0" text="Information" AnchorPane.leftAnchor="40.0" AnchorPane.topAnchor="30.0">
-                    <font>
-                        <Font name="System Bold" size="24.0" />
-                    </font>
-                </Label>
-                <Label layoutX="40.0" layoutY="90.0" text="Name:">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-                <Label layoutX="40.0" layoutY="130.0" text="Email:">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-                <Label layoutX="40.0" layoutY="170.0" text="ID:">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-                <Label layoutX="40.0" layoutY="210.0" text="Role:">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-
-                <Label fx:id="nameLabel" layoutX="110.0" layoutY="90.0" text="nameLabel">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-                <Label fx:id="emailLabel" layoutX="110.0" layoutY="130.0" text="emailLabel">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-                <Label fx:id="idLabel" layoutX="110.0" layoutY="170.0" text="idLabel">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-                <Label fx:id="roleLabel" layoutX="110.0" layoutY="210.0" text="roleLabel">
-                    <font>
-                        <Font size="16.0" />
-                    </font>
-                </Label>
-            </children>
-        </AnchorPane>
-    </center>
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" stylesheets="@/ku/cs/views/style.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ku.cs.controllers.instructor.InstructorMainPageController">
+   <left>
+      <BorderPane prefWidth="220.0" styleClass="sidebar" BorderPane.alignment="CENTER">
+         <center>
+            <VBox spacing="30.0" BorderPane.alignment="CENTER">
+               <children>
+                  <Button fx:id="homepageButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#handleHomepageButton" styleClass="sidebar-button, sidebar-button-active" text="Homepage">
+                     <graphic>
+                        <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@/images/home-icon.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <padding>
+                        <Insets left="20.0" />
+                     </padding>
+                  </Button>
+                  <Button fx:id="scheduleButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#handleScheduleButton" styleClass="sidebar-button" text="Schedule">
+                     <padding>
+                        <Insets left="20.0" />
+                     </padding>
+                  </Button>
+                  <Button fx:id="reportButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#handleReportButton" styleClass="sidebar-button" text="Report">
+                     <padding>
+                        <Insets left="20.0" />
+                     </padding>
+                  </Button>
+                  <Button fx:id="notificationButton" alignment="CENTER_LEFT" layoutX="10.0" layoutY="187.0" mnemonicParsing="false" onAction="#handleNotificationButton" styleClass="sidebar-button" text="Notification">
+                     <padding>
+                        <Insets left="20.0" />
+                     </padding>
+                  </Button>
+               </children>
+               <padding>
+                  <Insets top="30.0" />
+               </padding>
+            </VBox>
+         </center>
+         <bottom>
+            <VBox BorderPane.alignment="CENTER">
+               <children>
+                  <Button fx:id="logoutButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#handleLogoutButton" styleClass="sidebar-button" text="Log Out">
+                     <padding>
+                        <Insets left="20.0" />
+                     </padding>
+                  </Button>
+               </children>
+               <padding>
+                  <Insets bottom="10.0" />
+               </padding>
+            </VBox>
+         </bottom>
+      </BorderPane>
+   </left>
+   <center>
+      <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+         <children>
+            <Label layoutX="207.0" layoutY="36.0" text="Information" AnchorPane.leftAnchor="207.0" AnchorPane.topAnchor="36.0">
+               <font>
+                  <Font name="System Bold" size="26.0" />
+               </font>
+            </Label>
+            <Label layoutX="173.0" layoutY="98.0" text="Name:">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Label>
+            <Label layoutX="171.0" layoutY="266.0" text="Email:">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Label>
+            <Label layoutX="173.0" layoutY="201.0" text="ID:">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Label>
+            <Label layoutX="174.0" layoutY="145.0" text="Role:">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Label>
+            <Label fx:id="nameLabel" layoutX="268.0" layoutY="98.0" text="nameLabel">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Label>
+            <Label fx:id="emailLabel" layoutX="269.0" layoutY="266.0" text="emailLabel">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Label>
+            <Label fx:id="idLabel" layoutX="269.0" layoutY="201.0" text="idLabel">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Label>
+            <Label fx:id="roleLabel" layoutX="268.0" layoutY="145.0" text="roleLabel">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Label>
+         </children>
+      </AnchorPane>
+   </center>
 </BorderPane>

@@ -3,7 +3,6 @@ package ku.cs.controllers.instructor;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -19,8 +18,6 @@ import ku.cs.services.schedule.ScheduleRepository; // (1) Import Repo
 import ku.cs.services.user.UserRepository;       // (2) Import Repo
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 // (3) เปลี่ยนจาก Schedule เป็น ScheduleView
@@ -113,38 +110,47 @@ public class InstructorSchedulePageController {
         scheduleTableView.setItems(scheduleViewList);
     }
 
-    public void onHomepageButtonClick() {
+    @FXML
+    public void handleHomepageButton() {
         try {
-            // คุณต้อง "ส่ง" ข้อมูล instructor กลับไปด้วย
-            FXRouter.goTo("instructor-main-page", currentInstructor);
+            FXRouter.goTo("instructor-main-page");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void onScheduleButtonClick() {
+    @FXML
+    public void handleScheduleButton() {
         try {
-            // หน้านี้คือหน้า Schedule อยู่แล้ว (ปกติปุ่มนี้ควรกดไม่ได้)
-            // แต่ถ้าจะให้กดได้ ก็ต้องส่งข้อมูลไปด้วย
-            FXRouter.goTo("instructor-schedule-page", currentInstructor);
+            FXRouter.goTo("instructor-schedule-page");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void onReportButtonClick() {
+    @FXML
+    public void handleReportButton() {
         try {
-            // ต้อง "ส่ง" ข้อมูล instructor ไปด้วย
-            FXRouter.goTo("instructor-report-page", currentInstructor);
+            FXRouter.goTo("instructor-report-page");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void onLogoutButtonClick() {
+    @FXML
+    public void handleNotificationButton() {
         try {
-            // (เพิ่ม) ต้องเคลียร์ Session
-            UserSession.getInstance().clearSession();
+            // อย่าลืมไปเพิ่ม route "instructor-notification-page" ใน MainApplication.java ด้วยนะครับ
+            FXRouter.goTo("instructor-notification-page");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleLogoutButton() {
+        try {
+            UserSession.getInstance().clearSession(); // เคลียร์ Session ก่อนออก
             FXRouter.goTo("login");
         } catch (IOException e) {
             throw new RuntimeException(e);

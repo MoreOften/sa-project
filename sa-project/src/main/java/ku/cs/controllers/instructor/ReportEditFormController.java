@@ -118,12 +118,51 @@ public class ReportEditFormController {
         alert.showAndWait();
     }
 
-    @FXML public void onHomepageButtonClick() { navigateTo("instructor-main-page"); }
-    @FXML public void onScheduleButtonClick() { navigateTo("instructor-schedule-page"); }
-    @FXML public void onReportButtonClick() { navigateTo("instructor-report-page"); }
-    @FXML public void onLogoutButtonClick() {
-        UserSession.getInstance().clearSession();
-        navigateTo("login");
+    @FXML
+    public void handleHomepageButton() {
+        try {
+            FXRouter.goTo("instructor-main-page");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleScheduleButton() {
+        try {
+            FXRouter.goTo("instructor-schedule-page");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleReportButton() {
+        try {
+            FXRouter.goTo("instructor-report-page");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleNotificationButton() {
+        try {
+            // อย่าลืมไปเพิ่ม route "instructor-notification-page" ใน MainApplication.java ด้วยนะครับ
+            FXRouter.goTo("instructor-notification-page");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleLogoutButton() {
+        try {
+            UserSession.getInstance().clearSession(); // เคลียร์ Session ก่อนออก
+            FXRouter.goTo("login");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void navigateTo(String route) {

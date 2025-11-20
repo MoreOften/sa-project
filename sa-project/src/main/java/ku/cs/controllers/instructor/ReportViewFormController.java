@@ -91,22 +91,49 @@ public class ReportViewFormController {
 
     // --- Sidebar Navigation (ก๊อปปี้มาจากหน้าอื่นได้เลย) ---
     @FXML
-    public void onHomepageButtonClick() {
-        try { FXRouter.goTo("instructor-main-page"); } catch (IOException e) { e.printStackTrace(); }
-    }
-    @FXML
-    public void onScheduleButtonClick() {
-        try { FXRouter.goTo("instructor-schedule-page"); } catch (IOException e) { e.printStackTrace(); }
-    }
-    @FXML
-    public void onReportButtonClick() {
-        try { FXRouter.goTo("instructor-report-page"); } catch (IOException e) { e.printStackTrace(); }
-    }
-    @FXML
-    public void onLogoutButtonClick() {
+    public void handleHomepageButton() {
         try {
-            UserSession.getInstance().clearSession();
+            FXRouter.goTo("instructor-main-page");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleScheduleButton() {
+        try {
+            FXRouter.goTo("instructor-schedule-page");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleReportButton() {
+        try {
+            FXRouter.goTo("instructor-report-page");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleNotificationButton() {
+        try {
+            // อย่าลืมไปเพิ่ม route "instructor-notification-page" ใน MainApplication.java ด้วยนะครับ
+            FXRouter.goTo("instructor-notification-page");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleLogoutButton() {
+        try {
+            UserSession.getInstance().clearSession(); // เคลียร์ Session ก่อนออก
             FXRouter.goTo("login");
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
