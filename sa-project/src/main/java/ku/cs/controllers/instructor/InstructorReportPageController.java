@@ -39,7 +39,7 @@ public class InstructorReportPageController {
     private ReportRepository reportRepository;
     private PilotRepository pilotRepository;
     private ScheduleRepository scheduleRepository;
-    private ObservableList<ReportView> reportViewList = FXCollections.observableArrayList();
+    private final ObservableList<ReportView> reportViewList = FXCollections.observableArrayList();
 
     public void initialize() {
         // (5) โหลด Instructor ที่ล็อกอินอยู่
@@ -305,11 +305,11 @@ public class InstructorReportPageController {
     }
 
     public static class ReportView {
-        private String reportId;
-        private String scheduleId;
-        private String pilotName;
-        private String practiceProgram;
-        private ReportStatus approvalStatus;
+        private final String reportId;
+        private final String scheduleId;
+        private final String pilotName;
+        private final String practiceProgram;
+        private final ReportStatus approvalStatus;
 
         public ReportView(Report report, String pilotName, String programName) {
             this.reportId = report.getReportId();

@@ -15,7 +15,6 @@ import ku.cs.services.FXRouter;
 import ku.cs.services.UserSession;
 import ku.cs.services.pilot.PilotRepository;
 import ku.cs.services.schedule.ScheduleRepository; // (1) Import Repo
-import ku.cs.services.user.UserRepository;       // (2) Import Repo
 
 import java.io.IOException;
 import java.util.List;
@@ -36,9 +35,8 @@ public class InstructorSchedulePageController {
 
     // (5) เพิ่ม Repositories และ ObservableList
     private ScheduleRepository scheduleRepository;
-    private UserRepository userRepository;
     private PilotRepository pilotRepository;
-    private ObservableList<ScheduleView> scheduleViewList = FXCollections.observableArrayList();
+    private final ObservableList<ScheduleView> scheduleViewList = FXCollections.observableArrayList();
 
     public void initialize() {
         User loggedInUser = UserSession.getInstance().getCurrentUser();
@@ -55,7 +53,6 @@ public class InstructorSchedulePageController {
         }
 
         scheduleRepository = new ScheduleRepository();
-        userRepository = new UserRepository();
         pilotRepository = new PilotRepository();
         setupTableColumns();
 
@@ -166,12 +163,12 @@ public class InstructorSchedulePageController {
      * คลาสนี้จะเก็บ "ชื่อ" แทน "ID"
      */
     public static class ScheduleView {
-        private String scheduleId;
-        private String pilot1Name;
-        private String pilot2Name;
-        private String dateTime;
-        private String practiceProgram;
-        private String supervisorId;
+        private final String scheduleId;
+        private final String pilot1Name;
+        private final String pilot2Name;
+        private final String dateTime;
+        private final String practiceProgram;
+        private final String supervisorId;
 
         public ScheduleView(Schedule schedule, String pilot1Name, String pilot2Name, String supervisorId) {
             this.scheduleId = schedule.getScheduleId();

@@ -38,8 +38,7 @@ public class ReportViewFormController {
 
         // 2. รับ reportId ที่ส่งมาจากหน้าตาราง (ผ่าน FXRouter)
         Object data = FXRouter.getData();
-        if (data instanceof String) {
-            String reportId = (String) data;
+        if (data instanceof String reportId) { // รวมการเช็คและการประกาศตัวแปรไว้ด้วยกัน
             loadReportData(reportId);
         } else {
             System.err.println("ReportView: ไม่ได้รับ Report ID");

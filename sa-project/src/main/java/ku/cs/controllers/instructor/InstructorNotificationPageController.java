@@ -16,23 +16,17 @@ import java.util.List;
 
 public class InstructorNotificationPageController {
 
-    // FXML Elements (ต้องตรงกับ fx:id ในไฟล์ FXML ของ Instructor)
+    // FXML Elements (เก็บไว้เฉพาะที่ใช้แสดงผลข้อมูล)
     @FXML private ListView<Notification> notificationListView;
 
-    @FXML private Label detailTimestampLabel1;  // สำหรับ "ผู้ส่ง:"
-    @FXML private Label detailTimestampLabel11; // สำหรับ "ตำแหน่ง:"
-    @FXML private Label detailTypeLabel;        // สำหรับ "เรื่อง:"
-    @FXML private Label detailTimestampLabel;   // สำหรับ "วันที่:"
+    @FXML private Label detailTimestampLabel1;
+    @FXML private Label detailTimestampLabel11;
+    @FXML private Label detailTypeLabel;
+    @FXML private Label detailTimestampLabel;
     @FXML private TextArea detailContentTextArea;
 
-    // Sidebar Buttons
-    @FXML private Button homepageButton;
-    @FXML private Button scheduleButton;
-    @FXML private Button reportButton;
-    @FXML private Button notificationButton; // ปุ่มนี้อาจจะต้องเพิ่มใน FXML ของ Instructor ถ้ายังไม่มี
-    @FXML private Button logoutButton;
-    // หมายเหตุ: Instructor ปกติไม่มีปุ่ม Resign ถ้าใน FXML ไม่มีให้ลบ @FXML นี้ออก
-    // @FXML private Button resignButton;
+    // [แก้ไข 1] ลบตัวแปรปุ่ม (Button) ที่ไม่ได้ใช้ออกทั้งหมด
+    // เพราะการทำงานของปุ่มใช้ผ่านเมธอด handle... ด้านล่างอยู่แล้ว
 
     // Services & Data
     private Instructor currentInstructor;
@@ -42,21 +36,15 @@ public class InstructorNotificationPageController {
 
     @FXML
     public void initialize() {
-        // 1. Initialize Services
         instructorRepository = new InstructorRepository();
         notificationRepository = new NotificationRepository();
 
-        // 2. Load Instructor Data
         loadInstructorData();
 
         if (this.currentInstructor != null) {
-            // 3. Setup Notification List View
             setupNotificationList();
-
-            // 4. Load Notifications from Repository
             loadNotifications();
 
-            // 5. Setup Listener for item selection
             notificationListView.getSelectionModel().selectedItemProperty().addListener(
                     (observable, oldValue, newValue) -> {
                         if (newValue != null) {
@@ -69,14 +57,12 @@ public class InstructorNotificationPageController {
         clearNotificationDetail();
     }
 
-    // --- Data Loading and Display ---
-
     private void loadInstructorData() {
         Object data = FXRouter.getData();
         if (data instanceof Instructor) {
             this.currentInstructor = (Instructor) data;
-        } else if (data instanceof User) {
-            User user = (User) data;
+        } else if (data instanceof User user) { // [แก้ไข 2] ใช้ Pattern Variable
+            // รวมบรรทัดเช็คและแปลง Type ไว้ด้วยกัน
             this.currentInstructor = instructorRepository.findInstructorByUsername(user.getUsername());
         }
     }
@@ -85,8 +71,8 @@ public class InstructorNotificationPageController {
         notificationList = FXCollections.observableArrayList();
         notificationListView.setItems(notificationList);
 
-        // Custom Cell Factory: เน้นข้อความที่ยังไม่ได้อ่านด้วยตัวหนา
-        notificationListView.setCellFactory(lv -> new ListCell<Notification>() {
+        // [แก้ไข 3] ใช้ Diamond Operator (<>)
+        notificationListView.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(Notification item, boolean empty) {
                 super.updateItem(item, empty);
@@ -94,10 +80,7 @@ public class InstructorNotificationPageController {
                     setText(null);
                     setStyle(null);
                 } else {
-                    // แสดงหัวข้อ + timestamp
                     setText(item.getSubject() + " [" + item.getTimestamp().toLocalDate() + "]");
-
-                    // Style: Bold สำหรับข้อความที่ยังไม่อ่าน
                     if (item.isRead()) {
                         setStyle("-fx-font-weight: normal;");
                     } else {
@@ -108,28 +91,21 @@ public class InstructorNotificationPageController {
         });
     }
 
+    // ... (ส่วนอื่นๆ เหมือนเดิม: loadNotifications, showNotificationDetail, clearNotificationDetail) ...
+
     private void loadNotifications() {
         if (currentInstructor == null) return;
-
-        // ดึงการแจ้งเตือนทั้งหมดของ Instructor คนนี้
         List<Notification> fetchedNotifs = notificationRepository.getNotificationsByUsername(currentInstructor.getUsername());
-
         notificationList.clear();
         notificationList.addAll(fetchedNotifs);
     }
 
     private void showNotificationDetail(Notification notification) {
         detailTimestampLabel1.setText("ผู้ส่ง: " + notification.getType());
-        // ปรับ Logic ตรงตำแหน่งได้ตามต้องการ
         detailTimestampLabel11.setText("ตำแหน่ง: " + (notification.getType().equals("System") ? "ระบบ" : "ไม่ทราบ"));
-
         detailTypeLabel.setText("เรื่อง: " + notification.getSubject());
         detailTimestampLabel.setText("วันที่: " + notification.getTimestamp().toString());
         detailContentTextArea.setText(notification.getContent());
-
-        // ถ้าต้องการให้คลิกแล้ว Mark as read ทันที สามารถเพิ่ม logic ตรงนี้ได้
-        // notification.setRead(true);
-        // notificationRepository.updateNotification(notification);
     }
 
     private void clearNotificationDetail() {
@@ -140,7 +116,7 @@ public class InstructorNotificationPageController {
         detailContentTextArea.setText("");
     }
 
-    // --- Sidebar Handlers ---
+    // --- Sidebar Handlers (ชื่อเมธอดต้องตรงกับ FXML) ---
 
     @FXML
     public void handleHomepageButton() {

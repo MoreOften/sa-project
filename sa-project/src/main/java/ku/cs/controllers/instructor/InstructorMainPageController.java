@@ -31,7 +31,7 @@ public class InstructorMainPageController {
         if (loggedInUser instanceof Instructor) {
             this.currentInstructor = (Instructor) loggedInUser;
         } else if (loggedInUser != null) {
-            // ... (จัดการ Error ถ้าจำเป็น) ...
+            System.err.println("Error: User " + loggedInUser.getUsername() + " is not an Instructor.");
         }
 
         // เรียกเมธอดแสดงผล

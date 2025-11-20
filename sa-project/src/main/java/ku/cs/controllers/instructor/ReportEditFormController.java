@@ -44,8 +44,8 @@ public class ReportEditFormController {
         resultChoiceBox.getItems().addAll("Pending", "Passed", "Failed");
 
         Object data = FXRouter.getData();
-        if (data instanceof String) {
-            String reportId = (String) data;
+        // [แก้ไข 1] ใช้ Pattern Variable
+        if (data instanceof String reportId) {
             loadReportData(reportId);
         } else {
             System.err.println("ReportEdit: ไม่ได้รับ Report ID");
@@ -81,7 +81,6 @@ public class ReportEditFormController {
         }
     }
 
-    // [แก้ไข] เปลี่ยนชื่อเมธอดให้ตรงกับ Error (handleEditButtonAction)
     @FXML
     public void handleEditButtonAction() {
         if (currentReport == null) return;
@@ -96,7 +95,8 @@ public class ReportEditFormController {
             FXRouter.goTo("instructor-report-page");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            // [แก้ไข 2] เปลี่ยน printStackTrace เป็น System.err
+            System.err.println("บันทึกข้อมูลไม่สำเร็จ: " + e.getMessage());
             showAlert("Error", "บันทึกข้อมูลไม่สำเร็จ: " + e.getMessage());
         }
     }
@@ -118,53 +118,35 @@ public class ReportEditFormController {
         alert.showAndWait();
     }
 
+    // [แก้ไข 3] เรียกใช้ navigateTo เพื่อลดโค้ดซ้ำซ้อนและแก้ Warning
+
     @FXML
     public void handleHomepageButton() {
-        try {
-            FXRouter.goTo("instructor-main-page");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        navigateTo("instructor-main-page");
     }
 
     @FXML
     public void handleScheduleButton() {
-        try {
-            FXRouter.goTo("instructor-schedule-page");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        navigateTo("instructor-schedule-page");
     }
 
     @FXML
     public void handleReportButton() {
-        try {
-            FXRouter.goTo("instructor-report-page");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        navigateTo("instructor-report-page");
     }
 
     @FXML
     public void handleNotificationButton() {
-        try {
-            // อย่าลืมไปเพิ่ม route "instructor-notification-page" ใน MainApplication.java ด้วยนะครับ
-            FXRouter.goTo("instructor-notification-page");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        navigateTo("instructor-notification-page");
     }
 
     @FXML
     public void handleLogoutButton() {
-        try {
-            UserSession.getInstance().clearSession(); // เคลียร์ Session ก่อนออก
-            FXRouter.goTo("login");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        UserSession.getInstance().clearSession();
+        navigateTo("login");
     }
 
+    // เมธอดนี้จะถูกเรียกใช้แล้ว Warning จะหายไป
     private void navigateTo(String route) {
         try {
             FXRouter.goTo(route);
