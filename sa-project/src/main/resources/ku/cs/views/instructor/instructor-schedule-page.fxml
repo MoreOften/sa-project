@@ -84,11 +84,11 @@
                 <TableView fx:id="scheduleTableView" layoutX="50.0" layoutY="120.0" prefHeight="500.0" prefWidth="950.0">
                     <columns>
                         <TableColumn fx:id="colScheduleId" prefWidth="139.0" text="Schedule ID" />
-                        <TableColumn fx:id="colPilot1" minWidth="9.0" prefWidth="235.0" text="Pilot Name 1" />
-                        <TableColumn fx:id="colPilot2" prefWidth="241.0" text="Pilot Name 2" />
+                        <TableColumn fx:id="colPilot1" minWidth="9.0" prefWidth="200.0" text="Pilot Name 1" />
+                        <TableColumn fx:id="colPilot2" prefWidth="200.0" text="Pilot Name 2" />
                         <TableColumn fx:id="colDateTime" prefWidth="105.0" text="Date and Time" />
                         <TableColumn fx:id="colProgram" prefWidth="165.0" text="Training Program" />
-                        <TableColumn fx:id="colSupervisor" prefWidth="125.0" text="Supervisor ID" />
+                        <TableColumn fx:id="colSupervisor" prefWidth="140.0" text="Supervisor ID" />
                     </columns>
                 </TableView>
             </children>
