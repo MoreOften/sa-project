@@ -172,6 +172,28 @@ public class DbConnect {
                 + " FOREIGN KEY (pilot_id) REFERENCES pilots (pilot_id),"
                 + " FOREIGN KEY (instructor_id) REFERENCES instructors (instructor_id)"
                 + ");";
+        // File: ku/cs/database/DbConnect.java (ส่วน initializeDatabase)
+
+// ... (existing code)
+
+        // --- 7. ตาราง Notification (***แก้ไข***) ---
+        String notificationSql = "CREATE TABLE IF NOT EXISTS notifications ("
+                + " notification_id TEXT PRIMARY KEY,"
+                + " recipient_id TEXT NOT NULL,"
+                + " sender_id TEXT NOT NULL,"
+                + " notification_subject TEXT,"
+                + " notification_content TEXT,"
+                + " notification_type TEXT NOT NULL,"
+                + " is_read INTEGER NOT NULL DEFAULT 0,"
+                + " notification_timestamp TEXT NOT NULL,"
+                + " FOREIGN KEY (recipient_id) REFERENCES users (username),"
+                + " FOREIGN KEY (sender_id) REFERENCES users (username)"
+                + ");";
+
+
+
+
+// ... (rest of the file)
 
         // --- (ส่วน Execute ไม่เปลี่ยนแปลง) ---
         try (Connection conn = getConnection();
@@ -194,6 +216,9 @@ public class DbConnect {
 
             stmt.execute(reportSql);
             System.out.println("ตรวจสอบ/สร้างตาราง Reports สำเร็จ");
+
+            stmt.execute(notificationSql);
+            System.out.println("ตรวจสอบ/สร้างตาราง Notifications สำเร็จ");
 
         } catch (SQLException e) {
             System.err.println("เกิดข้อผิดพลาดในการสร้างตาราง: " + e.getMessage());

@@ -11,32 +11,23 @@ import ku.cs.models.notification.Notification;
 import ku.cs.services.FXRouter;
 import ku.cs.services.pilot.PilotRepository;
 import ku.cs.services.notification.NotificationRepository;
+import ku.cs.services.user.UserRepository; // เพิ่ม Import
 
 import java.io.IOException;
 import java.util.List;
 
 public class PilotNotificationPageController {
 
-    // FXML Elements ที่อ้างอิงตาม FXML ใหม่
-
-    // Label แสดงชื่อนักบินถูกลบออกจาก FXML แล้ว จึงต้องลบคอมเมนต์ส่วนนี้
-    // @FXML private Label pilotNameLabel;
-
-    // Label และ Button สำหรับสถานะการอ่านถูกลบออกจาก FXML แล้ว
-    // @FXML private Label unreadCountLabel;
-    // @FXML private Button markAsReadButton;
-
     @FXML private ListView<Notification> notificationListView;
 
-    // FXML ใหม่ (เปลี่ยนตามวัตถุประสงค์ที่กำหนดใน FXML)
     @FXML private Label detailTimestampLabel1;  // สำหรับ "ผู้ส่ง:"
     @FXML private Label detailTimestampLabel11; // สำหรับ "ตำแหน่ง:"
-    @FXML private Label detailTypeLabel;        // สำหรับ "เรื่อง:" (เดิมคือ Subject)
+    @FXML private Label detailTypeLabel;        // สำหรับ "เรื่อง:"
     @FXML private Label detailTimestampLabel;   // สำหรับ "วันที่:"
     @FXML private TextArea detailContentTextArea;
 
 
-    // Sidebar Buttons (ยังคงเดิม)
+    // Sidebar Buttons
     @FXML private Button homepageButton;
     @FXML private Button scheduleButton;
     @FXML private Button reportButton;
@@ -48,6 +39,7 @@ public class PilotNotificationPageController {
     private Pilot currentPilot;
     private PilotRepository pilotRepository;
     private NotificationRepository notificationRepository;
+    private UserRepository userRepository; // Field ใหม่
     private ObservableList<Notification> notificationList;
 
     @FXML
@@ -55,13 +47,12 @@ public class PilotNotificationPageController {
         // 1. Initialize Services
         pilotRepository = new PilotRepository();
         notificationRepository = new NotificationRepository();
+        userRepository = new UserRepository(); // Initialize Repository
 
         // 2. Load Pilot Data
         loadPilotData();
 
         if (this.currentPilot != null) {
-            // showPilotData(); // Label แสดงชื่อนักบินถูกลบแล้ว
-
             // 3. Setup Notification List View
             setupNotificationList();
 
@@ -73,7 +64,11 @@ public class PilotNotificationPageController {
                     (observable, oldValue, newValue) -> {
                         if (newValue != null) {
                             showNotificationDetail(newValue);
-                            // ตรรกะการทำเครื่องหมายว่าอ่านแล้วถูกเอาออก เพราะปุ่มถูกลบ
+                            if (!newValue.isRead()) { // ทำเครื่องหมายว่าอ่านแล้วทันที
+                                newValue.setRead(true);
+                                notificationListView.refresh();
+                                notificationRepository.markAsRead(newValue.getNotificationId());
+                            }
                         } else {
                             clearNotificationDetail();
                         }
@@ -82,10 +77,7 @@ public class PilotNotificationPageController {
         clearNotificationDetail();
     }
 
-    // --- Data Loading and Display ---
-
     private void loadPilotData() {
-        // ... (ตรรกะเดิมในการโหลด currentPilot) ...
         Object data = FXRouter.getData();
         if (data instanceof Pilot) {
             this.currentPilot = (Pilot) data;
@@ -95,16 +87,11 @@ public class PilotNotificationPageController {
         }
     }
 
-    // private void showPilotData() {
-    //     // pilotNameLabel ถูกลบออกจาก FXML แล้ว
-    //     // pilotNameLabel.setText(currentPilot.getName());
-    // }
-
     private void setupNotificationList() {
         notificationList = FXCollections.observableArrayList();
         notificationListView.setItems(notificationList);
 
-        // Custom Cell Factory: เน้นข้อความที่ยังไม่ได้อ่านด้วยตัวหนา (ยังคงไว้)
+        // Custom Cell Factory: แสดง notificationType + notificationId
         notificationListView.setCellFactory(lv -> new ListCell<Notification>() {
             @Override
             protected void updateItem(Notification item, boolean empty) {
@@ -113,8 +100,7 @@ public class PilotNotificationPageController {
                     setText(null);
                     setStyle(null);
                 } else {
-                    // แสดงหัวข้อ + timestamp
-                    setText(item.getSubject() + " [" + item.getTimestamp().toLocalDate() + "]");
+                    setText(item.toString());
 
                     // Style: Bold สำหรับข้อความที่ยังไม่อ่าน
                     if (item.isRead()) {
@@ -130,36 +116,32 @@ public class PilotNotificationPageController {
     private void loadNotifications() {
         if (currentPilot == null) return;
 
-        // ดึงการแจ้งเตือนทั้งหมด
         List<Notification> fetchedNotifs = notificationRepository.getNotificationsByUsername(currentPilot.getUsername());
 
         notificationList.clear();
         notificationList.addAll(fetchedNotifs);
-
-        // updateUnreadCount(); // ถูกลบเพราะ Label ถูกลบแล้ว
     }
 
-    // private void updateUnreadCount() {
-    //     // ถูกลบเพราะ Label ถูกลบแล้ว
-    //     long unreadCount = notificationList.stream().filter(n -> !n.isRead()).count();
-    //     unreadCountLabel.setText("✉️ ยังไม่ได้อ่าน: " + unreadCount + " รายการ");
-    // }
-
     private void showNotificationDetail(Notification notification) {
-        // FXML ใหม่
-        // ผู้ส่งและตำแหน่งไม่ได้อยู่ใน Model (Notification) โดยตรง, ใช้ placeholder หรือสมมติว่า Type คือผู้ส่ง
-        detailTimestampLabel1.setText("ผู้ส่ง: " + notification.getType());
-        detailTimestampLabel11.setText("ตำแหน่ง: " + (notification.getType().equals("Resignation") ? "ระบบ" : "ไม่ทราบ")); // Placeholder
+        // ดึงข้อมูลผู้ส่ง (Sender)
+        User sender = userRepository.findUserByUsername(notification.getSenderId());
+        String senderName = (sender != null) ? sender.getName() : "ไม่พบผู้ส่ง";
+        String senderRole = (sender != null) ? sender.getRole() : "N/A";
 
-        // detailTypeLabel ถูกเปลี่ยนให้แสดง "เรื่อง:"
-        detailTypeLabel.setText("เรื่อง: " + notification.getSubject());
+        // ผู้ส่ง: senderId.getName
+        detailTimestampLabel1.setText("ผู้ส่ง: " + senderName);
 
-        // detailTimestampLabel ยังคงแสดง "วันที่:"
-        detailTimestampLabel.setText("วันที่: " + notification.getTimestamp().toString());
+        // ตำแหน่ง: senderId.getRole
+        detailTimestampLabel11.setText("ตำแหน่ง: " + senderRole);
 
-        detailContentTextArea.setText(notification.getContent());
+        // เรื่อง: notificationSubject
+        detailTypeLabel.setText("เรื่อง: " + notification.getNotificationSubject());
 
-        // markAsReadButton ถูกลบ
+        // วันที่: notificationTimestamp
+        detailTimestampLabel.setText("วันที่: " + notification.getNotificationTimestamp().toString());
+
+        // รายละเอียด: notificationContent
+        detailContentTextArea.setText(notification.getNotificationContent());
     }
 
     private void clearNotificationDetail() {
@@ -168,12 +150,7 @@ public class PilotNotificationPageController {
         detailTypeLabel.setText("เรื่อง:");
         detailTimestampLabel.setText("วันที่:");
         detailContentTextArea.setText("");
-        // markAsReadButton ถูกลบ
     }
-
-    // --- Action Handlers ---
-
-    // handleMarkAsRead และ handleMarkAllAsRead ถูกลบเพราะปุ่มถูกลบออกจาก FXML แล้ว
 
     // --- Sidebar Handlers (ยังคงเดิม) ---
 

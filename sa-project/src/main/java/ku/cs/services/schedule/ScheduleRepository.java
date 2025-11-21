@@ -81,8 +81,8 @@ public class ScheduleRepository {
 
     public List<Schedule> findSchedulesByInstructor(String instructorId) {
         List<Schedule> schedules = new ArrayList<>();
-        // (ไม่ต้องแก้ไข SQL นี้ เพราะ SELECT * จะดึงมาทุกคอลัมน์)
-        String sql = "SELECT * FROM schedules WHERE instructor_id = ?";
+        // (แก้ไข SQL) เพิ่มเงื่อนไขการกรองสถานะ: ไม่รวม 'cancelled_resignation'
+        String sql = "SELECT * FROM schedules WHERE instructor_id = ? AND schedule_status <> 'cancelled_resignation'";
 
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -91,7 +91,6 @@ public class ScheduleRepository {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    // (เรียก helper method ที่เราจะแก้ไขด้านล่าง)
                     schedules.add(createScheduleFromResultSet(rs));
                 }
             }
@@ -104,8 +103,8 @@ public class ScheduleRepository {
 
     public List<Schedule> findSchedulesByPilot(String pilotId) {
         List<Schedule> schedules = new ArrayList<>();
-        // (ไม่ต้องแก้ไข SQL นี้)
-        String sql = "SELECT * FROM schedules WHERE pilot_id_1 = ? OR pilot_id_2 = ?";
+        // (แก้ไข SQL) เพิ่มเงื่อนไขการกรองสถานะ: ไม่รวม 'cancelled_resignation'
+        String sql = "SELECT * FROM schedules WHERE (pilot_id_1 = ? OR pilot_id_2 = ?) AND schedule_status <> 'cancelled_resignation'";
 
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -115,7 +114,6 @@ public class ScheduleRepository {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    // (เรียก helper method ที่เราจะแก้ไขด้านล่าง)
                     schedules.add(createScheduleFromResultSet(rs));
                 }
             }

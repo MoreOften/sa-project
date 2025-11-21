@@ -10,34 +10,35 @@ import ku.cs.models.user.User;
 import ku.cs.services.FXRouter;
 import ku.cs.services.instructor.InstructorRepository;
 import ku.cs.services.notification.NotificationRepository;
+import ku.cs.services.user.UserRepository; // เพิ่ม Import
 
 import java.io.IOException;
 import java.util.List;
 
 public class InstructorNotificationPageController {
 
-    // FXML Elements (เก็บไว้เฉพาะที่ใช้แสดงผลข้อมูล)
+    // FXML Elements
     @FXML private ListView<Notification> notificationListView;
 
-    @FXML private Label detailTimestampLabel1;
-    @FXML private Label detailTimestampLabel11;
-    @FXML private Label detailTypeLabel;
-    @FXML private Label detailTimestampLabel;
+    @FXML private Label detailTimestampLabel1;  // สำหรับ "ผู้ส่ง:"
+    @FXML private Label detailTimestampLabel11; // สำหรับ "ตำแหน่ง:"
+    @FXML private Label detailTypeLabel;        // สำหรับ "เรื่อง:"
+    @FXML private Label detailTimestampLabel;   // สำหรับ "วันที่:"
     @FXML private TextArea detailContentTextArea;
 
-    // [แก้ไข 1] ลบตัวแปรปุ่ม (Button) ที่ไม่ได้ใช้ออกทั้งหมด
-    // เพราะการทำงานของปุ่มใช้ผ่านเมธอด handle... ด้านล่างอยู่แล้ว
 
     // Services & Data
     private Instructor currentInstructor;
     private InstructorRepository instructorRepository;
     private NotificationRepository notificationRepository;
+    private UserRepository userRepository; // Field ใหม่
     private ObservableList<Notification> notificationList;
 
     @FXML
     public void initialize() {
         instructorRepository = new InstructorRepository();
         notificationRepository = new NotificationRepository();
+        userRepository = new UserRepository(); // Initialize Repository
 
         loadInstructorData();
 
@@ -49,6 +50,11 @@ public class InstructorNotificationPageController {
                     (observable, oldValue, newValue) -> {
                         if (newValue != null) {
                             showNotificationDetail(newValue);
+                            if (!newValue.isRead()) { // ทำเครื่องหมายว่าอ่านแล้วทันที
+                                newValue.setRead(true);
+                                notificationListView.refresh();
+                                notificationRepository.markAsRead(newValue.getNotificationId());
+                            }
                         } else {
                             clearNotificationDetail();
                         }
@@ -61,8 +67,7 @@ public class InstructorNotificationPageController {
         Object data = FXRouter.getData();
         if (data instanceof Instructor) {
             this.currentInstructor = (Instructor) data;
-        } else if (data instanceof User user) { // [แก้ไข 2] ใช้ Pattern Variable
-            // รวมบรรทัดเช็คและแปลง Type ไว้ด้วยกัน
+        } else if (data instanceof User user) {
             this.currentInstructor = instructorRepository.findInstructorByUsername(user.getUsername());
         }
     }
@@ -71,8 +76,7 @@ public class InstructorNotificationPageController {
         notificationList = FXCollections.observableArrayList();
         notificationListView.setItems(notificationList);
 
-        // [แก้ไข 3] ใช้ Diamond Operator (<>)
-        notificationListView.setCellFactory(lv -> new ListCell<>() {
+        notificationListView.setCellFactory(lv -> new ListCell<Notification>() {
             @Override
             protected void updateItem(Notification item, boolean empty) {
                 super.updateItem(item, empty);
@@ -80,7 +84,9 @@ public class InstructorNotificationPageController {
                     setText(null);
                     setStyle(null);
                 } else {
-                    setText(item.getSubject() + " [" + item.getTimestamp().toLocalDate() + "]");
+                    // แสดง notificationType + notificationId
+                    setText(item.toString());
+
                     if (item.isRead()) {
                         setStyle("-fx-font-weight: normal;");
                     } else {
@@ -91,8 +97,6 @@ public class InstructorNotificationPageController {
         });
     }
 
-    // ... (ส่วนอื่นๆ เหมือนเดิม: loadNotifications, showNotificationDetail, clearNotificationDetail) ...
-
     private void loadNotifications() {
         if (currentInstructor == null) return;
         List<Notification> fetchedNotifs = notificationRepository.getNotificationsByUsername(currentInstructor.getUsername());
@@ -101,11 +105,32 @@ public class InstructorNotificationPageController {
     }
 
     private void showNotificationDetail(Notification notification) {
-        detailTimestampLabel1.setText("ผู้ส่ง: " + notification.getType());
-        detailTimestampLabel11.setText("ตำแหน่ง: " + (notification.getType().equals("System") ? "ระบบ" : "ไม่ทราบ"));
-        detailTypeLabel.setText("เรื่อง: " + notification.getSubject());
-        detailTimestampLabel.setText("วันที่: " + notification.getTimestamp().toString());
-        detailContentTextArea.setText(notification.getContent());
+        // ดึงข้อมูลผู้ส่ง (Sender)
+        User sender = userRepository.findUserByUsername(notification.getSenderId());
+        String senderName = (sender != null) ? sender.getName() : "ไม่พบผู้ส่ง";
+        String senderRole = (sender != null) ? sender.getRole() : "N/A";
+
+        // ผู้ส่ง: senderId.getName
+        detailTimestampLabel1.setText("ผู้ส่ง: " + senderName);
+
+        // ตำแหน่ง: senderId.getRole
+        detailTimestampLabel11.setText("ตำแหน่ง: " + senderRole);
+
+        // เรื่อง: notificationSubject
+        detailTypeLabel.setText("เรื่อง: " + notification.getNotificationSubject());
+
+        // วันที่: notificationTimestamp
+        detailTimestampLabel.setText("วันที่: " + notification.getNotificationTimestamp().toString());
+
+        // รายละเอียด: notificationContent
+        detailContentTextArea.setText(notification.getNotificationContent());
+
+        // (ถ้ามีการเลือก ให้ทำเครื่องหมายว่าอ่านแล้วใน Model เพื่อให้สีเปลี่ยน)
+        if (!notification.isRead()) {
+            notification.setRead(true);
+            notificationListView.refresh();
+            notificationRepository.markAsRead(notification.getNotificationId());
+        }
     }
 
     private void clearNotificationDetail() {
@@ -116,7 +141,7 @@ public class InstructorNotificationPageController {
         detailContentTextArea.setText("");
     }
 
-    // --- Sidebar Handlers (ชื่อเมธอดต้องตรงกับ FXML) ---
+    // --- Sidebar Handlers (ยังคงเดิม) ---
 
     @FXML
     public void handleHomepageButton() {

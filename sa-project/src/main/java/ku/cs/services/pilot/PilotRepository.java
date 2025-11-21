@@ -16,24 +16,39 @@ public class PilotRepository {
 
     private static final List<Pilot> pilots = List.of();
 
-    // ... (Existing methods: addPilot, findPilotByID, etc.) ...
+    // ... (Existing methods: findPilotByUsername, findPilotById, etc.) ...
 
     /**
      * Use Case Step 7: เปลี่ยนสถานะ Pilot เป็น 'resigned' และ Pilot_Is_Available = False
+     * @param pilotID ID ของนักบินที่ลาออก
+     * @return true ถ้าอัปเดตสำเร็จ
      */
     public boolean updatePilotToResigned(String pilotID) {
-        Optional<Pilot> optionalPilot = pilots.stream()
-                .filter(p -> p.getPilotID().equals(pilotID))
-                .findFirst();
+        // SQL: UPDATE pilots SET pilot_status = 'resigned', pilot_is_available = 0 WHERE pilot_id = ?;
+        // NOTE: pilot_is_available = 0 คือ False
+        String sql = "UPDATE pilots SET pilot_status = 'resigned', pilot_is_available = 0 WHERE pilot_id = ?";
 
-        if (optionalPilot.isPresent()) {
-            Pilot pilot = optionalPilot.get();
-            pilot.setPilotStatus("resigned");        // UPDATE pilots SET status = 'resigned'
-            pilot.setPilotIsAvailable(String.valueOf(false));          // Pilot_Is_Available = False
-            System.out.printf("-> [PilotRepo] Pilot ID %s สถานะเปลี่ยนเป็น 'ลาออก' (resigned).%n", pilotID);
-            return true;
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, pilotID);
+
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.printf("-> [PilotRepo] Pilot ID %s สถานะเปลี่ยนเป็น 'ลาออก' (resigned) ใน DB แล้ว.%n", pilotID);
+                return true;
+            } else {
+                // เพิ่มการแจ้งเตือนหากไม่พบ Pilot ID นี้ในตาราง pilots
+                System.err.printf("-> [PilotRepo] ERROR: ไม่พบ Pilot ID %s ในตาราง pilots หรือ Pilot มีสถานะเป็น 'resigned' อยู่แล้ว.%n", pilotID);
+                return false;
+            }
+        } catch (SQLException e) {
+            System.err.println("PilotRepository (updatePilotToResigned) Database Error: " + e.getMessage());
+            // แสดง Error Stack Trace เพื่อช่วยในการ debug
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     /**
