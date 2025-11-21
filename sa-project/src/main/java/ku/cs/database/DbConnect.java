@@ -1,101 +1,53 @@
 package ku.cs.database;
 
-
-
 import java.sql.Connection;
-
 import java.sql.DriverManager;
-
 import java.sql.SQLException;
-
 import java.sql.Statement;
-
 import java.time.LocalDateTime;
 
-
-
 import ku.cs.models.instructor.Instructor;
-
 import ku.cs.models.pilot.Pilot;
-
 import ku.cs.models.report.ReportStatus;
 import ku.cs.models.schedule.Schedule;
-
 import ku.cs.models.supervisor.Supervisor;
-
 import ku.cs.models.report.Report;
-
 import ku.cs.models.user.User;
-
 import ku.cs.services.instructor.InstructorRepository;
-
 import ku.cs.services.pilot.PilotRepository;
-
 import ku.cs.services.report.ReportRepository;
 import ku.cs.services.schedule.ScheduleRepository;
-
 import ku.cs.services.supervisor.SupervisorRepository;
-
 import ku.cs.services.user.UserRepository;
-
-
 
 public class DbConnect {
 
-
-
-// กำหนด URL สำหรับเชื่อมต่อ SQLite
-
+    // กำหนด URL สำหรับเชื่อมต่อ SQLite
 // ไฟล์ฐานข้อมูล "mydatabase.db" จะถูกสร้างขึ้นที่โฟลเดอร์ราก (root) ของโปรเจกต์
-
     private static final String URL = "jdbc:sqlite:mydatabase.db";
 
-
-
     /**
-
      * เมธอดสำหรับเชื่อมต่อฐานข้อมูล SQLite
-
      * @return อ็อบเจกต์ Connection
-
      */
-
     public static Connection getConnection() {
-
         Connection conn = null;
-
         try {
-
 // โหลด JDBC Driver (สำหรับ Java เก่าๆ อาจจำเป็น แต่เวอร์ชันใหม่ๆ มักจะไม่ต้อง)
-
 // Class.forName("org.sqlite.JDBC");
 
-
-
             conn = DriverManager.getConnection(URL);
-
         } catch (SQLException e) {
-
             System.err.println("การเชื่อมต่อฐานข้อมูลล้มเหลว: " + e.getMessage());
-
         }
-
         return conn;
-
     }
 
-
-
     /**
-
      * (แนะนำ) เมธอดสำหรับสร้างตารางเริ่มต้น หากยังไม่มี
-
      * ควรเรียกใช้เมธอดนี้แค่ครั้งเดียวตอนเริ่มโปรแกรม (เช่น ในคลาส MainApp)
-
      */
-
     public static void initializeDatabase() {
-
         // --- 1. ตาราง User (ไม่เปลี่ยนแปลง) ---
         String userSql = "CREATE TABLE IF NOT EXISTS users ("
                 + " username TEXT PRIMARY KEY,"
@@ -137,7 +89,7 @@ public class DbConnect {
                 + " FOREIGN KEY (username) REFERENCES users (username)"
                 + ");";
 
-        // --- 5. ตาราง Schedule (***แก้ไขตามที่คุณต้องการ***) ---
+        // --- 5. ตาราง Schedule (***แก้ไข***) ---
         String scheduleSql = "CREATE TABLE IF NOT EXISTS schedules ("
                 + " schedule_id TEXT PRIMARY KEY,"
                 + " supervisor_id TEXT NOT NULL,"
@@ -150,6 +102,7 @@ public class DbConnect {
                 + " schedule_date TEXT NOT NULL,"    // (แทน training_timestamp)
                 + " schedule_time TEXT NOT NULL,"    // (แทน training_timestamp)
                 + " simulator TEXT,"                 // Field ใหม่
+                + " schedule_status TEXT DEFAULT 'Scheduled'," // <-- เพิ่มคอลัมน์นี้
                 + " FOREIGN KEY (supervisor_id) REFERENCES supervisors (supervisor_id),"
                 + " FOREIGN KEY (instructor_id) REFERENCES instructors (instructor_id),"
                 // (คงไว้ตามที่คุณขอ) Foreign Key สำหรับ 2 Pilots
@@ -190,11 +143,6 @@ public class DbConnect {
                 + " FOREIGN KEY (sender_id) REFERENCES users (username)"
                 + ");";
 
-
-
-
-// ... (rest of the file)
-
         // --- (ส่วน Execute ไม่เปลี่ยนแปลง) ---
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement()) {
@@ -225,187 +173,90 @@ public class DbConnect {
         }
     }
 
-
-
     public static void seedInitialData() {
-
-// ... (สร้าง Repositories) ...
+        // ... (Code for seedInitialData remains the same, ensuring the Supervisor and Pilots are properly seeded before the Schedule is added) ...
 
         UserRepository userRepository = new UserRepository();
-
         PilotRepository pilotRepository = new PilotRepository();
-
         InstructorRepository instructorRepository = new InstructorRepository();
-
         SupervisorRepository supervisorRepository = new SupervisorRepository();
-
         ScheduleRepository scheduleRepository = new ScheduleRepository();
-
         ReportRepository reportRepository = new ReportRepository();
 
         try {
 
-// ... (if check supervisor_admin) ...
-
             if (userRepository.findUserByUsername("supervisor_admin") != null) {
-
                 System.out.println("ข้อมูลเริ่มต้น (Seed) มีอยู่แล้ว ไม่ต้องสร้างซ้ำ");
-
                 return;
-
             }
 
-// ... (สร้าง supervisorUser) ...
-
             User supervisorUser = new User();
-
             supervisorUser.setUsername("supervisor_admin");
-
             supervisorUser.setPassword("pass123");
-
             supervisorUser.setName("Admin Supervisor");
-
             supervisorUser.setRole("supervisor");
-
             supervisorUser.setEmail("supervisor@test.com");
-
             supervisorUser.setHasAccess(true);
-
             supervisorUser.setLastLogin();
-
             supervisorUser.setProfilePicture("default-user-photo.png");
-
             userRepository.registerUser(supervisorUser);
 
-
-
             Supervisor supervisorProfile = new Supervisor();
-
-
             supervisorProfile.setUsername("supervisor_admin");
-
             supervisorProfile.setSupervisorID("S001");
-
-// supervisorProfile.setName("Admin Supervisor"); // <--- (1) ลบบรรทัดนี้
-
             supervisorRepository.addSupervisor(supervisorProfile);
 
-
-
-// 4. --- สร้าง Instructor ---
-
-// ... (สร้าง instructorUser) ...
-
             User instructorUser = new User(); // <-- ประกาศตัวแปร
-
             instructorUser.setUsername("instructor_test");
-
             instructorUser.setPassword("pass123");
-
             instructorUser.setName("Test Instructor");
-
             instructorUser.setRole("instructor");
-
             instructorUser.setEmail("instructor@test.com");
-
             instructorUser.setHasAccess(true);
-
             instructorUser.setLastLogin();
-
             instructorUser.setProfilePicture("default-user-photo.png");
-
             userRepository.registerUser(instructorUser);
 
-
-
             Instructor instructorProfile = new Instructor();
-
             instructorProfile.setUsername("instructor_test");
-
             instructorProfile.setInstructorID("I001");
-
-// instructorProfile.setName("Test Instructor"); // <--- (2) ลบบรรทัดนี้
-
             instructorRepository.addInstructor(instructorProfile);
 
-
-
-// 5. --- สร้าง Pilot ---
-
-// ... (สร้าง pilotUser) ...
-
             User pilotUser = new User(); // <-- ประกาศตัวแปร
-
             pilotUser.setUsername("pilot_test");
-
             pilotUser.setPassword("pass123");
-
             pilotUser.setName("Test Pilot");
-
             pilotUser.setRole("pilot");
-
             pilotUser.setEmail("pilot@test.com");
-
             pilotUser.setHasAccess(true);
-
             pilotUser.setLastLogin();
-
             pilotUser.setProfilePicture("default-user-photo.png");
 
-
-
             User pilotUser2 = new User(); // <-- ประกาศตัวแปร
-
             pilotUser2.setUsername("pilot_test_two");
-
             pilotUser2.setPassword("pass123");
-
             pilotUser2.setName("Test Pilot 2");
-
             pilotUser2.setRole("pilot");
-
             pilotUser2.setEmail("pilot2@test.com");
-
             pilotUser2.setHasAccess(true);
-
             pilotUser2.setLastLogin();
-
             pilotUser2.setProfilePicture("default-user-photo.png");
-
-
 
             userRepository.registerUser(pilotUser);
 
-
-
             Pilot pilotProfile = new Pilot();
-
             pilotProfile.setUsername("pilot_test");
-
             pilotProfile.setPilotID("PL001");
-
-// pilotProfile.setName("Test Pilot"); // <--- (3) ลบบรรทัดนี้
-
             pilotRepository.addPilot(pilotProfile);
-
-
 
             userRepository.registerUser(pilotUser2);
 
-
-
             Pilot pilotProfile2 = new Pilot();
-
             pilotProfile2.setUsername("pilot_test_two");
-
             pilotProfile2.setPilotID("PL002");
-
             pilotRepository.addPilot(pilotProfile2);
 
-
-
             System.out.println("Seeding mock schedule...");
-
             Schedule schedule1 = new Schedule(
                     "S001", // supervisorId
                     "I001", // instructorId
@@ -416,23 +267,15 @@ public class DbConnect {
                     java.time.LocalDate.now().plusDays(3).toString(), // schedule_date (TEXT)
                     "14:00", // schedule_time (TEXT)
                     "SIM-A380" // simulator
-
             );
-
             scheduleRepository.addSchedule(schedule1);
 
-
-
             System.out.println("สร้างข้อมูลเริ่มต้น (Seeding) สำเร็จ!");
-
-            // report
 
             System.out.println("Seeding mock reports...");
             // Assumes Schedule ID SC-001 is the one created earlier.
             String mockScheduleId = "SC-001";
 
-// 1. Report 1: Simulator Malfunction
-//    (Matches the constructor: reportId, scheduleId, pilotId, instructorId, reportNotes, reportResult, approvalStatus, createdAt, updatedAt)
             Report report1 = new Report(
                     "R001", // reportId
                     mockScheduleId, // scheduleId (Reference to the seeded schedule)
@@ -445,8 +288,6 @@ public class DbConnect {
                     LocalDateTime.now().minusDays(1) // updatedAt
             );
 
-// 2. Report 2: Late arrival of PL002
-//    (Matches the constructor: reportId, scheduleId, pilotId, instructorId, reportNotes, reportResult, approvalStatus, createdAt, updatedAt)
             Report report2 = new Report(
                     "R002", // reportId
                     mockScheduleId, // scheduleId
@@ -459,31 +300,14 @@ public class DbConnect {
                     LocalDateTime.now().minusDays(4) // updatedAt (Updated when resolved)
             );
 
-
-            System.out.println("สร้างข้อมูลเริ่มต้น (Seeding) สำเร็จ!");
-
-            // ... (Report report2 definition) ...
-
-            // ‼️ FIX: Add these two lines to save the mock data to the database ‼️
             reportRepository.save(report1);
             reportRepository.save(report2);
-            // ‼️ END FIX ‼️
 
             System.out.println("สร้างข้อมูลเริ่มต้น (Seeding) สำเร็จ!");
-            // ... (rest of the file)
-
-
-
-
 
         } catch (Exception e) {
-
             System.err.println("เกิดข้อผิดพลาดระหว่างการ Seeding ข้อมูล: " + e.getMessage());
-
-            e.printStackTrace(); // <--- (เพิ่มบรรทัดนี้)
-
+            e.printStackTrace();
         }
-
     }
-
 }

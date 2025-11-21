@@ -68,7 +68,14 @@ public class PilotSchedulePageController {
         scheduleList = FXCollections.observableArrayList();
         setupTableColumns(); // *** CALL SETUP METHOD ***
 
-        if (currentPilot != null) {
+        // *** เริ่มการแก้ไข: ตรวจสอบสถานะ Pilot ที่ล็อกอินอยู่ ***
+        if (currentPilot != null && "resigned".equalsIgnoreCase(currentPilot.getPilotStatus())) {
+            System.out.println("Pilot is resigned. Displaying empty schedule.");
+            // ไม่ต้องโหลดข้อมูล เพียงตั้งค่ารายการว่างเปล่า
+            scheduleTableView.setItems(scheduleList);
+        }
+        // *** สิ้นสุดการแก้ไข ***
+        else if (currentPilot != null) {
             scheduleTableView.setItems(scheduleList);
             loadScheduleData();
         } else {

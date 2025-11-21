@@ -88,16 +88,45 @@ public class InstructorSchedulePageController {
 
         // 2. วนลูปเพื่อดึง "ชื่อ" ของ Pilot และ Supervisor
         for (Schedule s : schedules) {
-            // (นี่คือการทำ N+1 Query ซึ่งสำหรับโปรเจกต์ขนาดเล็กถือว่ายอมรับได้)
             Pilot pilot1 = pilotRepository.findPilotById(s.getPilotId1());
             Pilot pilot2 = pilotRepository.findPilotById(s.getPilotId2());
 
-            // 3. (แก้ไขตามคำขอ) ใช้ ID ของ Supervisor
+            // 3. ใช้ ID ของ Supervisor
             String supervisorId = s.getSupervisorId();
 
-            // 4. จัดการกรณีหา User ไม่เจอ (เช่น ถูกลบ)
-            String p1Name = (pilot1 != null) ? pilot1.getName() : "N/A";
-            String p2Name = (pilot2 != null) ? pilot2.getName() : "N/A";
+            // *** NEW LOGIC: ตรวจสอบว่า Pilot ลาออกทั้งคู่หรือไม่ ***
+            boolean isPilot1Resigned = (pilot1 != null && "resigned".equalsIgnoreCase(pilot1.getPilotStatus()));
+            boolean isPilot2Resigned = (pilot2 != null && "resigned".equalsIgnoreCase(pilot2.getPilotStatus()));
+
+            // ถ้า Pilot ทั้งสองคนลาออก (และไม่ใช่ N/A) ให้ข้ามตารางนี้ไป (ไม่แสดงผล)
+            if (isPilot1Resigned && isPilot2Resigned) {
+                System.out.println("Schedule ID " + s.getScheduleId() + " skipped: Both pilots resigned.");
+                continue; // ข้ามการเพิ่มตารางนี้เข้าสู่ View
+            }
+            // *** END NEW LOGIC ***
+
+            // 4. จัดการกรณี Pilot ลาออก (resigned)
+            String p1Name;
+            if (pilot1 != null) {
+                if (isPilot1Resigned) {
+                    p1Name = "-";
+                } else {
+                    p1Name = pilot1.getName();
+                }
+            } else {
+                p1Name = "N/A";
+            }
+
+            String p2Name;
+            if (pilot2 != null) {
+                if (isPilot2Resigned) {
+                    p2Name = "-";
+                } else {
+                    p2Name = pilot2.getName();
+                }
+            } else {
+                p2Name = "N/A";
+            }
 
             // 5. สร้าง ScheduleView และเพิ่มลงใน List
             scheduleViewList.add(new ScheduleView(s, p1Name, p2Name, supervisorId));

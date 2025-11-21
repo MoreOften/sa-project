@@ -118,7 +118,12 @@ public class PilotResignPageController {
                 successAlert.setContentText("การลาออกเสร็จสมบูรณ์ ตารางฝึกที่เกี่ยวข้องถูกยกเลิกแล้ว");
                 successAlert.showAndWait();
 
-                FXRouter.goTo("pilot_resign_page");
+                // *** การแก้ไข: บังคับโหลดข้อมูล Pilot ใหม่จาก DB ทันที ***
+                // อัปเดต currentPilot object ด้วยสถานะ 'resigned' ที่ดึงมาจากฐานข้อมูล
+                this.currentPilot = pilotRepository.findPilotByUsername(currentPilot.getUsername());
+
+                // *** นำทางไปยังหน้าหลัก (โดยส่ง object ที่ถูก Refresh แล้ว) ***
+                FXRouter.goTo("pilot-main-page", this.currentPilot);
             } catch (IOException e) {
                 System.err.println("Error navigating after successful resignation.");
                 throw new RuntimeException(e);

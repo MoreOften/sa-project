@@ -16,7 +16,7 @@ public class PilotRepository {
 
     private static final List<Pilot> pilots = List.of();
 
-    // ... (Existing methods: findPilotByUsername, findPilotById, etc.) ...
+    // ... (Existing methods) ...
 
     /**
      * Use Case Step 7: เปลี่ยนสถานะ Pilot เป็น 'resigned' และ Pilot_Is_Available = False
@@ -110,64 +110,6 @@ public class PilotRepository {
         return pilot;
     }
 
-    /**
-     * *** ADDED: ค้นหา Pilot (พร้อมข้อมูล User) จาก pilot ID ***
-     * (จำเป็นสำหรับ InstructorSchedulePageController)
-     */
-//    public Pilot findPilotById(String pilotId) {
-//        Pilot pilot = null;
-//
-//        String sql = "SELECT * " +
-//                "FROM users u " +
-//                "JOIN pilots p ON u.username = p.username " +
-//                "WHERE p.pilot_id = ?";
-//
-//        try (Connection conn = DbConnect.getConnection();
-//             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-//
-//            pstmt.setString(1, pilotId);
-//
-//            try (ResultSet rs = pstmt.executeQuery()) {
-//                if (rs.next()) {
-//                    pilot = new Pilot();
-//
-//                    // ตั้งค่าข้อมูล "User" (Parent)
-//                    pilot.setUsername(rs.getString("username"));
-//                    pilot.setName(rs.getString("name"));
-//                    pilot.setEmail(rs.getString("email"));
-//                    pilot.setPhone(rs.getString("phone"));
-//                    pilot.setRole(rs.getString("role"));
-//                    pilot.setProfilePicture(rs.getString("profilePicture"));
-//                    pilot.setHasAccess(rs.getInt("hasAccess") == 1);
-//
-//                    // ตั้งค่า Hashed Password
-//                    pilot.setHashedPassword(rs.getString("password"));
-//
-//                    // ตั้งค่าเวลา Login
-//                    String dbLastLogin = rs.getString("lastLogin");
-//                    if (dbLastLogin != null) {
-//                        pilot.setLastLogin(LocalDateTime.parse(dbLastLogin));
-//                    }
-//
-//                    // ตั้งค่าข้อมูล "Pilot" (Child) ทั้งหมด
-//                    pilot.setPilotID(rs.getString("pilot_id"));
-//                    pilot.setPilotType(rs.getString("pilot_type"));
-//                    pilot.setPilotIsFailed(rs.getString("pilot_is_failed"));
-//                    pilot.setPilotFailCount(rs.getString("pilot_fail_count"));
-//                    pilot.setPilotStatus(rs.getString("pilot_status"));
-//                    pilot.setPilotProgress(rs.getString("pilot_progress"));
-//                    pilot.setPilotIsAvailable(rs.getString("pilot_is_available"));
-//                }
-//            }
-//
-//        } catch (SQLException e) {
-//            System.err.println("PilotRepository (findPilotById) Error: " + e.getMessage());
-//            e.printStackTrace();
-//        }
-//
-//        return pilot;
-//    }
-
 
     /**
      * อัปเดตสถานะ firstTimeLogin
@@ -205,9 +147,12 @@ public class PilotRepository {
         }
     }
 
+    /**
+     * ค้นหา Pilot (พร้อมข้อมูล User) จาก pilot ID
+     * (***แก้ไข: เพิ่มการโหลด Pilot Status/Type/etc. ทั้งหมด***)
+     */
     public Pilot findPilotById(String pilotId) {
         // 1. SQL JOIN ระหว่าง 'users' (u) และ 'pilots' (p)
-        //    แต่ครั้งนี้เราจะ "ค้นหา" ด้วยคอลัมน์ 'pilot_id' ของตาราง 'pilots'
         String sql = "SELECT * " +
                 "FROM users u " +
                 "JOIN pilots p ON u.username = p.username " +
@@ -242,8 +187,15 @@ public class PilotRepository {
                         pilot.setLastLogin(LocalDateTime.parse(dbLastLogin));
                     }
 
-                    // 6. ตั้งค่าข้อมูล "Pilot" (Child) จากตาราง 'pilots'
+                    // 6. ***FIXED: ตั้งค่าข้อมูล "Pilot" (Child) ทั้งหมด***
                     pilot.setPilotID(rs.getString("pilot_id"));
+                    pilot.setPilotType(rs.getString("pilot_type"));
+                    pilot.setPilotIsFailed(rs.getString("pilot_is_failed"));
+                    pilot.setPilotFailCount(rs.getString("pilot_fail_count"));
+                    pilot.setPilotStatus(rs.getString("pilot_status")); // <-- THIS WAS MISSING
+                    pilot.setPilotProgress(rs.getString("pilot_progress"));
+                    pilot.setPilotIsAvailable(rs.getString("pilot_is_available"));
+                    // *** END FIXED ***
                 }
             }
 

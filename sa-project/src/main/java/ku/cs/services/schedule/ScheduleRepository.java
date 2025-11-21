@@ -51,10 +51,10 @@ public class ScheduleRepository {
      */
     public void addSchedule(Schedule schedule) {
 
-        // (1. แก้ไข SQL INSERT)
+        // (1. แก้ไข SQL INSERT: เพิ่ม schedule_status)
         String sql = "INSERT INTO schedules (schedule_id, supervisor_id, instructor_id, pilot_id_1, pilot_id_2, " +
-                "practice_program, schedule_date, schedule_time, simulator) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "practice_program, schedule_date, schedule_time, simulator, schedule_status) " // <-- MODIFIED
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"; // <-- 10 parameters
 
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -70,6 +70,7 @@ public class ScheduleRepository {
             pstmt.setString(7, schedule.getScheduleDate());
             pstmt.setString(8, schedule.getScheduleTime());
             pstmt.setString(9, schedule.getSimulator());
+            pstmt.setString(10, schedule.getScheduleStatus()); // <-- ADDED schedule_status
 
             pstmt.executeUpdate();
 
@@ -81,8 +82,9 @@ public class ScheduleRepository {
 
     public List<Schedule> findSchedulesByInstructor(String instructorId) {
         List<Schedule> schedules = new ArrayList<>();
-        // (แก้ไข SQL) เพิ่มเงื่อนไขการกรองสถานะ: ไม่รวม 'cancelled_resignation'
-        String sql = "SELECT * FROM schedules WHERE instructor_id = ? AND schedule_status <> 'cancelled_resignation'";
+        // (แก้ไข SQL) นำเงื่อนไขการกรองสถานะ 'cancelled_resignation' ออก
+        // เพื่อให้ตารางที่ถูกยกเลิกเนื่องจากการลาออกยังคงแสดงในหน้า Instructor
+        String sql = "SELECT * FROM schedules WHERE instructor_id = ?"; // <-- MODIFIED SQL
 
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -103,8 +105,8 @@ public class ScheduleRepository {
 
     public List<Schedule> findSchedulesByPilot(String pilotId) {
         List<Schedule> schedules = new ArrayList<>();
-        // (แก้ไข SQL) เพิ่มเงื่อนไขการกรองสถานะ: ไม่รวม 'cancelled_resignation'
-        String sql = "SELECT * FROM schedules WHERE (pilot_id_1 = ? OR pilot_id_2 = ?) AND schedule_status <> 'cancelled_resignation'";
+        // **(แก้ไข SQL)**: นำเงื่อนไขการกรองสถานะ 'cancelled_resignation' ออกด้วย
+        String sql = "SELECT * FROM schedules WHERE (pilot_id_1 = ? OR pilot_id_2 = ?)"; // <-- MODIFIED SQL
 
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -148,7 +150,7 @@ public class ScheduleRepository {
 
     /**
      * Helper method สำหรับสร้าง Schedule object จาก ResultSet
-     * (3. แก้ไขเมธอดนี้)
+     * (3. แก้ไขเมธอดนี้: เพิ่ม scheduleStatus)
      */
     private Schedule createScheduleFromResultSet(ResultSet rs) throws SQLException {
         Schedule schedule = new Schedule();
@@ -164,6 +166,7 @@ public class ScheduleRepository {
         schedule.setScheduleDate(rs.getString("schedule_date"));
         schedule.setScheduleTime(rs.getString("schedule_time"));
         schedule.setSimulator(rs.getString("simulator")); // (getString() จะคืนค่า null ถ้าใน DB เป็น null)
+        schedule.setScheduleStatus(rs.getString("schedule_status")); // <-- ADDED schedule_status
 
         return schedule;
 
