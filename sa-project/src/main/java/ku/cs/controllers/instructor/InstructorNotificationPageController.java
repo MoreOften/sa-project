@@ -1,5 +1,3 @@
-// File: ku/cs/controllers/instructor/InstructorNotificationPageController.java
-
 package ku.cs.controllers.instructor;
 
 import javafx.collections.FXCollections;
@@ -10,26 +8,25 @@ import ku.cs.models.instructor.Instructor;
 import ku.cs.models.notification.Notification;
 import ku.cs.models.user.User;
 import ku.cs.services.FXRouter;
+import ku.cs.services.UserSession;
 import ku.cs.services.instructor.InstructorRepository;
 import ku.cs.services.notification.NotificationRepository;
 import ku.cs.services.user.UserRepository;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class InstructorNotificationPageController {
 
-    // FXML Elements
     @FXML private ListView<Notification> notificationListView;
-
     @FXML private Label detailSenderNameLabel;
     @FXML private Label detailSenderRoleLabel;
     @FXML private Label detailSubjectLabel;
-    @FXML private Label detailTimestampLabel;
+    @FXML private Label detaildateLabel;      // ✅ แยกวันที่
+    @FXML private Label detailtimeLabel;      // ✅ แยกเวลา
     @FXML private TextArea detailContentTextArea;
 
-
-    // Services & Data
     private Instructor currentInstructor;
     private InstructorRepository instructorRepository;
     private NotificationRepository notificationRepository;
@@ -52,7 +49,7 @@ public class InstructorNotificationPageController {
                     (observable, oldValue, newValue) -> {
                         if (newValue != null) {
                             showNotificationDetail(newValue);
-                            if (!newValue.isRead()) { // ทำเครื่องหมายว่าอ่านแล้วทันที
+                            if (!newValue.isRead()) {
                                 newValue.setRead(true);
                                 notificationListView.refresh();
                                 notificationRepository.markAsRead(newValue.getNotificationId());
@@ -62,7 +59,6 @@ public class InstructorNotificationPageController {
                         }
                     });
 
-            // NEW: แสดงข้อความแทนหากไม่มีการแจ้งเตือน
             if (notificationList.isEmpty()) {
                 notificationListView.setPlaceholder(new Label("ไม่พบการแจ้งเตือน"));
             }
@@ -71,11 +67,17 @@ public class InstructorNotificationPageController {
     }
 
     private void loadInstructorData() {
-        Object data = FXRouter.getData();
-        if (data instanceof Instructor) {
-            this.currentInstructor = (Instructor) data;
-        } else if (data instanceof User user) {
-            this.currentInstructor = instructorRepository.findInstructorByUsername(user.getUsername());
+        User loggedInUser = UserSession.getInstance().getCurrentUser();
+
+        if (loggedInUser instanceof Instructor) {
+            this.currentInstructor = (Instructor) loggedInUser;
+        } else {
+            Object data = FXRouter.getData();
+            if (data instanceof Instructor) {
+                this.currentInstructor = (Instructor) data;
+            } else if (data instanceof User user) {
+                this.currentInstructor = instructorRepository.findInstructorByUsername(user.getUsername());
+            }
         }
     }
 
@@ -91,7 +93,6 @@ public class InstructorNotificationPageController {
                     setText(null);
                     setStyle(null);
                 } else {
-                    // แสดง notificationType + notificationId
                     setText(item.toString());
 
                     if (item.isRead()) {
@@ -106,33 +107,52 @@ public class InstructorNotificationPageController {
 
     private void loadNotifications() {
         if (currentInstructor == null) return;
+
         List<Notification> fetchedNotifs = notificationRepository.getNotificationsByUsername(currentInstructor.getUsername());
+
         notificationList.clear();
         notificationList.addAll(fetchedNotifs);
+        notificationListView.refresh();
     }
 
+    /**
+     * ✅ แสดงรายละเอียดพร้อมแยกวันที่และเวลา
+     */
     private void showNotificationDetail(Notification notification) {
-        // ดึงข้อมูลผู้ส่ง (Sender)
-        User sender = userRepository.findUserByUsername(notification.getSenderId());
-        String senderName = (sender != null) ? sender.getName() : "ไม่พบผู้ส่ง";
-        String senderRole = (sender != null) ? sender.getRole() : "N/A";
+        // ✅ 1. ตรวจสอบว่าเป็น System_admin หรือไม่
+        String senderId = notification.getSenderId();
 
-        // ผู้ส่ง: senderId.getName
-        detailSenderNameLabel.setText("ผู้ส่ง: " + senderName);
+        if ("System_admin".equalsIgnoreCase(senderId)) {
+            // กรณีที่เป็นระบบ
+            detailSenderNameLabel.setText("ผู้ส่ง: ระบบ");
+            detailSenderRoleLabel.setText("ตำแหน่ง: -");
+        } else {
+            // กรณีที่เป็นผู้ใช้ทั่วไป
+            User sender = userRepository.findUserByUsername(senderId);
+            String senderName = (sender != null) ? sender.getName() : "ไม่พบผู้ส่ง";
+            String senderRole = (sender != null) ? sender.getRole() : "N/A";
 
-        // ตำแหน่ง: senderId.getRole
-        detailSenderRoleLabel.setText("ตำแหน่ง: " + senderRole);
+            detailSenderNameLabel.setText("ผู้ส่ง: " + senderName);
+            detailSenderRoleLabel.setText("ตำแหน่ง: " + senderRole);
+        }
 
-        // เรื่อง: notificationSubject
+        // ✅ 2. แสดงหัวข้อ
         detailSubjectLabel.setText("เรื่อง: " + notification.getNotificationSubject());
 
-        // วันที่: notificationTimestamp
-        detailTimestampLabel.setText("วันที่: " + notification.getNotificationTimestamp().toString());
+        // ✅ 3. แยกวันที่และเวลา
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        // รายละเอียด: notificationContent
+        String date = notification.getNotificationTimestamp().format(dateFormatter);
+        String time = notification.getNotificationTimestamp().format(timeFormatter);
+
+        detaildateLabel.setText("วันที่: " + date);
+        detailtimeLabel.setText("เวลา: " + time);
+
+        // ✅ 4. แสดงเนื้อหา
         detailContentTextArea.setText(notification.getNotificationContent());
 
-        // (ถ้ามีการเลือก ให้ทำเครื่องหมายว่าอ่านแล้วใน Model เพื่อให้สีเปลี่ยน)
+        // ✅ 5. ทำเครื่องหมายว่าอ่านแล้ว
         if (!notification.isRead()) {
             notification.setRead(true);
             notificationListView.refresh();
@@ -144,11 +164,10 @@ public class InstructorNotificationPageController {
         detailSenderNameLabel.setText("ผู้ส่ง:");
         detailSenderRoleLabel.setText("ตำแหน่ง:");
         detailSubjectLabel.setText("เรื่อง:");
-        detailTimestampLabel.setText("วันที่:");
+        detaildateLabel.setText("วันที่:");
+        detailtimeLabel.setText("เวลา:");
         detailContentTextArea.setText("");
     }
-
-    // --- Sidebar Handlers (ยังคงเดิม) ---
 
     @FXML
     public void handleHomepageButton() {
