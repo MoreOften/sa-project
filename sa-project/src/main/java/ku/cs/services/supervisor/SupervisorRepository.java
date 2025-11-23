@@ -66,6 +66,7 @@ public class SupervisorRepository {
                 if (rs.next()) {
                     supervisor = new Supervisor();
                     supervisor.setName(rs.getString("name")); // เราต้องการแค่ชื่อ
+                    supervisor.setUsername(rs.getString("username")); // <-- FIXED: โหลด Username
                 }
             }
         } catch (SQLException e) {

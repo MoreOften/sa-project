@@ -1,3 +1,5 @@
+// File: ku/cs/controllers/instructor/InstructorNotificationPageController.java
+
 package ku.cs.controllers.instructor;
 
 import javafx.collections.FXCollections;
@@ -10,7 +12,7 @@ import ku.cs.models.user.User;
 import ku.cs.services.FXRouter;
 import ku.cs.services.instructor.InstructorRepository;
 import ku.cs.services.notification.NotificationRepository;
-import ku.cs.services.user.UserRepository; // เพิ่ม Import
+import ku.cs.services.user.UserRepository;
 
 import java.io.IOException;
 import java.util.List;
@@ -20,10 +22,10 @@ public class InstructorNotificationPageController {
     // FXML Elements
     @FXML private ListView<Notification> notificationListView;
 
-    @FXML private Label detailTimestampLabel1;  // สำหรับ "ผู้ส่ง:"
-    @FXML private Label detailTimestampLabel11; // สำหรับ "ตำแหน่ง:"
-    @FXML private Label detailTypeLabel;        // สำหรับ "เรื่อง:"
-    @FXML private Label detailTimestampLabel;   // สำหรับ "วันที่:"
+    @FXML private Label detailSenderNameLabel;
+    @FXML private Label detailSenderRoleLabel;
+    @FXML private Label detailSubjectLabel;
+    @FXML private Label detailTimestampLabel;
     @FXML private TextArea detailContentTextArea;
 
 
@@ -31,14 +33,14 @@ public class InstructorNotificationPageController {
     private Instructor currentInstructor;
     private InstructorRepository instructorRepository;
     private NotificationRepository notificationRepository;
-    private UserRepository userRepository; // Field ใหม่
+    private UserRepository userRepository;
     private ObservableList<Notification> notificationList;
 
     @FXML
     public void initialize() {
         instructorRepository = new InstructorRepository();
         notificationRepository = new NotificationRepository();
-        userRepository = new UserRepository(); // Initialize Repository
+        userRepository = new UserRepository();
 
         loadInstructorData();
 
@@ -59,6 +61,11 @@ public class InstructorNotificationPageController {
                             clearNotificationDetail();
                         }
                     });
+
+            // NEW: แสดงข้อความแทนหากไม่มีการแจ้งเตือน
+            if (notificationList.isEmpty()) {
+                notificationListView.setPlaceholder(new Label("ไม่พบการแจ้งเตือน"));
+            }
         }
         clearNotificationDetail();
     }
@@ -111,13 +118,13 @@ public class InstructorNotificationPageController {
         String senderRole = (sender != null) ? sender.getRole() : "N/A";
 
         // ผู้ส่ง: senderId.getName
-        detailTimestampLabel1.setText("ผู้ส่ง: " + senderName);
+        detailSenderNameLabel.setText("ผู้ส่ง: " + senderName);
 
         // ตำแหน่ง: senderId.getRole
-        detailTimestampLabel11.setText("ตำแหน่ง: " + senderRole);
+        detailSenderRoleLabel.setText("ตำแหน่ง: " + senderRole);
 
         // เรื่อง: notificationSubject
-        detailTypeLabel.setText("เรื่อง: " + notification.getNotificationSubject());
+        detailSubjectLabel.setText("เรื่อง: " + notification.getNotificationSubject());
 
         // วันที่: notificationTimestamp
         detailTimestampLabel.setText("วันที่: " + notification.getNotificationTimestamp().toString());
@@ -134,9 +141,9 @@ public class InstructorNotificationPageController {
     }
 
     private void clearNotificationDetail() {
-        detailTimestampLabel1.setText("ผู้ส่ง:");
-        detailTimestampLabel11.setText("ตำแหน่ง:");
-        detailTypeLabel.setText("เรื่อง:");
+        detailSenderNameLabel.setText("ผู้ส่ง:");
+        detailSenderRoleLabel.setText("ตำแหน่ง:");
+        detailSubjectLabel.setText("เรื่อง:");
         detailTimestampLabel.setText("วันที่:");
         detailContentTextArea.setText("");
     }
