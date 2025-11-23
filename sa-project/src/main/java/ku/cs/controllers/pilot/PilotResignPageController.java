@@ -52,7 +52,16 @@ public class PilotResignPageController {
         notificationRepository = new NotificationRepository();
 
         EmailService emailService = new EmailService(instructorRepository, supervisorRepository);
-        resignationService = new ResignationService(pilotRepository, scheduleRepository, emailService, notificationRepository);
+        // *** FIXED: แก้ไข Constructor ของ ResignationService ***
+        resignationService = new ResignationService(
+                pilotRepository,
+                scheduleRepository,
+                emailService,
+                notificationRepository,
+                instructorRepository, // เพิ่ม
+                supervisorRepository  // เพิ่ม
+        );
+        // ******************************************************
 
         errorLabel.setText("");
 

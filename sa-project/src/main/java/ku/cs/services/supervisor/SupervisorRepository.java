@@ -29,6 +29,7 @@ public class SupervisorRepository {
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
+                // 2. สร้างอ็อบเจกต์เปล่า
                 supervisor = new Supervisor();
                 supervisor.setUsername(rs.getString("username"));
                 supervisor.setPassword(rs.getString("password"));
@@ -42,27 +43,17 @@ public class SupervisorRepository {
             System.err.println("SupervisorRepository (findSupervisorByUsername) Error: " + e.getMessage());
             e.printStackTrace();
         }
-
         return supervisor;
     }
 
-    /**
-     * *** แก้ไข: ค้นหา Supervisor จาก supervisor_id ***
-     * เดิมใช้ WHERE s.supervisor_id = ? ซึ่งถูกต้องแล้ว
-     * แต่ต้องแน่ใจว่า setSupervisorID() ถูกเรียกด้วย
-     */
     public Supervisor findSupervisorById(String supervisorId) {
         String sql = "SELECT * FROM users u " +
                 "JOIN supervisors s ON u.username = s.username " +
                 "WHERE s.supervisor_id = ?";
-
         Supervisor supervisor = null;
-
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
             pstmt.setString(1, supervisorId);
-
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     supervisor = new Supervisor();
@@ -81,13 +72,9 @@ public class SupervisorRepository {
             System.err.println("SupervisorRepository (findSupervisorById) Error: " + e.getMessage());
             e.printStackTrace();
         }
-
         return supervisor;
     }
 
-    /**
-     * อัปเดตสถานะ firstTimeLogin และรหัสผ่าน (ถ้ามี) ในตาราง 'supervisors'
-     */
     public void updateStatusAfterFirstLogin(String username) {
         String sql = "UPDATE supervisors SET first_time_login = 0 WHERE username = ?";
 
@@ -103,9 +90,6 @@ public class SupervisorRepository {
         }
     }
 
-    /**
-     * เพิ่ม Supervisor ใหม่
-     */
     public void addSupervisor(Supervisor supervisor) {
         String sql = "INSERT INTO supervisors (username, supervisor_id) VALUES (?, ?)";
 

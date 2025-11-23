@@ -110,11 +110,11 @@
                             <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
                                 <content>
                                     <VBox spacing="10.0">
-                              <Label fx:id="detailTimestampLabel1" styleClass="detail-timestamp-label" text="ผู้ส่ง:" />
-                              <Label fx:id="detailTimestampLabel11" styleClass="detail-timestamp-label" text="ตำแหน่ง:" />
-                                        <Label fx:id="detailTypeLabel" styleClass="detail-type-label" text="เรื่อง:" />
+                                        <Label fx:id="detailSenderNameLabel" styleClass="detail-timestamp-label" text="ผู้ส่ง:" />
+                                        <Label fx:id="detailSenderRoleLabel" styleClass="detail-timestamp-label" text="ตำแหน่ง:" />
+                                        <Label fx:id="detailSubjectLabel" styleClass="detail-type-label" text="เรื่อง:" />
                                         <Label fx:id="detailTimestampLabel" styleClass="detail-timestamp-label" text="วันที่:" />
-                              <Label fx:id="detailTimestampLabel2" styleClass="detail-timestamp-label" text="รายละเอียด:" />
+                                        <Label styleClass="detail-timestamp-label" text="รายละเอียด:" />
                                         <TextArea fx:id="detailContentTextArea" editable="false" prefHeight="200.0" prefWidth="200.0" styleClass="detail-content-text-area" wrapText="true" VBox.vgrow="ALWAYS" />
                                     </VBox>
                                 </content>

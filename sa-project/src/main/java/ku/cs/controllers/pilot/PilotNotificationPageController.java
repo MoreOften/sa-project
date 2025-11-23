@@ -20,27 +20,20 @@ public class PilotNotificationPageController {
 
     @FXML private ListView<Notification> notificationListView;
 
-    @FXML private Label detailTimestampLabel1;  // สำหรับ "ผู้ส่ง:"
-    @FXML private Label detailTimestampLabel11; // สำหรับ "ตำแหน่ง:"
-    @FXML private Label detailTypeLabel;        // สำหรับ "เรื่อง:"
-    @FXML private Label detailTimestampLabel;   // สำหรับ "วันที่:"
-    @FXML private TextArea detailContentTextArea;
+    @FXML private Label detailSenderNameLabel;  // เปลี่ยนชื่อจาก detailTimestampLabel1
+    @FXML private Label detailSenderRoleLabel; // เปลี่ยนชื่อจาก detailTimestampLabel11
+    @FXML private Label detailSubjectLabel;        // เปลี่ยนชื่อจาก detailTypeLabel
+    @FXML private Label detailTimestampLabel;   // คงเดิม
+    @FXML private TextArea detailContentTextArea; // คงเดิม
 
 
-    // Sidebar Buttons
-    @FXML private Button homepageButton;
-    @FXML private Button scheduleButton;
-    @FXML private Button reportButton;
-    @FXML private Button resignButton;
-    @FXML private Button notificationButton;
-    @FXML private Button logoutButton;
-
-    // Services & Data
+    // ... (Sidebar Buttons & Services & Data remain unchanged) ...
     private Pilot currentPilot;
     private PilotRepository pilotRepository;
     private NotificationRepository notificationRepository;
-    private UserRepository userRepository; // Field ใหม่
+    private UserRepository userRepository;
     private ObservableList<Notification> notificationList;
+
 
     @FXML
     public void initialize() {
@@ -129,13 +122,13 @@ public class PilotNotificationPageController {
         String senderRole = (sender != null) ? sender.getRole() : "N/A";
 
         // ผู้ส่ง: senderId.getName
-        detailTimestampLabel1.setText("ผู้ส่ง: " + senderName);
+        detailSenderNameLabel.setText("ผู้ส่ง: " + senderName); // <--- แก้ไข ID
 
         // ตำแหน่ง: senderId.getRole
-        detailTimestampLabel11.setText("ตำแหน่ง: " + senderRole);
+        detailSenderRoleLabel.setText("ตำแหน่ง: " + senderRole); // <--- แก้ไข ID
 
         // เรื่อง: notificationSubject
-        detailTypeLabel.setText("เรื่อง: " + notification.getNotificationSubject());
+        detailSubjectLabel.setText("เรื่อง: " + notification.getNotificationSubject()); // <--- แก้ไข ID
 
         // วันที่: notificationTimestamp
         detailTimestampLabel.setText("วันที่: " + notification.getNotificationTimestamp().toString());
@@ -145,15 +138,14 @@ public class PilotNotificationPageController {
     }
 
     private void clearNotificationDetail() {
-        detailTimestampLabel1.setText("ผู้ส่ง:");
-        detailTimestampLabel11.setText("ตำแหน่ง:");
-        detailTypeLabel.setText("เรื่อง:");
+        detailSenderNameLabel.setText("ผู้ส่ง:");
+        detailSenderRoleLabel.setText("ตำแหน่ง:");
+        detailSubjectLabel.setText("เรื่อง:");
         detailTimestampLabel.setText("วันที่:");
         detailContentTextArea.setText("");
     }
 
-    // --- Sidebar Handlers (ยังคงเดิม) ---
-
+    // ... (Sidebar Handlers remain unchanged) ...
     @FXML
     public void handleHomepageButton() {
         try {

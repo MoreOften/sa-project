@@ -46,6 +46,23 @@ public class Schedule {
         // --- (สิ้นสุดการเปลี่ยนแปลง) ---
     }
 
+
+    // --- NEW: Constructor ที่รับ scheduleId จากภายนอก (สำหรับ Seeding) ---
+    public Schedule(String scheduleId, String supervisorId, String instructorId, String pilotId1, String pilotId2,
+                    String scheduleStatus, String practiceProgram, String scheduleDate, String scheduleTime, String simulator) {
+
+        this.scheduleId = scheduleId; // <--- รับ ID
+        this.supervisorId = supervisorId;
+        this.instructorId = instructorId;
+        this.pilotId1 = pilotId1;
+        this.pilotId2 = pilotId2;
+        this.scheduleStatus = scheduleStatus;
+        this.practiceProgram = practiceProgram;
+        this.scheduleDate = scheduleDate;
+        this.scheduleTime = scheduleTime;
+        this.simulator = simulator;
+    }
+
     // --- Getters ---
 
     public String getScheduleId() {

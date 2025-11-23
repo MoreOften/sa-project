@@ -75,7 +75,8 @@ public class InstructorRepository {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     instructor = new Instructor();
-                    instructor.setName(rs.getString("name")); // เราต้องการแค่ชื่อ
+                    instructor.setName(rs.getString("name"));
+                    instructor.setUsername(rs.getString("username")); // <-- FIXED: โหลด Username
                     // (คุณสามารถ set ค่าอื่นๆ เพิ่มได้ถ้าจำเป็น)
                 }
             }

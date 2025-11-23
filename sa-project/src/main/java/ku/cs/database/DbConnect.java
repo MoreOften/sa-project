@@ -270,7 +270,10 @@ public class DbConnect {
             pilotRepository.addPilot(pilotProfile2);
 
             System.out.println("Seeding mock schedule...");
+
+            String FIXED_SCHEDULE_ID = "SC-001";
             Schedule schedule1 = new Schedule(
+                    FIXED_SCHEDULE_ID,
                     "S001", // supervisorId
                     "I001", // instructorId
                     "PL001", // pilotId1
