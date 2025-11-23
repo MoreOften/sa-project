@@ -38,7 +38,7 @@ public class ReportViewFormController {
 
         // 2. รับ reportId ที่ส่งมาจากหน้าตาราง (ผ่าน FXRouter)
         Object data = FXRouter.getData();
-        if (data instanceof String reportId) { // รวมการเช็คและการประกาศตัวแปรไว้ด้วยกัน
+        if (data instanceof String reportId) {
             loadReportData(reportId);
         } else {
             System.err.println("ReportView: ไม่ได้รับ Report ID");
@@ -48,7 +48,14 @@ public class ReportViewFormController {
     private void loadReportData(String reportId) {
         // ค้นหา Report
         Report report = reportRepository.findReportById(reportId);
-        if (report == null) return;
+        if (report == null) {
+            System.err.println("ReportView: ไม่พบ Report ID: " + reportId);
+            return;
+        }
+
+        System.out.println("=== DEBUG: Report View ===");
+        System.out.println("Report ID: " + report.getReportId());
+        System.out.println("Schedule ID: " + report.getScheduleId());
 
         // --- แสดงข้อมูลส่วนที่ 1: จาก Report โดยตรง ---
         reportIdLabel.setText(report.getReportId());
@@ -59,78 +66,87 @@ public class ReportViewFormController {
         Instructor instructor = instructorRepository.findInstructorById(report.getInstructorId());
         if (instructor != null) {
             instructorNameLabel.setText(instructor.getName());
+            System.out.println("Instructor ID: " + report.getInstructorId() + ", Name: " + instructor.getName());
         } else {
-            instructorNameLabel.setText(report.getInstructorId()); // fallback
+            instructorNameLabel.setText(report.getInstructorId());
+            System.err.println("WARNING: ไม่พบ Instructor ID: " + report.getInstructorId());
         }
 
         // --- แสดงข้อมูลส่วนที่ 3: จาก Schedule (Program & Supervisor) ---
         Schedule schedule = scheduleRepository.findScheduleById(report.getScheduleId());
         if (schedule != null) {
             trainingProgramLabel.setText(schedule.getPracticeProgram());
+            System.out.println("Schedule Found - Program: " + schedule.getPracticeProgram());
+            System.out.println("Supervisor ID from Schedule: " + schedule.getSupervisorId());
 
-            // หาชื่อ Supervisor จาก ID ที่อยู่ใน Schedule
-            Supervisor supervisor = supervisorRepository.findSupervisorById(schedule.getSupervisorId());
+            // *** Debug: ตรวจสอบการดึงข้อมูล Supervisor ***
+            String supervisorId = schedule.getSupervisorId();
+            System.out.println("Attempting to find Supervisor with ID: " + supervisorId);
+
+            Supervisor supervisor = supervisorRepository.findSupervisorById(supervisorId);
+
             if (supervisor != null) {
+                System.out.println("✓ Supervisor Found!");
+                System.out.println("  - ID: " + supervisor.getSupervisorID());
+                System.out.println("  - Username: " + supervisor.getUsername());
+                System.out.println("  - Name: " + supervisor.getName());
                 supervisorNameLabel.setText(supervisor.getName());
             } else {
-                supervisorNameLabel.setText(schedule.getSupervisorId()); // fallback
+                System.err.println("✗ ERROR: Supervisor NOT FOUND for ID: " + supervisorId);
+                System.err.println("  Possible issues:");
+                System.err.println("  1. ข้อมูลใน DB ไม่ตรงกัน (supervisor_id ใน schedules vs supervisors table)");
+                System.err.println("  2. Supervisor ยังไม่ถูก seed ลง database");
+                System.err.println("  3. Query ใน findSupervisorById() มีปัญหา");
+                supervisorNameLabel.setText(supervisorId + " (Not Found)");
             }
+        } else {
+            System.err.println("WARNING: ไม่พบ Schedule ID: " + report.getScheduleId());
+            trainingProgramLabel.setText("N/A");
+            supervisorNameLabel.setText("N/A");
         }
+
+        System.out.println("=== END DEBUG ===");
     }
 
     @FXML
     public void onReturnButtonClick() {
         try {
-            // กลับไปหน้าตาราง Report
             FXRouter.goTo("instructor-report-page");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    // --- Sidebar Navigation (ก๊อปปี้มาจากหน้าอื่นได้เลย) ---
+    // --- Sidebar Navigation ---
     @FXML
     public void handleHomepageButton() {
-        try {
-            FXRouter.goTo("instructor-main-page");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        navigateTo("instructor-main-page");
     }
 
     @FXML
     public void handleScheduleButton() {
-        try {
-            FXRouter.goTo("instructor-schedule-page");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        navigateTo("instructor-schedule-page");
     }
 
     @FXML
     public void handleReportButton() {
-        try {
-            FXRouter.goTo("instructor-report-page");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        navigateTo("instructor-report-page");
     }
 
     @FXML
     public void handleNotificationButton() {
-        try {
-            // อย่าลืมไปเพิ่ม route "instructor-notification-page" ใน MainApplication.java ด้วยนะครับ
-            FXRouter.goTo("instructor-notification-page");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        navigateTo("instructor-notification-page");
     }
 
     @FXML
     public void handleLogoutButton() {
+        UserSession.getInstance().clearSession();
+        navigateTo("login");
+    }
+
+    private void navigateTo(String route) {
         try {
-            UserSession.getInstance().clearSession(); // เคลียร์ Session ก่อนออก
-            FXRouter.goTo("login");
+            FXRouter.goTo(route);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

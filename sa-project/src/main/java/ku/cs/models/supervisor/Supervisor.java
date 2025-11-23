@@ -3,40 +3,33 @@ package ku.cs.models.supervisor;
 import ku.cs.models.user.User;
 
 public class Supervisor extends User {
-    private String name;
-    private String username;
-    private String email;
-    private String password;
     private String supervisorID;
-    private String phone;
 
+    // *** Constructor ว่าง (สำคัญมาก!) ***
+    public Supervisor() {
+        super(); // เรียก Constructor ของ User
+    }
+
+    // Constructor แบบมี parameters (ถ้าต้องการใช้)
     public Supervisor(String name, String email, String username, String password, String supervisorID, String phone) {
         super(name, email, username, password);
         this.supervisorID = supervisorID;
-        this.phone = phone;
+        super.setPhone(phone);
     }
 
-    public Supervisor() {
-        this.name = "";
-        this.email = "";
-        this.username = "";
-        this.password = "";
-        this.supervisorID = "";
-        this.phone = "";
+    // --- Getters ---
+    public String getSupervisorID() {
+        return supervisorID;
     }
 
-    public String getName() { return name; }
-    public String getEmail() { return email; }
-    public String getPassword() { return password; }
-    public String getSupervisorID() { return supervisorID; }
-    public String getPhone() { return phone; }
+    // --- Setters ---
+    public void setSupervisorID(String supervisorID) {
+        this.supervisorID = supervisorID;
+    }
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.name = username; }
-
-    public void setName(String name) { this.name = name; }
-    public void setEmail(String email) { this.email = email; }
-    public void setPassword(String password) { this.password = password; }
-    public void setSupervisorID(String supervisorID) { this.supervisorID = supervisorID; }
-    public void setPhone(String phone) { this.phone = phone; }
+    // *** แก้ไข setUsername() - ต้อง set ให้ parent class (User) ***
+    @Override
+    public void setUsername(String username) {
+        super.setUsername(username); // เรียก method ของ User
+    }
 }

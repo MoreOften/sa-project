@@ -190,21 +190,34 @@ public class DbConnect {
                 return;
             }
 
+            // 1. สร้าง User สำหรับ Supervisor
             User supervisorUser = new User();
             supervisorUser.setUsername("supervisor_admin");
             supervisorUser.setPassword("pass123");
-            supervisorUser.setName("Admin Supervisor");
+            supervisorUser.setName("Admin Supervisor"); // *** สำคัญ: ต้องมี Name ***
             supervisorUser.setRole("supervisor");
             supervisorUser.setEmail("supervisor@test.com");
+            supervisorUser.setPhone("0123456789"); // *** เพิ่ม Phone ด้วย ***
             supervisorUser.setHasAccess(true);
             supervisorUser.setLastLogin();
             supervisorUser.setProfilePicture("default-user-photo.png");
             userRepository.registerUser(supervisorUser);
 
+// 2. สร้าง Profile ของ Supervisor
             Supervisor supervisorProfile = new Supervisor();
             supervisorProfile.setUsername("supervisor_admin");
             supervisorProfile.setSupervisorID("S001");
             supervisorRepository.addSupervisor(supervisorProfile);
+
+            System.out.println("✓ สร้าง Supervisor: username=supervisor_admin, ID=S001, Name=Admin Supervisor");
+
+// *** การทดสอบว่าข้อมูลถูกบันทึกถูกต้อง ***
+            Supervisor testSup = supervisorRepository.findSupervisorById("S001");
+            if (testSup != null) {
+                System.out.println("✓ ทดสอบ findSupervisorById('S001'): " + testSup.getName());
+            } else {
+                System.err.println("✗ ERROR: ไม่พบ Supervisor ID S001 ในฐานข้อมูล!");
+            }
 
             User instructorUser = new User(); // <-- ประกาศตัวแปร
             instructorUser.setUsername("instructor_test");

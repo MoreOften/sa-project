@@ -18,6 +18,52 @@ public class PilotRepository {
 
     // ... (Existing methods) ...
 
+    // เพิ่มเมธอดนี้ใน PilotRepository.java
+
+    /**
+     * อัปเดตสถานะของ Pilot (pilot_is_available, pilot_is_failed, pilot_fail_count)
+     * @param pilot อ็อบเจกต์ Pilot ที่ต้องการอัปเดต
+     * @return true ถ้าอัปเดตสำเร็จ
+     */
+    public boolean updatePilotStatus(Pilot pilot) {
+        String sql = "UPDATE pilots SET " +
+                "pilot_is_available = ?, " +
+                "pilot_is_failed = ?, " +
+                "pilot_fail_count = ? " +
+                "WHERE pilot_id = ?";
+
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // ตั้งค่า Parameters
+            pstmt.setString(1, pilot.getPilotIsAvailable());
+            pstmt.setString(2, pilot.getPilotIsFailed());
+            pstmt.setString(3, pilot.getPilotFailCount());
+            pstmt.setString(4, pilot.getPilotID());
+
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                System.out.printf("-> [PilotRepo] อัปเดตสถานะ Pilot ID %s สำเร็จ " +
+                                "(Available: %s, Failed: %s, FailCount: %s)%n",
+                        pilot.getPilotID(),
+                        pilot.getPilotIsAvailable(),
+                        pilot.getPilotIsFailed(),
+                        pilot.getPilotFailCount());
+                return true;
+            } else {
+                System.err.printf("-> [PilotRepo] ERROR: ไม่พบ Pilot ID %s ในฐานข้อมูล%n",
+                        pilot.getPilotID());
+                return false;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("PilotRepository (updatePilotStatus) Error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     /**
      * Use Case Step 7: เปลี่ยนสถานะ Pilot เป็น 'resigned' และ Pilot_Is_Available = False
      * @param pilotID ID ของนักบินที่ลาออก
