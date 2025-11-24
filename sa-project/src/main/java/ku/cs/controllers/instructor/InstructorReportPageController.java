@@ -79,6 +79,9 @@ public class InstructorReportPageController {
 
         // 2. วนลูปเพื่อดึง "ชื่อ" ของ Pilot
         for (Report r : reports) {
+            if (r.getApprovalStatus() != ReportStatus.DRAFT) {
+                continue; // ข้ามรายการนี้ไป (ไม่แสดง)
+            }
             Pilot pilot = pilotRepository.findPilotById(r.getPilotId());
             String pilotName = (pilot != null) ? pilot.getName() : "N/A";
 
