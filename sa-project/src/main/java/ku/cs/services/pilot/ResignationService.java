@@ -3,6 +3,7 @@ package ku.cs.services.pilot;
 import ku.cs.models.notification.Notification;
 import ku.cs.models.schedule.Schedule;
 import ku.cs.models.instructor.Instructor;
+import ku.cs.models.pilot.Pilot;
 import ku.cs.models.supervisor.Supervisor;
 import ku.cs.services.email.EmailService;
 import ku.cs.services.notification.NotificationRepository;
@@ -10,9 +11,11 @@ import ku.cs.services.schedule.ScheduleRepository;
 import ku.cs.services.instructor.InstructorRepository;
 import ku.cs.services.supervisor.SupervisorRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ResignationService {
 
@@ -37,47 +40,110 @@ public class ResignationService {
     }
 
     /**
-     * Use Case 7: ประมวลผลการลาออกของนักบิน
-     * @param pilotID รหัสนักบินที่ต้องการลาออก
-     * @return true หากดำเนินการสำเร็จ
+     * Use Case 7: Process Pilot Resignation
+     * Logic:
+     * 1. Update Pilot Status to 'resigned'.
+     * 2. Find active schedules.
+     * 3. Check the OTHER pilot in those schedules.
+     * - If OTHER pilot is Active -> Keep schedule, Notify "Resignation Warning".
+     * - If OTHER pilot is Resigned -> Cancel schedule, Notify "Schedule Cancelled".
      */
     public boolean processResignation(String pilotID) {
-        List<Schedule> cancelledSchedules = scheduleRepository.cancelIncompleteSchedulesForPilot(pilotID);
+        // 1. Mark the pilot as resigned immediately in the DB
+        boolean success = pilotRepository.updatePilotToResigned(pilotID);
+        if (!success) return false;
 
-        if (!cancelledSchedules.isEmpty()) {
-            emailService.notifyResignation(pilotID, cancelledSchedules);
-            notifyViaInAppNotification(pilotID, cancelledSchedules);
+        // 2. Find active schedules for this pilot (without cancelling them yet)
+        List<Schedule> activeSchedules = scheduleRepository.findActiveSchedulesForPilot(pilotID);
+
+        List<Schedule> schedulesToCancel = new ArrayList<>();
+        List<Schedule> schedulesToWarn = new ArrayList<>();
+
+        // 3. Logic: Check the OTHER pilot in the schedule
+        for (Schedule schedule : activeSchedules) {
+            // Determine ID of the other pilot
+            String otherPilotId = schedule.getPilotId1().equals(pilotID)
+                    ? schedule.getPilotId2()
+                    : schedule.getPilotId1();
+
+            // Fetch other pilot data
+            Pilot otherPilot = pilotRepository.findPilotById(otherPilotId);
+
+            // Check if the other pilot is ALSO resigned
+            if (otherPilot != null && "resigned".equalsIgnoreCase(otherPilot.getPilotStatus())) {
+                schedulesToCancel.add(schedule);
+            } else {
+                schedulesToWarn.add(schedule);
+            }
         }
 
-        return pilotRepository.updatePilotToResigned(pilotID);
+        // 4. Handle Schedules where BOTH pilots have resigned -> CANCEL
+        if (!schedulesToCancel.isEmpty()) {
+            for (Schedule s : schedulesToCancel) {
+                scheduleRepository.updateScheduleStatus(s.getScheduleId(), "cancelled_resignation");
+                s.setScheduleStatus("cancelled_resignation"); // Update object for display/email
+            }
+
+            // Notify about cancellation
+            notifyRelevantUsers(schedulesToCancel, pilotID, "Schedule Cancelled", true);
+
+            // (Optional) Send email via existing service
+            // emailService.notifyResignation(pilotID, schedulesToCancel);
+        }
+
+        // 5. Handle Schedules where ONLY ONE pilot resigned -> NOTIFY ONLY (Do not cancel)
+        if (!schedulesToWarn.isEmpty()) {
+            // Notify about single resignation
+            notifyRelevantUsers(schedulesToWarn, pilotID, "Pilot Resigned", false);
+        }
+
+        return true;
     }
 
     /**
-     * ส่งการแจ้งเตือนภายในระบบไปยัง Instructor และ Supervisor ที่เกี่ยวข้อง
+     * Unified notification method to send in-app notifications to Instructors and Supervisors.
+     * @param schedules List of affected schedules
+     * @param pilotID The ID of the pilot who just resigned
+     * @param title Title prefix for notification subject
+     * @param isCancellation True if the schedule was cancelled, False if just a warning
      */
-    private void notifyViaInAppNotification(String pilotID, List<Schedule> cancelledSchedules) {
-        String subject = String.format("นักบิน ID: %s ลาออก", pilotID);
-        String content = createNotificationContent(pilotID, cancelledSchedules);
-        String type = "Resignation";
-
-        Set<String> recipientUsernames = cancelledSchedules.stream()
+    private void notifyRelevantUsers(List<Schedule> schedules, String pilotID, String title, boolean isCancellation) {
+        // Collect recipients (Instructors and Supervisors) from the affected schedules
+        Set<String> recipients = schedules.stream()
                 .flatMap(s -> {
                     Instructor instructor = instructorRepository.findInstructorById(s.getInstructorId());
-                    String instructorUsername = (instructor != null && instructor.getUsername() != null)
-                            ? instructor.getUsername() : s.getInstructorId();
+                    String instructorUsername = (instructor != null) ? instructor.getUsername() : s.getInstructorId();
 
                     Supervisor supervisor = supervisorRepository.findSupervisorById(s.getSupervisorId());
-                    String supervisorUsername = (supervisor != null && supervisor.getUsername() != null)
-                            ? supervisor.getUsername() : s.getSupervisorId();
+                    String supervisorUsername = (supervisor != null) ? supervisor.getUsername() : s.getSupervisorId();
 
-                    return List.of(instructorUsername, supervisorUsername).stream();
+                    return Stream.of(instructorUsername, supervisorUsername);
                 })
-                .distinct()
+                .filter(username -> username != null)
                 .collect(Collectors.toSet());
 
-        for (String recipientUsername : recipientUsernames) {
+        // Create Message Content
+        String subject = String.format("นักบิน ID: %s ลาออก", pilotID);
+        StringBuilder contentBuilder = new StringBuilder();
+
+        if (isCancellation) {
+            contentBuilder.append(String.format("เนื่องจากนักบิน ID %s ลาออก ทำให้นักบินทั้ง 2 คนในตารางฝึกลาออกจึงทำการยกเลิกตารางฝึก\n", pilotID));
+        } else {
+            contentBuilder.append(String.format("นักบิน ID %s ลาออก\n", pilotID));
+        }
+        contentBuilder.append("---------------------------------------------------\n");
+
+        for (Schedule s : schedules) {
+            contentBuilder.append(String.format("- Schedule ID: %s \n", s.getScheduleId()));
+        }
+
+        String content = contentBuilder.toString();
+        String type = isCancellation ? "Schedule_Cancelled" : "Resignation_Warning";
+
+        // Save Notification to DB
+        for (String recipient : recipients) {
             Notification notification = new Notification(
-                    recipientUsername,
+                    recipient,
                     SYSTEM_SENDER_ID,
                     subject,
                     content,
@@ -85,27 +151,5 @@ public class ResignationService {
             );
             notificationRepository.save(notification);
         }
-    }
-
-    /**
-     * สร้างเนื้อหาของการแจ้งเตือน
-     */
-    private String createNotificationContent(String pilotID, List<Schedule> cancelledSchedules) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("นักบิน ID %s ได้ยื่นเรื่องขอลาออกและถูกดำเนินการเรียบร้อยแล้ว\n\n", pilotID));
-
-        if (!cancelledSchedules.isEmpty()) {
-            sb.append(String.format("ตารางฝึกที่ยังไม่เสร็จสิ้นจำนวน %d รายการ\n", cancelledSchedules.size()));
-            sb.append("---------------------------------------------------\n");
-
-            for (Schedule s : cancelledSchedules) {
-                sb.append(String.format("- Schedule ID: %s (Program: %s)\n",
-                        s.getScheduleId(), s.getPracticeProgram()));
-            }
-        } else {
-            sb.append("ไม่มีตารางฝึกที่ยังไม่เสร็จสิ้น");
-        }
-
-        return sb.toString();
     }
 }
