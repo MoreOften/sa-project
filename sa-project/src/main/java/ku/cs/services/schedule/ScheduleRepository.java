@@ -21,40 +21,112 @@ public class ScheduleRepository {
     /**
      * Use Case Step 4 & 5: ค้นหาและยกเลิกตารางฝึกที่ยังไม่เสร็จสิ้น
      */
-    public List<Schedule> cancelIncompleteSchedulesForPilot(String pilotID) {
-        // สถานะที่ต้องยกเลิกตาม Use Case: status IN ('scheduled', 'pending')
-        List<String> statusesToCancel = Arrays.asList("scheduled", "pending");
 
-        // Step 4: SELECT (หาตารางที่เกี่ยวข้อง)
-        List<Schedule> schedulesToCancel = schedules.stream()
-                // ตรวจสอบสถานะและว่านักบินเกี่ยวข้องกับตารางนั้นๆ
-                .filter(s -> statusesToCancel.contains(s.getScheduleStatus().toLowerCase()))
-                .filter(s -> s.getPilotId1().equals(pilotID) || s.getPilotId2().equals(pilotID))
-                .collect(Collectors.toList());
+    public boolean updateScheduleStatus(String scheduleId, String newStatus) {
+        String sql = "UPDATE schedules SET schedule_status = ? WHERE schedule_id = ?";
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        // Step 5: DELETE/UPDATE (จำลองการยกเลิกโดยเปลี่ยนสถานะ)
-        List<Schedule> cancelledSchedules = new ArrayList<>();
+            pstmt.setString(1, newStatus);
+            pstmt.setString(2, scheduleId);
 
-        for (Schedule schedule : schedulesToCancel) {
-            schedule.setScheduleStatus("cancelled_resignation"); // เปลี่ยนสถานะเป็นยกเลิก
-            cancelledSchedules.add(schedule);
-            System.out.printf("-> [ScheduleRepo] ยกเลิกตาราง %s (Program: %s) แล้ว%n",
-                    schedule.getScheduleId(), schedule.getPracticeProgram());
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            System.err.println("ScheduleRepository (updateScheduleStatus) Database Error: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
-
-        return cancelledSchedules;
     }
 
+
     /**
-     * เพิ่ม Schedule ใหม่ลงในฐานข้อมูล
-     * @param schedule อ็อบเจกต์ Schedule ที่สร้างจาก Controller
+     * Use Case Step 4 & 5: ค้นหาและยกเลิกตารางฝึกที่ยังไม่เสร็จสิ้น
      */
+    public List<Schedule> cancelIncompleteSchedulesForPilot(String pilotID) {
+        List<Schedule> schedulesToNotify = new ArrayList<>();
+
+        // สถานะที่ต้องยกเลิกคือ 'Scheduled' หรือ 'Pending'
+        List<String> statusesToCancel = Arrays.asList("Scheduled", "Pending");
+
+        // SQL SELECT: ค้นหาตารางที่เกี่ยวข้อง (Pilot1 หรือ Pilot2) และมีสถานะที่ต้องยกเลิก
+        String selectSql = "SELECT * FROM schedules WHERE (pilot_id_1 = ? OR pilot_id_2 = ?) AND schedule_status IN (?, ?)";
+
+        try (Connection conn = DbConnect.getConnection()) {
+
+            // Step 1: SELECT - หาตารางที่จะยกเลิก
+            try (PreparedStatement selectPstmt = conn.prepareStatement(selectSql)) {
+                selectPstmt.setString(1, pilotID);
+                selectPstmt.setString(2, pilotID);
+                selectPstmt.setString(3, statusesToCancel.get(0));
+                selectPstmt.setString(4, statusesToCancel.get(1));
+
+                try (ResultSet rs = selectPstmt.executeQuery()) {
+                    while (rs.next()) {
+                        // สร้าง Schedule object จาก ResultSet
+                        Schedule s = createScheduleFromResultSet(rs);
+                        schedulesToNotify.add(s);
+                    }
+                }
+            }
+
+            // Step 2: UPDATE - เปลี่ยนสถานะใน DB ทีละรายการโดยเรียกเมธอดใหม่
+            if (!schedulesToNotify.isEmpty()) {
+                System.out.printf("-> [ScheduleRepo] พบ %d ตารางที่ต้องยกเลิกเนื่องจากการลาออก.%n", schedulesToNotify.size());
+                String newStatus = "cancelled_resignation";
+
+                for (Schedule schedule : schedulesToNotify) {
+                    // เรียกเมธอด Update โดยตรง
+                    if (updateScheduleStatus(schedule.getScheduleId(), newStatus)) {
+                        System.out.println("-> [ScheduleRepo] Schedule ID " + schedule.getScheduleId() + " updated.");
+                    } else {
+                        System.err.println("-> [ScheduleRepo] ERROR: Failed to update status for " + schedule.getScheduleId());
+                    }
+                    // อัปเดตสถานะใน object เพื่อคืนค่าที่ถูกต้อง
+                    schedule.setScheduleStatus(newStatus);
+                }
+            } else {
+                System.out.println("-> [ScheduleRepo] ไม่มีตารางฝึกที่ยังไม่เสร็จสิ้นต้องยกเลิก.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("ScheduleRepository (cancelIncompleteSchedulesForPilot) Database Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // คืนค่าตารางที่ถูกยกเลิก
+        return schedulesToNotify;
+    }
+
+    // ... (rest of the file: findSchedulesByInstructor, findSchedulesByPilot, etc. UNCHANGED) ...
+
+    // (เมธอด createScheduleFromResultSet ต้องอยู่ที่นี่เพื่อรองรับ SELECT)
+    private Schedule createScheduleFromResultSet(ResultSet rs) throws SQLException {
+        Schedule schedule = new Schedule();
+
+        schedule.setScheduleId(rs.getString("schedule_id"));
+        schedule.setSupervisorId(rs.getString("supervisor_id"));
+        schedule.setInstructorId(rs.getString("instructor_id"));
+        schedule.setPilotId1(rs.getString("pilot_id_1"));
+        schedule.setPilotId2(rs.getString("pilot_id_2"));
+
+        schedule.setPracticeProgram(rs.getString("practice_program"));
+        schedule.setScheduleDate(rs.getString("schedule_date"));
+        schedule.setScheduleTime(rs.getString("schedule_time"));
+        schedule.setSimulator(rs.getString("simulator"));
+        schedule.setScheduleStatus(rs.getString("schedule_status"));
+
+        return schedule;
+    }
+
+    // ... (findSchedulesByInstructor, findSchedulesByPilot, findScheduleById, createScheduleFromResultSet, addSchedule methods remain unchanged) ...
+
     public void addSchedule(Schedule schedule) {
 
-        // (1. แก้ไข SQL INSERT)
         String sql = "INSERT INTO schedules (schedule_id, supervisor_id, instructor_id, pilot_id_1, pilot_id_2, " +
-                "practice_program, schedule_date, schedule_time, simulator) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "practice_program, schedule_date, schedule_time, simulator, schedule_status) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -65,11 +137,11 @@ public class ScheduleRepository {
             pstmt.setString(4, schedule.getPilotId1());
             pstmt.setString(5, schedule.getPilotId2());
 
-            // (2. แก้ไข PreparedStatement setters)
             pstmt.setString(6, schedule.getPracticeProgram());
             pstmt.setString(7, schedule.getScheduleDate());
             pstmt.setString(8, schedule.getScheduleTime());
             pstmt.setString(9, schedule.getSimulator());
+            pstmt.setString(10, schedule.getScheduleStatus());
 
             pstmt.executeUpdate();
 
@@ -81,8 +153,9 @@ public class ScheduleRepository {
 
     public List<Schedule> findSchedulesByInstructor(String instructorId) {
         List<Schedule> schedules = new ArrayList<>();
-        // (ไม่ต้องแก้ไข SQL นี้ เพราะ SELECT * จะดึงมาทุกคอลัมน์)
-        String sql = "SELECT * FROM schedules WHERE instructor_id = ?";
+        // (แก้ไข SQL) นำเงื่อนไขการกรองสถานะ 'cancelled_resignation' ออก
+        // เพื่อให้ตารางที่ถูกยกเลิกเนื่องจากการลาออกยังคงแสดงในหน้า Instructor
+        String sql = "SELECT * FROM schedules WHERE instructor_id = ?"; // <-- MODIFIED SQL
 
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -91,7 +164,6 @@ public class ScheduleRepository {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    // (เรียก helper method ที่เราจะแก้ไขด้านล่าง)
                     schedules.add(createScheduleFromResultSet(rs));
                 }
             }
@@ -104,8 +176,8 @@ public class ScheduleRepository {
 
     public List<Schedule> findSchedulesByPilot(String pilotId) {
         List<Schedule> schedules = new ArrayList<>();
-        // (ไม่ต้องแก้ไข SQL นี้)
-        String sql = "SELECT * FROM schedules WHERE pilot_id_1 = ? OR pilot_id_2 = ?";
+        // **(แก้ไข SQL)**: นำเงื่อนไขการกรองสถานะ 'cancelled_resignation' ออกด้วย
+        String sql = "SELECT * FROM schedules WHERE (pilot_id_1 = ? OR pilot_id_2 = ?)"; // <-- MODIFIED SQL
 
         try (Connection conn = DbConnect.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -115,7 +187,6 @@ public class ScheduleRepository {
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    // (เรียก helper method ที่เราจะแก้ไขด้านล่าง)
                     schedules.add(createScheduleFromResultSet(rs));
                 }
             }
@@ -148,27 +219,6 @@ public class ScheduleRepository {
         return schedule;
     }
 
-    /**
-     * Helper method สำหรับสร้าง Schedule object จาก ResultSet
-     * (3. แก้ไขเมธอดนี้)
-     */
-    private Schedule createScheduleFromResultSet(ResultSet rs) throws SQLException {
-        Schedule schedule = new Schedule();
 
-        schedule.setScheduleId(rs.getString("schedule_id"));
-        schedule.setSupervisorId(rs.getString("supervisor_id"));
-        schedule.setInstructorId(rs.getString("instructor_id"));
-        schedule.setPilotId1(rs.getString("pilot_id_1"));
-        schedule.setPilotId2(rs.getString("pilot_id_2"));
-
-        // (แก้ไขส่วนนี้ให้ตรงกับ Model และ DB)
-        schedule.setPracticeProgram(rs.getString("practice_program"));
-        schedule.setScheduleDate(rs.getString("schedule_date"));
-        schedule.setScheduleTime(rs.getString("schedule_time"));
-        schedule.setSimulator(rs.getString("simulator")); // (getString() จะคืนค่า null ถ้าใน DB เป็น null)
-
-        return schedule;
-
-    }
 
 }

@@ -13,8 +13,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" stylesheets="@/ku/cs/views/style.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ku.cs.controllers.pilot.PilotNotificationPageController">
-
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" stylesheets="@/ku/cs/views/style.css" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ku.cs.controllers.instructor.InstructorNotificationPageController">
     <left>
         <BorderPane prefWidth="220.0" styleClass="sidebar" BorderPane.alignment="CENTER">
             <center>
@@ -38,11 +37,6 @@
                             </padding>
                         </Button>
                         <Button fx:id="reportButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#handleReportButton" styleClass="sidebar-button" text="Report">
-                            <padding>
-                                <Insets left="20.0" />
-                            </padding>
-                        </Button>
-                        <Button fx:id="resignButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#handleResignButton" styleClass="sidebar-button" text="Resign">
                             <padding>
                                 <Insets left="20.0" />
                             </padding>
@@ -74,7 +68,6 @@
             </bottom>
         </BorderPane>
     </left>
-
     <center>
         <VBox spacing="10.0" styleClass="main-content">
             <padding>
@@ -91,37 +84,41 @@
                         </ImageView>
                     </children>
                 </HBox>
-
                 <HBox alignment="CENTER_LEFT" spacing="20.0" />
-
                 <SplitPane dividerPositions="0.3" prefHeight="160.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
                     <items>
                         <VBox prefHeight="200.0" prefWidth="100.0">
-                            <Label styleClass="sub-header-label" text="รายการแจ้งเตือน">
-                                <VBox.margin>
-                                    <Insets bottom="5.0" />
-                                </VBox.margin>
-                            </Label>
-                            <ListView fx:id="notificationListView" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+                            <children>
+                                <Label styleClass="sub-header-label" text="รายการแจ้งเตือน">
+                                    <VBox.margin>
+                                        <Insets bottom="5.0" />
+                                    </VBox.margin>
+                                </Label>
+                                <ListView fx:id="notificationListView" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+                            </children>
                         </VBox>
-
                         <VBox spacing="10.0">
-                            <Label styleClass="sub-header-label" text="รายละเอียดการแจ้งเตือน" />
-                            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
-                                <content>
-                                    <VBox spacing="10.0">
-                                        <Label fx:id="detailSenderNameLabel" styleClass="detail-timestamp-label" text="ผู้ส่ง:" />
-                                        <Label fx:id="detailSenderRoleLabel" styleClass="detail-timestamp-label" text="ตำแหน่ง:" />
-                                        <Label fx:id="detailSubjectLabel" styleClass="detail-type-label" text="เรื่อง:" />
-                                        <Label fx:id="detailTimestampLabel" styleClass="detail-timestamp-label" text="วันที่:" />
-                                        <Label styleClass="detail-timestamp-label" text="รายละเอียด:" />
-                                        <TextArea fx:id="detailContentTextArea" editable="false" prefHeight="200.0" prefWidth="200.0" styleClass="detail-content-text-area" wrapText="true" VBox.vgrow="ALWAYS" />
-                                    </VBox>
-                                </content>
-                                <padding>
-                                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                                </padding>
-                            </ScrollPane>
+                            <children>
+                                <Label styleClass="sub-header-label" text="รายละเอียดการแจ้งเตือน" />
+                                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+                                    <content>
+                                        <VBox spacing="10.0">
+                                            <children>
+                                                <Label fx:id="detailSenderNameLabel" styleClass="detail-timestamp-label" text="ผู้ส่ง:" />
+                                                <Label fx:id="detailSenderRoleLabel" styleClass="detail-timestamp-label" text="ตำแหน่ง:" />
+                                                <Label fx:id="detailSubjectLabel" styleClass="detail-type-label" text="เรื่อง:" />
+                                                <Label fx:id="detaildateLabel" styleClass="detail-timestamp-label" text="วันที่:" />
+                                    <Label fx:id="detailtimeLabel" layoutX="10.0" layoutY="94.0" styleClass="detail-timestamp-label" text="เวลา:" />
+                                                <Label styleClass="detail-timestamp-label" text="รายละเอียด:" />
+                                                <TextArea fx:id="detailContentTextArea" editable="false" prefHeight="200.0" prefWidth="200.0" styleClass="detail-content-text-area" wrapText="true" VBox.vgrow="ALWAYS" />
+                                            </children>
+                                        </VBox>
+                                    </content>
+                                    <padding>
+                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                    </padding>
+                                </ScrollPane>
+                            </children>
                         </VBox>
                     </items>
                 </SplitPane>

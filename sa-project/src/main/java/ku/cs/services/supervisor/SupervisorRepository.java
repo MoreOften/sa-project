@@ -1,7 +1,7 @@
 package ku.cs.services.supervisor;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement; // ตรวจสอบว่า import model ถูกต้อง
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -16,40 +16,32 @@ public class SupervisorRepository {
      */
     public Supervisor findSupervisorByUsername(String username) {
         Supervisor supervisor = null;
-        Connection conn = DbConnect.getConnection();
 
-        // 1. SQL JOIN ระหว่าง 'users' (u) และ 'supervisors' (s)
         String sql = "SELECT * " +
                 "FROM users u " +
                 "JOIN supervisors s ON u.username = s.username " +
                 "WHERE u.username = ?";
 
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
                 // 2. สร้างอ็อบเจกต์เปล่า
                 supervisor = new Supervisor();
-
-                // 3. ตั้งค่าข้อมูลพื้นฐานจากตาราง 'users'
                 supervisor.setUsername(rs.getString("username"));
                 supervisor.setPassword(rs.getString("password"));
                 supervisor.setName(rs.getString("name"));
                 supervisor.setEmail(rs.getString("email"));
                 supervisor.setPhone(rs.getString("phone"));
-
+                supervisor.setSupervisorID(rs.getString("supervisor_id"));
             }
 
         } catch (SQLException e) {
             System.err.println("SupervisorRepository (findSupervisorByUsername) Error: " + e.getMessage());
             e.printStackTrace();
-        } finally {
-            try {
-                if (conn != null) conn.close();
-            } catch (SQLException ex) {
-                System.err.println(ex.getMessage());
-            }
         }
         return supervisor;
     }
@@ -65,20 +57,25 @@ public class SupervisorRepository {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     supervisor = new Supervisor();
-                    supervisor.setName(rs.getString("name")); // เราต้องการแค่ชื่อ
+                    // *** สำคัญ: ต้อง set ข้อมูลทั้งหมดจาก ResultSet ***
+                    supervisor.setUsername(rs.getString("username"));
+                    supervisor.setName(rs.getString("name"));
+                    supervisor.setEmail(rs.getString("email"));
+                    supervisor.setPhone(rs.getString("phone"));
+                    supervisor.setSupervisorID(rs.getString("supervisor_id"));
+
+                    System.out.println("-> [SupervisorRepo] พบ Supervisor ID: " + supervisorId +
+                            ", Name: " + supervisor.getName());
                 }
             }
         } catch (SQLException e) {
+            System.err.println("SupervisorRepository (findSupervisorById) Error: " + e.getMessage());
             e.printStackTrace();
         }
         return supervisor;
     }
 
-    /**
-     * อัปเดตสถานะ firstTimeLogin และรหัสผ่าน (ถ้ามี) ในตาราง 'supervisors'
-     */
     public void updateStatusAfterFirstLogin(String username) {
-        // สมมติว่าตาราง supervisors มีคอลัมน์ first_time_login (INTEGER 1=true, 0=false)
         String sql = "UPDATE supervisors SET first_time_login = 0 WHERE username = ?";
 
         try (Connection conn = DbConnect.getConnection();
@@ -94,18 +91,44 @@ public class SupervisorRepository {
     }
 
     public void addSupervisor(Supervisor supervisor) {
-    String sql = "INSERT INTO supervisors (username, supervisor_id) VALUES (?, ?)";
-    try (Connection conn = DbConnect.getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
-        
-        pstmt.setString(1, supervisor.getUsername());
-        pstmt.setString(2, supervisor.getSupervisorID());
-        
-        pstmt.executeUpdate();
-    } catch (SQLException e) {
-        throw new RuntimeException("addSupervisor failed: " + e.getMessage(), e);
+        String sql = "INSERT INTO supervisors (username, supervisor_id) VALUES (?, ?)";
+
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, supervisor.getUsername());
+            pstmt.setString(2, supervisor.getSupervisorID());
+
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("addSupervisor failed: " + e.getMessage(), e);
+        }
     }
 
+    /**
+     * *** เมธอดใหม่: ดึง Email จาก Supervisor ID ***
+     * (ใช้สำหรับ EmailService)
+     */
+    public String getEmailById(String supervisorID) {
+        String sql = "SELECT u.email FROM users u " +
+                "JOIN supervisors s ON u.username = s.username " +
+                "WHERE s.supervisor_id = ?";
 
-}
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, supervisorID);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("email");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SupervisorRepository (getEmailById) Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 }

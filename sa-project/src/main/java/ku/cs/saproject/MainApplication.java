@@ -5,18 +5,21 @@ import javafx.stage.Stage;
 import ku.cs.database.DbConnect;
 import ku.cs.services.FXRouter;
 
-import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MainApplication extends Application {
+
+    // ประกาศตัว Logger สำหรับบันทึกข้อผิดพลาด
+    private static final Logger logger = Logger.getLogger(MainApplication.class.getName());
+
     @Override
-    public void start(Stage stage) throws IOException {
+    public void start(Stage stage) { // [แก้ไข 1] ลบ throws IOException ออก
         try {
             // 1. (ต้องมาก่อน) สร้างตารางทั้งหมด
-            // เมธอดนี้จะสร้างตาราง users, instructors, ฯลฯ
             DbConnect.initializeDatabase();
 
             // 2. (ต้องมาทีหลัง) สร้างข้อมูลเริ่มต้น
-            // เมธอดนี้จะเรียก userRepository.findUserByUsername ซึ่งตอนนี้ตาราง users ถูกสร้างแล้ว
             DbConnect.seedInitialData();
 
             // 3. (มาทีหลังสุด) ตั้งค่า UI และเปิดหน้าแรก
@@ -26,8 +29,9 @@ public class MainApplication extends Application {
             FXRouter.goTo("login");
 
         } catch (Exception e) {
+            // [แก้ไข 2] ใช้ Logger แทน e.printStackTrace()
             System.err.println("เกิดข้อผิดพลาดในการเริ่มแอป: " + e.getMessage());
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Application start error", e);
         }
     }
 
@@ -47,7 +51,8 @@ public class MainApplication extends Application {
         FXRouter.when("report-create",  viewPath + "report-create-form.fxml");
         FXRouter.when("report-view",  viewPath + "report-view-form.fxml");
         FXRouter.when("report-edit",  viewPath + "report-edit-form.fxml");
-        FXRouter.when("report-send",  viewPath + "report-send-form.fxml");
+        // FXRouter.when("report-send",  viewPath + "report-send-form.fxml"); // ถ้ามีไฟล์นี้
+        FXRouter.when("instructor-notification-page", viewPath + "instructor-notification-page.fxml");
 
         viewPath = "ku/cs/views/pilot/";
         FXRouter.when("pilot-main-page", viewPath + "pilot-main-page.fxml");

@@ -1,44 +1,54 @@
 package ku.cs.services.notification;
 
 import ku.cs.database.DbConnect;
-import ku.cs.models.notification.Notification; // ต้องสร้าง Notification Model ก่อน
+import ku.cs.models.notification.Notification;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime; // เพิ่ม Import
 
 public class NotificationRepository {
 
-    // 1. เมธอดสำหรับดึงรายการแจ้งเตือนทั้งหมดของผู้ใช้
+    // 1. เมธอดสำหรับดึงรายการแจ้งเตือนทั้งหมดของผู้ใช้ (แก้ไขให้ใช้ Field ใหม่)
     public List<Notification> getNotificationsByUsername(String username) {
         List<Notification> notifications = new ArrayList<>();
-        // **TODO: Implement SQL Query**
-        /*
-        String sql = "SELECT * FROM notifications WHERE recipient_username = ? ORDER BY timestamp DESC";
+        // ใช้ recipient_id
+        String sql = "SELECT * FROM notifications WHERE recipient_id = ? ORDER BY notification_timestamp DESC";
+
         try (Connection con = DbConnect.getConnection();
              PreparedStatement statement = con.prepareStatement(sql)) {
 
             statement.setString(1, username);
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
-                    // สร้าง Notification object จากข้อมูลใน ResultSet
-                    // Notification notification = new Notification(...);
-                    // notifications.add(notification);
+                    // Mapping ตาม Field ใหม่
+                    String id = rs.getString("notification_id");
+                    String recipientId = rs.getString("recipient_id");
+                    String senderId = rs.getString("sender_id");
+                    String subject = rs.getString("notification_subject");
+                    String content = rs.getString("notification_content");
+                    String type = rs.getString("notification_type");
+                    boolean isRead = rs.getInt("is_read") == 1;
+                    LocalDateTime timestamp = LocalDateTime.parse(rs.getString("notification_timestamp"));
+
+                    Notification notification = new Notification(id, recipientId, senderId, subject,
+                            content, type, isRead, timestamp);
+                    notifications.add(notification);
                 }
             }
         } catch (Exception e) {
+            System.err.println("NotificationRepository (getNotificationsByUsername) Error: " + e.getMessage());
             e.printStackTrace();
         }
-        */
         return notifications;
     }
 
     // 2. เมธอดสำหรับทำเครื่องหมายว่าอ่านแล้ว (Mark As Read)
     public void markAsRead(String notificationId) {
-        // **TODO: Implement SQL Update**
-        /*
-        String sql = "UPDATE notifications SET is_read = TRUE WHERE id = ?";
+        // ใช้ notification_id
+        String sql = "UPDATE notifications SET is_read = 1 WHERE notification_id = ?";
         try (Connection con = DbConnect.getConnection();
              PreparedStatement statement = con.prepareStatement(sql)) {
 
@@ -48,14 +58,12 @@ public class NotificationRepository {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        */
     }
 
     // 3. เมธอดสำหรับทำเครื่องหมายว่าอ่านทั้งหมด
     public void markAllAsRead(String username) {
-        // **TODO: Implement SQL Update**
-        /*
-        String sql = "UPDATE notifications SET is_read = TRUE WHERE recipient_username = ?";
+        // ใช้ recipient_id
+        String sql = "UPDATE notifications SET is_read = 1 WHERE recipient_id = ?";
         try (Connection con = DbConnect.getConnection();
              PreparedStatement statement = con.prepareStatement(sql)) {
 
@@ -65,10 +73,32 @@ public class NotificationRepository {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        */
     }
 
-    // 4. (Optional) เมธอดสำหรับบันทึกการแจ้งเตือนใหม่ (Insert New Notification)
-    // เมธอดนี้จะถูกเรียกใช้จาก Service อื่น ๆ เช่น ResignationService หรือ ReportService
-    // public void save(Notification notification) { ... }
+    // 4. เมธอดสำหรับบันทึกการแจ้งเตือนใหม่ (Insert New Notification) (แก้ไขให้ใช้ Field ใหม่)
+    public void save(Notification notification) {
+        String sql = "INSERT INTO notifications (notification_id, recipient_id, sender_id, notification_subject, notification_content, notification_type, is_read, notification_timestamp) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection con = DbConnect.getConnection();
+             PreparedStatement statement = con.prepareStatement(sql)) {
+
+            // Mapping ตาม Field ใหม่
+            statement.setString(1, notification.getNotificationId());
+            statement.setString(2, notification.getRecipientId());
+            statement.setString(3, notification.getSenderId());
+            statement.setString(4, notification.getNotificationSubject());
+            statement.setString(5, notification.getNotificationContent());
+            statement.setString(6, notification.getNotificationType());
+            statement.setInt(7, notification.isRead() ? 1 : 0);
+            statement.setString(8, notification.getNotificationTimestamp().toString());
+
+            statement.executeUpdate();
+            System.out.println("Notification saved for recipient: " + notification.getRecipientId());
+
+        } catch (Exception e) {
+            System.err.println("NotificationRepository (save) Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

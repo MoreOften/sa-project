@@ -3,19 +3,33 @@ package ku.cs.models.supervisor;
 import ku.cs.models.user.User;
 
 public class Supervisor extends User {
-    // 1. มีเฉพาะฟิลด์ที่ User "ไม่มี"
     private String supervisorID;
 
+    // *** Constructor ว่าง (สำคัญมาก!) ***
     public Supervisor() {
-        super(); // เรียก constructor ของ User
+        super(); // เรียก Constructor ของ User
     }
 
-    // 2. Getters/Setters สำหรับฟิลด์ของตัวเอง
+    // Constructor แบบมี parameters (ถ้าต้องการใช้)
+    public Supervisor(String name, String email, String username, String password, String supervisorID, String phone) {
+        super(name, email, username, password);
+        this.supervisorID = supervisorID;
+        super.setPhone(phone);
+    }
+
+    // --- Getters ---
     public String getSupervisorID() {
         return supervisorID;
     }
 
+    // --- Setters ---
     public void setSupervisorID(String supervisorID) {
         this.supervisorID = supervisorID;
+    }
+
+    // *** แก้ไข setUsername() - ต้อง set ให้ parent class (User) ***
+    @Override
+    public void setUsername(String username) {
+        super.setUsername(username); // เรียก method ของ User
     }
 }

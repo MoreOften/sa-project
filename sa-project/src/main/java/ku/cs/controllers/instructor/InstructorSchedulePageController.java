@@ -3,7 +3,6 @@ package ku.cs.controllers.instructor;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -16,11 +15,8 @@ import ku.cs.services.FXRouter;
 import ku.cs.services.UserSession;
 import ku.cs.services.pilot.PilotRepository;
 import ku.cs.services.schedule.ScheduleRepository; // (1) Import Repo
-import ku.cs.services.user.UserRepository;       // (2) Import Repo
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 // (3) เปลี่ยนจาก Schedule เป็น ScheduleView
@@ -39,9 +35,8 @@ public class InstructorSchedulePageController {
 
     // (5) เพิ่ม Repositories และ ObservableList
     private ScheduleRepository scheduleRepository;
-    private UserRepository userRepository;
     private PilotRepository pilotRepository;
-    private ObservableList<ScheduleView> scheduleViewList = FXCollections.observableArrayList();
+    private final ObservableList<ScheduleView> scheduleViewList = FXCollections.observableArrayList();
 
     public void initialize() {
         User loggedInUser = UserSession.getInstance().getCurrentUser();
@@ -58,7 +53,6 @@ public class InstructorSchedulePageController {
         }
 
         scheduleRepository = new ScheduleRepository();
-        userRepository = new UserRepository();
         pilotRepository = new PilotRepository();
         setupTableColumns();
 
@@ -94,16 +88,45 @@ public class InstructorSchedulePageController {
 
         // 2. วนลูปเพื่อดึง "ชื่อ" ของ Pilot และ Supervisor
         for (Schedule s : schedules) {
-            // (นี่คือการทำ N+1 Query ซึ่งสำหรับโปรเจกต์ขนาดเล็กถือว่ายอมรับได้)
             Pilot pilot1 = pilotRepository.findPilotById(s.getPilotId1());
             Pilot pilot2 = pilotRepository.findPilotById(s.getPilotId2());
 
-            // 3. (แก้ไขตามคำขอ) ใช้ ID ของ Supervisor
+            // 3. ใช้ ID ของ Supervisor
             String supervisorId = s.getSupervisorId();
 
-            // 4. จัดการกรณีหา User ไม่เจอ (เช่น ถูกลบ)
-            String p1Name = (pilot1 != null) ? pilot1.getName() : "N/A";
-            String p2Name = (pilot2 != null) ? pilot2.getName() : "N/A";
+            // *** NEW LOGIC: ตรวจสอบว่า Pilot ลาออกทั้งคู่หรือไม่ ***
+            boolean isPilot1Resigned = (pilot1 != null && "resigned".equalsIgnoreCase(pilot1.getPilotStatus()));
+            boolean isPilot2Resigned = (pilot2 != null && "resigned".equalsIgnoreCase(pilot2.getPilotStatus()));
+
+            // ถ้า Pilot ทั้งสองคนลาออก (และไม่ใช่ N/A) ให้ข้ามตารางนี้ไป (ไม่แสดงผล)
+            if (isPilot1Resigned && isPilot2Resigned) {
+                System.out.println("Schedule ID " + s.getScheduleId() + " skipped: Both pilots resigned.");
+                continue; // ข้ามการเพิ่มตารางนี้เข้าสู่ View
+            }
+            // *** END NEW LOGIC ***
+
+            // 4. จัดการกรณี Pilot ลาออก (resigned)
+            String p1Name;
+            if (pilot1 != null) {
+                if (isPilot1Resigned) {
+                    p1Name = "-";
+                } else {
+                    p1Name = pilot1.getName();
+                }
+            } else {
+                p1Name = "N/A";
+            }
+
+            String p2Name;
+            if (pilot2 != null) {
+                if (isPilot2Resigned) {
+                    p2Name = "-";
+                } else {
+                    p2Name = pilot2.getName();
+                }
+            } else {
+                p2Name = "N/A";
+            }
 
             // 5. สร้าง ScheduleView และเพิ่มลงใน List
             scheduleViewList.add(new ScheduleView(s, p1Name, p2Name, supervisorId));
@@ -113,38 +136,47 @@ public class InstructorSchedulePageController {
         scheduleTableView.setItems(scheduleViewList);
     }
 
-    public void onHomepageButtonClick() {
+    @FXML
+    public void handleHomepageButton() {
         try {
-            // คุณต้อง "ส่ง" ข้อมูล instructor กลับไปด้วย
-            FXRouter.goTo("instructor-main-page", currentInstructor);
+            FXRouter.goTo("instructor-main-page");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void onScheduleButtonClick() {
+    @FXML
+    public void handleScheduleButton() {
         try {
-            // หน้านี้คือหน้า Schedule อยู่แล้ว (ปกติปุ่มนี้ควรกดไม่ได้)
-            // แต่ถ้าจะให้กดได้ ก็ต้องส่งข้อมูลไปด้วย
-            FXRouter.goTo("instructor-schedule-page", currentInstructor);
+            FXRouter.goTo("instructor-schedule-page");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void onReportButtonClick() {
+    @FXML
+    public void handleReportButton() {
         try {
-            // ต้อง "ส่ง" ข้อมูล instructor ไปด้วย
-            FXRouter.goTo("instructor-report-page", currentInstructor);
+            FXRouter.goTo("instructor-report-page");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void onLogoutButtonClick() {
+    @FXML
+    public void handleNotificationButton() {
         try {
-            // (เพิ่ม) ต้องเคลียร์ Session
-            UserSession.getInstance().clearSession();
+            // อย่าลืมไปเพิ่ม route "instructor-notification-page" ใน MainApplication.java ด้วยนะครับ
+            FXRouter.goTo("instructor-notification-page");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleLogoutButton() {
+        try {
+            UserSession.getInstance().clearSession(); // เคลียร์ Session ก่อนออก
             FXRouter.goTo("login");
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -160,12 +192,12 @@ public class InstructorSchedulePageController {
      * คลาสนี้จะเก็บ "ชื่อ" แทน "ID"
      */
     public static class ScheduleView {
-        private String scheduleId;
-        private String pilot1Name;
-        private String pilot2Name;
-        private String dateTime;
-        private String practiceProgram;
-        private String supervisorId;
+        private final String scheduleId;
+        private final String pilot1Name;
+        private final String pilot2Name;
+        private final String dateTime;
+        private final String practiceProgram;
+        private final String supervisorId;
 
         public ScheduleView(Schedule schedule, String pilot1Name, String pilot2Name, String supervisorId) {
             this.scheduleId = schedule.getScheduleId();

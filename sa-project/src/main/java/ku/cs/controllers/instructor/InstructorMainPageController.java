@@ -15,8 +15,7 @@ public class InstructorMainPageController {
     @FXML Label emailLabel;
     @FXML Label idLabel;
     @FXML Label roleLabel;
-    @FXML
-    ImageView instructorImageView;
+    @FXML ImageView instructorImageView;
     @FXML ImageView logoImageView;
 
     Instructor currentInstructor;
@@ -32,11 +31,11 @@ public class InstructorMainPageController {
         if (loggedInUser instanceof Instructor) {
             this.currentInstructor = (Instructor) loggedInUser;
         } else if (loggedInUser != null) {
-            // ... (โค้ดส่วนอื่นของคุณ) ...
+            System.err.println("Error: User " + loggedInUser.getUsername() + " is not an Instructor.");
         }
 
-        // VVVV (เพิ่มบรรทัดนี้เข้าไป) VVVV
-        showData(); // <-- เรียกเมธอดแสดงผล
+        // เรียกเมธอดแสดงผล
+        showData();
     }
 
     /**
@@ -44,18 +43,12 @@ public class InstructorMainPageController {
      */
     private void showData() {
         if (currentInstructor != null) {
-            // (5) ใช้ Getter จาก Model (ที่สืบทอดมาจาก User)
             nameLabel.setText(currentInstructor.getName());
             emailLabel.setText(currentInstructor.getEmail());
             roleLabel.setText(currentInstructor.getRole());
-
-            // (6) ใช้ Getter เฉพาะของ Instructor
             idLabel.setText(currentInstructor.getInstructorID());
-
-            // (โหลดรูปภาพ)
-
+            // (โหลดรูปภาพเพิ่มตรงนี้ได้)
         } else {
-            // ถ้า currentInstructor เป็น null (ซึ่งไม่ควรเกิดถ้า Login ถูก)
             nameLabel.setText("Error: No data");
         }
     }
@@ -67,7 +60,10 @@ public class InstructorMainPageController {
         roleLabel.setText("");
     }
 
-    public void onHomepageButtonClick() {
+    // --- แก้ไขชื่อเมธอดให้ตรงกับ FXML (handle...) ---
+
+    @FXML
+    public void handleHomepageButton() {
         try {
             FXRouter.goTo("instructor-main-page");
         } catch (IOException e) {
@@ -75,7 +71,8 @@ public class InstructorMainPageController {
         }
     }
 
-    public void onScheduleButtonClick() {
+    @FXML
+    public void handleScheduleButton() {
         try {
             FXRouter.goTo("instructor-schedule-page");
         } catch (IOException e) {
@@ -83,7 +80,8 @@ public class InstructorMainPageController {
         }
     }
 
-    public void onReportButtonClick() {
+    @FXML
+    public void handleReportButton() {
         try {
             FXRouter.goTo("instructor-report-page");
         } catch (IOException e) {
@@ -91,8 +89,20 @@ public class InstructorMainPageController {
         }
     }
 
-    public void onLogoutButtonClick() {
+    @FXML
+    public void handleNotificationButton() {
         try {
+            // อย่าลืมไปเพิ่ม route "instructor-notification-page" ใน MainApplication.java ด้วยนะครับ
+            FXRouter.goTo("instructor-notification-page");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleLogoutButton() {
+        try {
+            UserSession.getInstance().clearSession(); // เคลียร์ Session ก่อนออก
             FXRouter.goTo("login");
         } catch (IOException e) {
             throw new RuntimeException(e);

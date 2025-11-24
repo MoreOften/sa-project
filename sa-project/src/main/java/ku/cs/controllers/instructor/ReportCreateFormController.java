@@ -40,8 +40,8 @@ public class ReportCreateFormController {
     private ReportRepository reportRepository;
 
     // (4) ObservableLists for binding to ChoiceBoxes
-    private ObservableList<Schedule> instructorSchedules = FXCollections.observableArrayList();
-    private ObservableList<Pilot> schedulePilots = FXCollections.observableArrayList();
+    private final ObservableList<Schedule> instructorSchedules = FXCollections.observableArrayList();
+    private final ObservableList<Pilot> schedulePilots = FXCollections.observableArrayList();
 
     public void initialize() {
         errorLabel.setVisible(false);
@@ -89,7 +89,7 @@ public class ReportCreateFormController {
      */
     private void setupChoiceBoxes() {
         // --- Setup Schedule ChoiceBox ---
-        scheduleIDChoiceBox.setConverter(new StringConverter<Schedule>() {
+        scheduleIDChoiceBox.setConverter(new StringConverter<>() {
             @Override
             public String toString(Schedule schedule) {
                 // Display Schedule ID and date
@@ -106,7 +106,7 @@ public class ReportCreateFormController {
         scheduleIDChoiceBox.setItems(instructorSchedules); // Bind list
 
         // --- Setup Pilot ChoiceBox ---
-        pilotNameChoiceBox.setConverter(new StringConverter<Pilot>() {
+        pilotNameChoiceBox.setConverter(new StringConverter<>() {
             @Override
             public String toString(Pilot pilot) {
                 // Display Pilot name
@@ -229,10 +229,10 @@ public class ReportCreateFormController {
             alert.showAndWait();
 
             // กลับไปหน้า Report (เมธอด onReportButtonClick() มี FXRouter อยู่แล้ว)
-            onReportButtonClick();
+            handleReportButton();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Error navigating: " + e.getMessage());
             errorLabel.setText("Error: Could not navigate back to report page.");
             errorLabel.setVisible(true);
         }
@@ -241,33 +241,47 @@ public class ReportCreateFormController {
 
     // --- Navigation Methods (No changes, they now work) ---
 
-    public void onHomepageButtonClick() {
+    @FXML
+    public void handleHomepageButton() {
         try {
-            FXRouter.goTo("instructor-main-page", currentInstructor);
+            FXRouter.goTo("instructor-main-page");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void onScheduleButtonClick() {
+    @FXML
+    public void handleScheduleButton() {
         try {
-            FXRouter.goTo("instructor-schedule-page", currentInstructor);
+            FXRouter.goTo("instructor-schedule-page");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void onReportButtonClick() {
+    @FXML
+    public void handleReportButton() {
         try {
-            FXRouter.goTo("instructor-report-page", currentInstructor);
+            FXRouter.goTo("instructor-report-page");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void onLogoutButtonClick() {
+    @FXML
+    public void handleNotificationButton() {
         try {
-            UserSession.getInstance().clearSession();
+            // อย่าลืมไปเพิ่ม route "instructor-notification-page" ใน MainApplication.java ด้วยนะครับ
+            FXRouter.goTo("instructor-notification-page");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleLogoutButton() {
+        try {
+            UserSession.getInstance().clearSession(); // เคลียร์ Session ก่อนออก
             FXRouter.goTo("login");
         } catch (IOException e) {
             throw new RuntimeException(e);

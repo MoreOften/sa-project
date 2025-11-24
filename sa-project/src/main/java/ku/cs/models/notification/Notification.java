@@ -1,98 +1,85 @@
+// File: ku/cs/models/notification/Notification.java
+
 package ku.cs.models.notification;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class Notification {
 
-    // Primary Key (สำหรับใช้ใน Database)
-    private String id;
+    // Primary Key
+    private String notificationId;
 
-    // ผู้รับ (Pilot, Instructor, Supervisor)
-    private String recipientUsername;
+    // ผู้รับ
+    private String recipientId;
+
+    // ผู้ส่ง (Username ของผู้ส่ง)
+    private String senderId;
 
     // หัวข้อการแจ้งเตือน
-    private String subject;
+    private String notificationSubject;
 
     // เนื้อหา/รายละเอียด
-    private String content;
+    private String notificationContent;
 
-    // ประเภทการแจ้งเตือน (เช่น "Resignation", "Schedule_Change", "Report_Approved")
-    private String type;
+    // ประเภทการแจ้งเตือน
+    private String notificationType;
 
-    // สถานะการอ่าน
+    // สถานะการอ่าน (ยังคงใช้ isRead เพื่อความสอดคล้องกับ Controller/DB)
     private boolean isRead;
 
     // เวลาที่สร้างการแจ้งเตือน
-    private LocalDateTime timestamp;
+    private LocalDateTime notificationTimestamp;
+
+    // --- Constructors ---
 
     /**
      * Constructor สำหรับการโหลดข้อมูลจาก Database
      */
-    public Notification(String id, String recipientUsername, String subject,
-                        String content, String type, boolean isRead, LocalDateTime timestamp) {
-        this.id = id;
-        this.recipientUsername = recipientUsername;
-        this.subject = subject;
-        this.content = content;
-        this.type = type;
+    public Notification(String notificationId, String recipientId, String senderId, String notificationSubject,
+                        String notificationContent, String notificationType, boolean isRead, LocalDateTime notificationTimestamp) {
+        this.notificationId = notificationId;
+        this.recipientId = recipientId;
+        this.senderId = senderId;
+        this.notificationSubject = notificationSubject;
+        this.notificationContent = notificationContent;
+        this.notificationType = notificationType;
         this.isRead = isRead;
-        this.timestamp = timestamp;
+        this.notificationTimestamp = notificationTimestamp;
     }
 
     /**
-     * Constructor สำหรับการสร้าง Notification ใหม่ ก่อนบันทึกเข้า Database (ไม่ต้องมี ID)
+     * Constructor สำหรับการสร้าง Notification ใหม่ (ก่อนบันทึกเข้า Database)
      */
-    public Notification(String recipientUsername, String subject, String content, String type) {
-        // ID จะถูกกำหนดโดย Database
-        this.recipientUsername = recipientUsername;
-        this.subject = subject;
-        this.content = content;
-        this.type = type;
-        this.isRead = false; // การแจ้งเตือนใหม่ สถานะเริ่มต้นคือยังไม่ได้อ่าน
-        this.timestamp = LocalDateTime.now(); // กำหนดเวลาปัจจุบัน
+    public Notification(String recipientId, String senderId, String notificationSubject, String notificationContent, String notificationType) {
+        this.notificationId = "NOTIF-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        this.recipientId = recipientId;
+        this.senderId = senderId;
+        this.notificationSubject = notificationSubject;
+        this.notificationContent = notificationContent;
+        this.notificationType = notificationType;
+        this.isRead = false;
+        this.notificationTimestamp = LocalDateTime.now();
     }
 
     // --- Getters ---
+    public String getNotificationId() { return notificationId; }
+    public String getRecipientId() { return recipientId; }
+    public String getSenderId() { return senderId; }
+    public String getNotificationSubject() { return notificationSubject; }
+    public String getNotificationContent() { return notificationContent; }
+    public String getNotificationType() { return notificationType; }
+    public boolean isRead() { return isRead; }
+    public LocalDateTime getNotificationTimestamp() { return notificationTimestamp; }
 
-    public String getId() {
-        return id;
-    }
-
-    public String getRecipientUsername() {
-        return recipientUsername;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public boolean isRead() {
-        return isRead;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    // --- Setters (เฉพาะที่จำเป็นต้องเปลี่ยนใน UI หรือ Service) ---
-
-    public void setRead(boolean read) {
-        isRead = read;
-    }
+    // --- Setters ---
+    public void setRead(boolean read) { isRead = read; }
 
     // --- Override toString() สำหรับใช้แสดงใน ListView (PilotNotificationPageController) ---
     @Override
     public String toString() {
-        // แสดงสัญลักษณ์ที่บ่งบอกสถานะการอ่าน
+        // ใช้ notificationType + notificationId ตามที่คุณต้องการ
         String statusIcon = isRead ? " " : "⚫ ";
-        return statusIcon + this.subject;
+        return statusIcon + this.notificationType + " - " + this.notificationId;
     }
 }

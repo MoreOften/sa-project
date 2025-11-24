@@ -11,20 +11,23 @@ import ku.cs.models.user.User;
 import ku.cs.services.FXRouter;
 import ku.cs.services.pilot.PilotRepository;
 import ku.cs.services.user.UserRepository;
+import ku.cs.services.pilot.ResignationService;
+import ku.cs.services.schedule.ScheduleRepository;
+import ku.cs.services.instructor.InstructorRepository;
+import ku.cs.services.supervisor.SupervisorRepository;
+import ku.cs.services.email.EmailService;
+import ku.cs.services.notification.NotificationRepository;
+import javafx.scene.control.Alert;
 
 import java.io.IOException;
 
 public class PilotResignPageController {
 
-    // **FIXED:** Changed to pilotNameLabel to match FXML's fx:id
     @FXML Label pilotNameLabel;
-
-    // FXML elements from pilot-resign-page.fxml
     @FXML private TextArea reasonTextArea;
     @FXML private PasswordField passwordField;
     @FXML private Label errorLabel;
 
-    // (ImageViews)
     @FXML ImageView instructorImageView;
     @FXML ImageView logoImageView;
 
@@ -32,22 +35,41 @@ public class PilotResignPageController {
     private PilotRepository pilotRepository;
     private UserRepository userRepository;
 
+    private ResignationService resignationService;
+    private ScheduleRepository scheduleRepository;
+    private InstructorRepository instructorRepository;
+    private SupervisorRepository supervisorRepository;
+    private NotificationRepository notificationRepository;
+
     @FXML
     public void initialize() {
         pilotRepository = new PilotRepository();
         userRepository = new UserRepository();
 
+        scheduleRepository = new ScheduleRepository();
+        instructorRepository = new InstructorRepository();
+        supervisorRepository = new SupervisorRepository();
+        notificationRepository = new NotificationRepository();
+
+        EmailService emailService = new EmailService(instructorRepository, supervisorRepository);
+        // *** FIXED: แก้ไข Constructor ของ ResignationService ***
+        resignationService = new ResignationService(
+                pilotRepository,
+                scheduleRepository,
+                emailService,
+                notificationRepository,
+                instructorRepository, // เพิ่ม
+                supervisorRepository  // เพิ่ม
+        );
+        // ******************************************************
+
         errorLabel.setText("");
 
-
-        // **UNIFIED DATA LOGIC FIX:** Prioritize checking for Pilot object
         Object data = FXRouter.getData();
 
         if (data instanceof Pilot) {
-            // Case 1: Pilot object passed directly (from another sidebar button)
             this.currentPilot = (Pilot) data;
         } else if (data instanceof User) {
-            // Case 2: Base User object passed (likely from initial login) - fetch full profile
             User user = (User) data;
             this.currentPilot = pilotRepository.findPilotByUsername(user.getUsername());
         }
@@ -56,46 +78,25 @@ public class PilotResignPageController {
             showPilotData();
         } else {
             clearLabel();
-            // Use pilotNameLabel to display error message
             pilotNameLabel.setText("Error: Cannot get user data.");
         }
     }
 
     private void showPilotData() {
-        // **FIXED:** Use pilotNameLabel
         pilotNameLabel.setText(currentPilot.getName());
     }
 
     public void clearLabel() {
-        // **FIXED:** Use pilotNameLabel
         pilotNameLabel.setText("");
-        // Clear other fields
         if (errorLabel != null) errorLabel.setText("");
     }
-
-//    @FXML
-//    public void handleConfirmResignButton(ActionEvent event) {
-//        // Add your resignation logic here (e.g., validation, database removal)
-//        System.out.println("Pilot: " + currentPilot.getUsername() + " is resigning.");
-//
-//        try {
-//            // Placeholder: Go to login after resignation
-//            FXRouter.goTo("pilot-resign-page");
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
 
     @FXML
     public void handleConfirmResignButton(ActionEvent event) {
 
-        // 1. รับรหัสผ่านที่ผู้ใช้กรอก
         String plainPassword = passwordField.getText();
-
-
         User user = userRepository.findUserByUsername(currentPilot.getUsername());
 
-        // 2. ล้างข้อความผิดพลาดเดิม และตรวจสอบว่า currentPilotUser ถูกโหลดมาแล้ว
         errorLabel.setText("");
 
         if (currentPilot == null) {
@@ -103,44 +104,47 @@ public class PilotResignPageController {
             return;
         }
 
-        // 3. ตรวจสอบความว่างเปล่า
         if (plainPassword.isEmpty()) {
             errorLabel.setText("⚠️ กรุณากรอกรหัสผ่านปัจจุบันเพื่อยืนยันการลาออก.");
             return;
         }
 
-        // 4. ตรวจสอบรหัสผ่าน
-        // **สำคัญ:** ในระบบจริง ต้องใช้การแฮช (Hashing) เช่น BCrypt ในการเปรียบเทียบรหัสผ่าน
-        // ในที่นี้ เราใช้เมธอด getPassword() ของ User model เพื่อจำลองการเปรียบเทียบ
         if (!user.validatePassword(plainPassword)) {
-
-            // รหัสผ่านไม่ถูกต้อง: แสดงข้อผิดพลาดและยกเลิกการลาออก
             errorLabel.setText("❌ รหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบและลองอีกครั้ง.");
-            passwordField.setText(""); // ล้างรหัสผ่านที่กรอกเพื่อความปลอดภัย
+            passwordField.setText("");
             return;
         }
 
-        // --- รหัสผ่านถูกต้อง: ดำเนินการตามตรรกะการลาออก (Resignation Logic) ---
         System.out.println("Pilot: " + currentPilot.getUsername() + " is resigning.");
 
-        try {
-            // [*** วางโค้ดเรียก Resignation Service ของคุณที่นี่ ***]
-            // Example: resignationService.processResignation(currentPilotUser.getPilotID());
+        boolean success = resignationService.processResignation(currentPilot.getPilotID());
 
-            // Placeholder: ไปหน้า Login หลังจากลาออกสำเร็จ
-            FXRouter.goTo("pilot-resign-page");
+        if (success) {
+            try {
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setTitle("Success");
+                successAlert.setHeaderText(null);
+                successAlert.setContentText("การลาออกเสร็จสมบูรณ์ ตารางฝึกที่เกี่ยวข้องถูกยกเลิกแล้ว");
+                successAlert.showAndWait();
 
-        } catch (IOException e) {
-            System.err.println("Error navigating after successful resignation.");
-            throw new RuntimeException(e);
+                // *** การแก้ไข: บังคับโหลดข้อมูล Pilot ใหม่จาก DB ทันที ***
+                // อัปเดต currentPilot object ด้วยสถานะ 'resigned' ที่ดึงมาจากฐานข้อมูล
+                this.currentPilot = pilotRepository.findPilotByUsername(currentPilot.getUsername());
+
+                // *** นำทางไปยังหน้าหลัก (โดยส่ง object ที่ถูก Refresh แล้ว) ***
+                FXRouter.goTo("pilot-main-page", this.currentPilot);
+            } catch (IOException e) {
+                System.err.println("Error navigating after successful resignation.");
+                throw new RuntimeException(e);
+            }
+        } else {
+            errorLabel.setText("❌ การลาออกล้มเหลวเนื่องจากข้อผิดพลาดในระบบ.");
         }
     }
 
-    // **FIXED:** Added handleCancelButton
     @FXML
     public void handleCancelButton() {
         try {
-            // Navigate back to the pilot's main page
             FXRouter.goTo("pilot-main-page", currentPilot);
         } catch (IOException e) {
             throw new RuntimeException("Failed to navigate to main page.", e);
@@ -172,6 +176,15 @@ public class PilotResignPageController {
     public void handleReportButton() {
         try {
             FXRouter.goTo("pilot-report-page", currentPilot);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @FXML
+    public void handleNotificationButton() {
+        try {
+            FXRouter.goTo("pilot-notification-page", currentPilot);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

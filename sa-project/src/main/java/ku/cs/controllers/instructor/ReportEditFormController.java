@@ -41,11 +41,12 @@ public class ReportEditFormController {
         supervisorRepository = new SupervisorRepository();
         instructorRepository = new InstructorRepository();
 
-        resultChoiceBox.getItems().addAll("Pending", "Passed", "Failed");
+        // *** เปลี่ยน Choice Box ให้มีแค่ Passed และ Failed ***
+        resultChoiceBox.getItems().clear();
+        resultChoiceBox.getItems().addAll("Passed", "Failed");
 
         Object data = FXRouter.getData();
-        if (data instanceof String) {
-            String reportId = (String) data;
+        if (data instanceof String reportId) {
             loadReportData(reportId);
         } else {
             System.err.println("ReportEdit: ไม่ได้รับ Report ID");
@@ -74,21 +75,48 @@ public class ReportEditFormController {
         notesTextArea.setText(currentReport.getReportNotes());
 
         String currentResult = currentReport.getReportResult();
-        if (currentResult != null && !currentResult.isEmpty()) {
+
+        // *** ตรวจสอบว่าเคยกรอก Result แล้วหรือไม่ ***
+        if (currentResult != null && !currentResult.isEmpty() &&
+                !currentResult.equalsIgnoreCase("Pending")) {
+
+            // ถ้ากรอกแล้ว ให้แสดงค่าเดิมและปิด ChoiceBox
             resultChoiceBox.setValue(currentResult);
+            resultChoiceBox.setDisable(true); // *** ปิดไม่ให้แก้ไข ***
+
         } else {
-            resultChoiceBox.setValue("Pending");
+            // ถ้ายังไม่ได้กรอก ให้เลือก "Passed" เป็นค่าเริ่มต้น
+            resultChoiceBox.setValue("Passed");
+            resultChoiceBox.setDisable(false); // เปิดให้แก้ไขได้
         }
     }
 
-    // [แก้ไข] เปลี่ยนชื่อเมธอดให้ตรงกับ Error (handleEditButtonAction)
     @FXML
     public void handleEditButtonAction() {
         if (currentReport == null) return;
 
         try {
-            currentReport.setReportResult(resultChoiceBox.getValue());
-            currentReport.setReportNotes(notesTextArea.getText());
+            String selectedResult = resultChoiceBox.getValue();
+            String notes = notesTextArea.getText();
+
+            // *** ตรวจสอบว่าเลือก Result แล้วหรือยัง ***
+            if (selectedResult == null || selectedResult.isEmpty()) {
+                showAlert("Warning", "กรุณาเลือกผลการประเมิน (Passed/Failed)");
+                return;
+            }
+
+            // *** ตรวจสอบว่ามีการเปลี่ยนแปลง Result หรือไม่ ***
+            String previousResult = currentReport.getReportResult();
+            boolean isResultChanged = !selectedResult.equals(previousResult);
+
+            // อัปเดตข้อมูล Report
+            currentReport.setReportResult(selectedResult);
+            currentReport.setReportNotes(notes);
+
+            // *** อัปเดตสถานะของ Pilot ตามผลการประเมิน (เฉพาะเมื่อ Result เปลี่ยนแปลง) ***
+            if (isResultChanged) {
+                updatePilotStatus(currentReport.getPilotId(), selectedResult);
+            }
 
             reportRepository.save(currentReport);
 
@@ -96,18 +124,57 @@ public class ReportEditFormController {
             FXRouter.goTo("instructor-report-page");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("บันทึกข้อมูลไม่สำเร็จ: " + e.getMessage());
             showAlert("Error", "บันทึกข้อมูลไม่สำเร็จ: " + e.getMessage());
         }
     }
 
+    /**
+     * อัปเดตสถานะของ Pilot ตามผลการประเมิน
+     * @param pilotId ID ของ Pilot
+     * @param result ผลการประเมิน (Passed/Failed)
+     */
+    private void updatePilotStatus(String pilotId, String result) {
+        ku.cs.services.pilot.PilotRepository pilotRepository = new ku.cs.services.pilot.PilotRepository();
+        ku.cs.models.pilot.Pilot pilot = pilotRepository.findPilotById(pilotId);
+
+        if (pilot == null) {
+            System.err.println("ReportEdit: ไม่พบข้อมูล Pilot ID: " + pilotId);
+            return;
+        }
+
+        if ("Passed".equalsIgnoreCase(result)) {
+            // *** ถ้า Passed: ให้ Pilot สามารถฝึกต่อได้ ***
+            pilot.setPilotIsAvailable("1"); // true
+            System.out.println("Pilot " + pilotId + " ผ่านการประเมิน - สามารถฝึกต่อได้");
+
+        } else if ("Failed".equalsIgnoreCase(result)) {
+            // *** ถ้า Failed: ปิดการฝึก, ทำเครื่องหมายว่าตก, และเพิ่มจำนวนครั้งที่ตก ***
+            pilot.setPilotIsAvailable("0"); // false
+            pilot.setPilotIsFailed("1"); // true
+
+            // เพิ่มจำนวนครั้งที่ตก
+            int currentFailCount = 0;
+            try {
+                String failCountStr = pilot.getPilotFailCount();
+                if (failCountStr != null && !failCountStr.isEmpty()) {
+                    currentFailCount = Integer.parseInt(failCountStr);
+                }
+            } catch (NumberFormatException e) {
+                System.err.println("ReportEdit: ไม่สามารถแปลง FailCount เป็นตัวเลข");
+            }
+            pilot.setPilotFailCount(String.valueOf(currentFailCount + 1));
+
+            System.out.println("Pilot " + pilotId + " ไม่ผ่านการประเมิน - ปิดการฝึก, FailCount: " + (currentFailCount + 1));
+        }
+
+        // บันทึกการเปลี่ยนแปลงลงฐานข้อมูล
+        pilotRepository.updatePilotStatus(pilot);
+    }
+
     @FXML
     public void handleReturnButtonAction() {
-        try {
-            FXRouter.goTo("instructor-report-page");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        navigateTo("instructor-report-page");
     }
 
     private void showAlert(String title, String content) {
@@ -118,10 +185,28 @@ public class ReportEditFormController {
         alert.showAndWait();
     }
 
-    @FXML public void onHomepageButtonClick() { navigateTo("instructor-main-page"); }
-    @FXML public void onScheduleButtonClick() { navigateTo("instructor-schedule-page"); }
-    @FXML public void onReportButtonClick() { navigateTo("instructor-report-page"); }
-    @FXML public void onLogoutButtonClick() {
+    @FXML
+    public void handleHomepageButton() {
+        navigateTo("instructor-main-page");
+    }
+
+    @FXML
+    public void handleScheduleButton() {
+        navigateTo("instructor-schedule-page");
+    }
+
+    @FXML
+    public void handleReportButton() {
+        navigateTo("instructor-report-page");
+    }
+
+    @FXML
+    public void handleNotificationButton() {
+        navigateTo("instructor-notification-page");
+    }
+
+    @FXML
+    public void handleLogoutButton() {
         UserSession.getInstance().clearSession();
         navigateTo("login");
     }
