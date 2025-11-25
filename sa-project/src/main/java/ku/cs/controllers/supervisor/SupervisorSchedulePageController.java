@@ -83,32 +83,23 @@ public class SupervisorSchedulePageController {
     private void loadScheduleData() {
         scheduleViewList.clear();
 
-        // 1. ดึง Schedule ทั้งหมดที่ Supervisor คนนี้สร้าง
-        // [ข้อควรระวัง] คุณต้องเพิ่มเมธอด findSchedulesBySupervisor ใน ScheduleRepository เอง
-        // List<Schedule> schedules = scheduleRepository.findSchedulesBySupervisor(currentSupervisor.getSupervisorID());
+        // --- (แก้ไข) เรียกใช้เมธอดที่เพิ่งเพิ่มใน Repository ---
+        List<Schedule> schedules = scheduleRepository.findSchedulesBySupervisor(currentSupervisor.getSupervisorID());
 
-        // [การจำลองข้อมูล] เนื่องจากเมธอดยังไม่มี ผมจะสร้าง List ว่างๆ ไว้ก่อน
-        // เมื่อคุณเพิ่มเมธอดใน Repository แล้ว ให้ลบ 2 บรรทัดล่าง แล้ว uncomment บรรทัดบน
-        List<Schedule> schedules = new java.util.ArrayList<>();
-        System.err.println("[TODO] SupervisorSchedulePage: โปรดเพิ่มเมธอด findSchedulesBySupervisor ใน ScheduleRepository");
+        // (ลบโค้ดเก่าที่เป็น List ว่างทิ้งไป)
 
-
-        // 2. วนลูปเพื่อดึง "ชื่อ" ของ Pilot และ Instructor
         for (Schedule s : schedules) {
             User pilot1 = userRepository.findUserByUsername(s.getPilotId1());
             User pilot2 = userRepository.findUserByUsername(s.getPilotId2());
             User instructor = userRepository.findUserByUsername(s.getInstructorId());
 
-            // 3. จัดการกรณีหา User ไม่เจอ
             String p1Name = (pilot1 != null) ? pilot1.getName() : "N/A";
             String p2Name = (pilot2 != null) ? pilot2.getName() : "N/A";
-            String instructorName = (instructor != null) ? instructor.getName() : "N/A"; // (จาก ID เป็น Name)
+            String instructorName = (instructor != null) ? instructor.getName() : "N/A";
 
-            // 4. สร้าง ScheduleView และเพิ่มลงใน List
             scheduleViewList.add(new ScheduleView(s, p1Name, p2Name, instructorName));
         }
 
-        // 5. แสดงผลบนตาราง
         scheduleTableView.setItems(scheduleViewList);
     }
 
@@ -129,11 +120,11 @@ public class SupervisorSchedulePageController {
             this.scheduleId = schedule.getScheduleId();
             this.pilot1Name = pilot1Name;
             this.pilot2Name = pilot2Name;
-            this.programName = schedule.getProgramName();
+            this.programName = schedule.getPracticeProgram();
             this.instructorName = instructorName; // รับชื่อ Instructor
 
-            if (schedule.getTrainingTimestamp() != null) {
-                this.dateTime = schedule.getTrainingTimestamp().format(formatter);
+            if (schedule.getScheduleDate() != null && schedule.getScheduleTime() != null) {
+                this.dateTime = schedule.getScheduleDate() + " " + schedule.getScheduleTime();
             } else {
                 this.dateTime = "N/A";
             }
@@ -185,6 +176,15 @@ public class SupervisorSchedulePageController {
             FXRouter.goTo("login");
         } catch (IOException e) {
             System.err.println("Error logging out: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    public void onCreateScheduleButtonClick() {
+        try {
+            FXRouter.goTo("supervisor-create-schedule");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -11,7 +11,6 @@ import ku.cs.models.supervisor.Supervisor;
 import ku.cs.models.user.User;
 import ku.cs.services.FXRouter;
 import ku.cs.services.UserSession;
-// (เพิ่ม) Import Repositories ที่ต้องใช้
 import ku.cs.services.report.ReportRepository;
 import ku.cs.services.user.UserRepository;
 
@@ -38,93 +37,77 @@ public class SupervisorReportPageController {
         User loggedInUser = UserSession.getInstance().getCurrentUser();
         if (loggedInUser instanceof Supervisor) {
             this.currentSupervisor = (Supervisor) loggedInUser;
-        } else {
-            System.err.println("SupervisorReportPage Error: User in session is not a Supervisor.");
         }
 
         // 2. สร้าง Repositories
         reportRepository = new ReportRepository();
-        userRepository = new UserRepository(); // (ใช้สำหรับดึง "ชื่อ" Instructor)
+        userRepository = new UserRepository();
 
-        // 3. ตั้งค่าตาราง
+        // 3. ตั้งค่าตารางและโหลดข้อมูล
         setupTableColumns();
         loadReportData();
+
+        // 4. ✅ เรียกใช้เมธอดดักจับการคลิก (ต้องมีเมธอดนี้อยู่ด้านล่าง)
+        setupRowClickListener();
     }
 
-    /**
-     * ผูกคอลัมน์ใน FXML กับตัวแปรใน Inner Class (ReportView)
-     */
     private void setupTableColumns() {
-        colNo.setCellValueFactory(new PropertyValueFactory<>("reportId"));
+        colNo.setCellValueFactory(new PropertyValueFactory<>("displayReportId")); // แก้ให้ใช้ชื่อที่แสดง
         colInstructor.setCellValueFactory(new PropertyValueFactory<>("instructorName"));
         colCreateDate.setCellValueFactory(new PropertyValueFactory<>("createDate"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
     }
 
-    /**
-     * โหลด Report ทั้งหมดมาแสดง
-     */
     private void loadReportData() {
         reportViewList.clear();
-
-        // Supervisor จะเห็น Report ทั้งหมด
-        List<Report> allReports = reportRepository.getAllReports();
+        List<Report> allReports = reportRepository.findAll();
 
         for (Report report : allReports) {
-            // ดึง "ชื่อ" ของ Instructor จาก ID
             User instructor = userRepository.findUserByUsername(report.getInstructorId());
             String instructorName = (instructor != null) ? instructor.getName() : report.getInstructorId();
-
-            // เพิ่มลงใน List ที่จะแสดงผล
             reportViewList.add(new ReportView(report, instructorName));
         }
 
         reportTableView.setItems(reportViewList);
     }
 
+    // ✅ เพิ่มเมธอดนี้ลงไปในคลาส (ห้ามลืม!)
+    private void setupRowClickListener() {
+        reportTableView.setOnMouseClicked(event -> {
+            // ตรวจสอบว่าเป็นการดับเบิลคลิก (Click Count = 2)
+            if (event.getClickCount() == 2) {
+                ReportView selectedReport = reportTableView.getSelectionModel().getSelectedItem();
+                if (selectedReport != null) {
+                    try {
+                        // ส่ง ID เต็ม (fullReportId) ไปยังหน้า Detail
+                        FXRouter.goTo("supervisor-report-detail", selectedReport.getFullReportId());
+                    } catch (IOException e) {
+                        System.err.println("ไปที่หน้า supervisor-report-detail ไม่ได้: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
+
     // --- Navigation Handlers ---
-
-    @FXML
-    public void onHomepageButtonClick() {
-        try {
-            FXRouter.goTo("supervisor-main-page", currentSupervisor);
-        } catch (IOException e) {
-            System.err.println("Error navigating to supervisor-main-page: " + e.getMessage());
-        }
+    @FXML public void onHomepageButtonClick() { navigate("supervisor-main-page"); }
+    @FXML public void onScheduleButtonClick() { navigate("supervisor-schedule-page"); }
+    @FXML public void onReportButtonClick() { loadReportData(); }
+    @FXML public void onLogoutButtonClick() {
+        UserSession.getInstance().clearSession();
+        navigate("login");
     }
 
-    @FXML
-    public void onScheduleButtonClick() {
-        try {
-            FXRouter.goTo("supervisor-schedule-page", currentSupervisor);
-        } catch (IOException e) {
-            System.err.println("Error navigating to supervisor-schedule-page: " + e.getMessage());
-        }
+    private void navigate(String route) {
+        try { FXRouter.goTo(route, currentSupervisor); }
+        catch (IOException e) { e.printStackTrace(); }
     }
 
-    @FXML
-    public void onReportButtonClick() {
-        // อยู่หน้านี้แล้ว (อาจจะ refresh)
-        loadReportData();
-    }
-
-    @FXML
-    public void onLogoutButtonClick() {
-        try {
-            UserSession.getInstance().clearSession(); // เคลียร์ Session
-            FXRouter.goTo("login");
-        } catch (IOException e) {
-            System.err.println("Error logging out: " + e.getMessage());
-        }
-    }
-
-
-    /**
-     * (Inner Class) สำหรับเป็นโมเดลแสดงผลในตาราง
-     * เพื่อแปลงข้อมูล (เช่น LocalDateTime) ให้อยู่ในรูป String ที่อ่านง่าย
-     */
+    // --- Inner Class (Model สำหรับแสดงผล) ---
     public static class ReportView {
-        private String reportId;
+        private String fullReportId;   // ✅ เก็บ ID จริงไว้ใช้ส่งข้อมูล
+        private String displayReportId; // ✅ เก็บ ID แบบย่อไว้แสดงผล
         private String instructorName;
         private String createDate;
         private String status;
@@ -132,20 +115,28 @@ public class SupervisorReportPageController {
         private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
         public ReportView(Report report, String instructorName) {
-            // (อาจจะย่อ ID ให้สั้นลง)
-            this.reportId = report.getReportId().substring(0, 8) + "...";
-            this.instructorName = instructorName;
-            this.status = report.getStatus();
+            this.fullReportId = report.getReportId(); // เก็บตัวเต็ม
 
-            if (report.getCreateDate() != null) {
-                this.createDate = report.getCreateDate().format(formatter);
+            // สร้างตัวย่อสำหรับแสดงผล
+            if (this.fullReportId.length() > 8) {
+                this.displayReportId = this.fullReportId.substring(0, 8) + "...";
+            } else {
+                this.displayReportId = this.fullReportId;
+            }
+
+            this.instructorName = instructorName;
+            this.status = report.getApprovalStatus().toString(); // ใช้ Enum.toString()
+
+            if (report.getCreatedAt() != null) {
+                this.createDate = report.getCreatedAt().format(formatter);
             } else {
                 this.createDate = "N/A";
             }
         }
 
-        // --- Getters (สำคัญมากสำหรับ PropertyValueFactory) ---
-        public String getReportId() { return reportId; }
+        // Getters
+        public String getFullReportId() { return fullReportId; }
+        public String getDisplayReportId() { return displayReportId; }
         public String getInstructorName() { return instructorName; }
         public String getCreateDate() { return createDate; }
         public String getStatus() { return status; }

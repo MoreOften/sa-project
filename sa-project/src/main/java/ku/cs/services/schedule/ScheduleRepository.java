@@ -219,6 +219,29 @@ public class ScheduleRepository {
         return schedule;
     }
 
+// ... (เมธอดอื่นๆ) ...
 
+    /**
+     * ค้นหาตารางฝึกทั้งหมดที่สร้างโดย Supervisor คนนี้
+     */
+    public List<Schedule> findSchedulesBySupervisor(String supervisorId) {
+        List<Schedule> schedules = new ArrayList<>();
+        String sql = "SELECT * FROM schedules WHERE supervisor_id = ?";
 
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, supervisorId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    schedules.add(createScheduleFromResultSet(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("ScheduleRepository (findSchedulesBySupervisor) Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return schedules;
+    }
 }

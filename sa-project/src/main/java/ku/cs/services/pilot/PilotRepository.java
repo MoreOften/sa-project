@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import ku.cs.database.DbConnect;
 import ku.cs.models.pilot.Pilot;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -251,5 +252,28 @@ public class PilotRepository {
         }
 
         return pilot; // คืนค่า pilot (ที่มีข้อมูลครบ) หรือ null
+    }
+
+    public List<Pilot> getAllPilots() {
+        List<Pilot> pilots = new ArrayList<>();
+        String sql = "SELECT * FROM users u JOIN pilots p ON u.username = p.username";
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                Pilot pilot = new Pilot();
+                // Map ข้อมูลจาก DB เข้า Object (User fields)
+                pilot.setUsername(rs.getString("username"));
+                pilot.setName(rs.getString("name"));
+                // ... (Set ค่าอื่นๆ ตามต้องการ)
+                // Map ข้อมูล Pilot fields
+                pilot.setPilotID(rs.getString("pilot_id"));
+                pilots.add(pilot);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return pilots;
     }
 }
