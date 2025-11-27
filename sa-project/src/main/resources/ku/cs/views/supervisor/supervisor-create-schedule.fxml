@@ -62,13 +62,13 @@
 
                         <HBox alignment="CENTER_LEFT" spacing="20.0">
                             <Label prefWidth="150.0" text="Program:"><font><Font size="20.0" /></font></Label>
-                            <TextField fx:id="programTextField" prefWidth="300.0" promptText="e.g. Basic Flight" />
+                            <TextField fx:id="programTextField" prefWidth="300.0" promptText="Choose Program" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="20.0">
                             <Label prefWidth="150.0" text="Date &amp; Time:"><font><Font size="20.0" /></font></Label>
-                            <DatePicker fx:id="datePicker" prefWidth="140.0" />
-                            <TextField fx:id="timeTextField" prefWidth="140.0" promptText="HH:mm" />
+                            <DatePicker fx:id="datePicker" prefWidth="140.0" promptText="Date"/>
+                            <TextField fx:id="timeTextField" prefWidth="140.0" promptText="Time (HH:mm)" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="20.0">

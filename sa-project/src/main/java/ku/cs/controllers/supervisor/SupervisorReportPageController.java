@@ -45,10 +45,11 @@ public class SupervisorReportPageController {
 
         // 3. ตั้งค่าตารางและโหลดข้อมูล
         setupTableColumns();
+        setupRowClickListener();
         loadReportData();
 
         // 4. ✅ เรียกใช้เมธอดดักจับการคลิก (ต้องมีเมธอดนี้อยู่ด้านล่าง)
-        setupRowClickListener();
+
     }
 
     private void setupTableColumns() {

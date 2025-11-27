@@ -244,4 +244,38 @@ public class ScheduleRepository {
         }
         return schedules;
     }
+
+    /**
+     * ตรวจสอบว่า Instructor หรือ Pilot ว่างในวันและเวลาที่ระบุหรือไม่
+     * @return true ถ้าว่าง (ไม่ชน), false ถ้าไม่ว่าง (มีตารางอยู่แล้ว)
+     */
+    public boolean checkAvailability(String date, String time, String instructorId, String pilotId) {
+        // SQL: นับจำนวนตารางที่ วัน/เวลา ตรงกัน และ (เป็น Instructor คนนี้ หรือ เป็น Pilot คนนี้)
+        // โดยไม่นับตารางที่ถูกยกเลิก (Cancelled)
+        String sql = "SELECT COUNT(*) FROM schedules " +
+                "WHERE schedule_date = ? AND schedule_time = ? " +
+                "AND schedule_status != 'Cancelled' " +
+                "AND (instructor_id = ? OR pilot_id_1 = ? OR pilot_id_2 = ?)";
+
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, date);
+            pstmt.setString(2, time);
+            pstmt.setString(3, instructorId);
+            pstmt.setString(4, pilotId); // เช็คว่า Pilot เป็น pilot_1 หรือไม่
+            pstmt.setString(5, pilotId); // เช็คว่า Pilot เป็น pilot_2 หรือไม่
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    int count = rs.getInt(1);
+                    return count == 0; // ถ้า Count เป็น 0 แสดงว่าว่าง (True)
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("ScheduleRepository (checkAvailability) Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false; // กรณี Error ให้กันไว้ก่อนว่าไม่ว่าง
+    }
 }
