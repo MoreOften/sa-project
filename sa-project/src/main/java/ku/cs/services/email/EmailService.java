@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.HashSet;
 
 public class EmailService {
 
@@ -132,5 +133,42 @@ public class EmailService {
         Transport.send(message);
     }
 
+    // ในคลาส EmailService.java
 
+    public void sendScheduleNotification(Schedule schedule, String instructorEmail, String pilot1Email, String pilot2Email) {
+        Set<String> recipients = new HashSet<>();
+        if (instructorEmail != null) recipients.add(instructorEmail);
+        if (pilot1Email != null) recipients.add(pilot1Email);
+        if (pilot2Email != null) recipients.add(pilot2Email);
+
+        if (recipients.isEmpty()) return;
+
+        String subject = "แจ้งเตือนตารางฝึกบิน (Training Schedule Notification)";
+        String body = String.format("""
+                เรียน ผู้เกี่ยวข้อง,
+                
+                มีการแจ้งเตือนตารางฝึกบิน ดังรายละเอียดต่อไปนี้:
+                - Schedule ID: %s
+                - วันที่: %s เวลา: %s
+                - โปรแกรม: %s
+                - Simulator: %s
+                
+                กรุณาตรวจสอบความพร้อมของท่าน
+                
+                ขอบคุณครับ
+                """,
+                schedule.getScheduleId(),
+                schedule.getScheduleDate(),
+                schedule.getScheduleTime(),
+                schedule.getPracticeProgram(),
+                schedule.getSimulator()
+        );
+
+        try {
+            sendActualEmail(recipients, subject, body);
+            System.out.println("ส่งอีเมลแจ้งเตือนตารางฝึกสำเร็จ");
+        } catch (MessagingException e) {
+            System.err.println("ส่งอีเมลไม่สำเร็จ: " + e.getMessage());
+        }
+    }
 }
