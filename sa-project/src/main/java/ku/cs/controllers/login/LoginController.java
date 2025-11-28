@@ -141,7 +141,9 @@ public class LoginController {
         // VVVV (3. ต้องมีบรรทัดนี้) VVVV
         UserSession.getInstance().setCurrentUser(supervisor); // <-- ต้องเก็บ "supervisor"
 
-        FXRouter.goTo("supervisor-home-page", supervisor);
+        // --- VVVV แก้ไขบรรทัดนี้ VVVV ---
+        FXRouter.goTo("supervisor-main-page", supervisor); // เปลี่ยนจาก "supervisor-home-page"
+        // --- ^^^^ สิ้นสุดการแก้ไข ^^^^ ---
     }
 
     // --- สิ้นสุดการแก้ไข ---
