@@ -39,6 +39,29 @@ public class ScheduleRepository {
         }
     }
 
+    public List<Schedule> findActiveSchedulesForPilot(String pilotID) {
+        List<Schedule> activeSchedules = new ArrayList<>();
+        // Check if pilot matches ID 1 or ID 2, and status is active
+        String sql = "SELECT * FROM schedules WHERE (pilot_id_1 = ? OR pilot_id_2 = ?) AND schedule_status IN ('Scheduled', 'Pending')";
+
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, pilotID);
+            pstmt.setString(2, pilotID);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    activeSchedules.add(createScheduleFromResultSet(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("ScheduleRepository (findActiveSchedulesForPilot) Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return activeSchedules;
+    }
+
     /**
      * Find active schedules (Scheduled or Pending) for a specific pilot without modifying them.
      */
