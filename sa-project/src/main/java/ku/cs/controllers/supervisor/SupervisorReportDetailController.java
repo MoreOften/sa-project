@@ -132,6 +132,10 @@ public class SupervisorReportDetailController {
         UserSession.getInstance().clearSession();
         navigate("login");
     }
+    @FXML
+    public void onUserInfoButtonClick() {
+        navigate("supervisor-user-list");
+    }
 
     private void navigate(String route) {
         try { FXRouter.goTo(route); } catch (IOException e) { e.printStackTrace(); }

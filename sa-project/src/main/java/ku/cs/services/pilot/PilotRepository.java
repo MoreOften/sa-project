@@ -266,9 +266,21 @@ public class PilotRepository {
                 // Map ข้อมูลจาก DB เข้า Object (User fields)
                 pilot.setUsername(rs.getString("username"));
                 pilot.setName(rs.getString("name"));
-                // ... (Set ค่าอื่นๆ ตามต้องการ)
+
+                // [เพิ่มส่วนนี้] ดึง Email และ Phone
+                pilot.setEmail(rs.getString("email"));
+                pilot.setPhone(rs.getString("phone"));
+
                 // Map ข้อมูล Pilot fields
                 pilot.setPilotID(rs.getString("pilot_id"));
+
+                // [เพิ่มส่วนนี้] ดึง Status และ IsAvailable
+                pilot.setPilotStatus(rs.getString("pilot_status"));
+                pilot.setPilotIsAvailable(rs.getString("pilot_is_available"));
+
+                // (เผื่อใช้ในอนาคต)
+                pilot.setPilotType(rs.getString("pilot_type"));
+
                 pilots.add(pilot);
             }
         } catch (SQLException e) {
