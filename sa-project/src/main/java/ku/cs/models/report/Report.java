@@ -28,9 +28,13 @@ public class Report {
         this.pilotId = pilotId;
         this.instructorId = instructorId;
         this.reportNotes = reportNotes;
-        this.reportResult = "Waiting"; // Default to empty string
-        this.approvalStatus = ReportStatus.DRAFT; // Default status
 
+        // -----------------------------------------------------------
+        // [แก้ไขจุดที่ 1] เปลี่ยนจาก "Waiting" เป็น "-" หรือ "Pending" ตามต้องการ
+        this.reportResult = "Pending";
+        // -----------------------------------------------------------
+
+        this.approvalStatus = ReportStatus.DRAFT;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

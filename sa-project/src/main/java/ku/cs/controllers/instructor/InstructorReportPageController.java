@@ -172,13 +172,29 @@ public class InstructorReportPageController {
         // ตรวจสอบว่ามีการเลือก และสถานะเป็น DRAFT (ถึงจะส่งได้)
         if (selectedReport != null && selectedReport.getApprovalStatus() == ReportStatus.DRAFT) {
 
+            // --- [ส่วนที่เพิ่มใหม่และแก้ไขชื่อตัวแปร] ---
+            Report reportToCheck = reportRepository.findReportById(selectedReport.getReportId());
+
+            // ✅ เปลี่ยนชื่อตัวแปรจาก result เป็น gradingResult เพื่อไม่ให้ซ้ำกับด้านล่าง
+            String gradingResult = reportToCheck.getReportResult();
+
+            if (gradingResult == null || gradingResult.equals("Waiting") || gradingResult.equals("-") || gradingResult.equals("Pending")) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("ไม่สามารถส่งรายงานได้");
+                alert.setHeaderText(null);
+                alert.setContentText("กรุณาประเมินผล (Edit -> Passed/Failed) ก่อนส่งให้ Supervisor");
+                alert.showAndWait();
+                return; // หยุดการทำงาน
+            }
+            // ------------------------------------------
+
             // 2. สร้างหน้าต่างยืนยัน (Confirmation Dialog)
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("ยืนยันการส่ง (Send Confirmation)");
             alert.setHeaderText(null);
             alert.setContentText("คุณต้องการส่ง Report ID: " + selectedReport.getReportId() + " ให้ Supervisor ตรวจสอบใช่หรือไม่?");
 
-            // 3. รอรับผลการกดปุ่ม
+            // 3. รอรับผลการกดปุ่ม (ตัวแปรนี้ชื่อ result เหมือนเดิมได้ เพราะด้านบนเปลี่ยนไปแล้ว)
             Optional<ButtonType> result = alert.showAndWait();
 
             // 4. ถ้ากด OK ให้ดำเนินการส่ง
@@ -193,7 +209,6 @@ public class InstructorReportPageController {
                 // โหลดข้อมูลใหม่
                 loadReportData();
 
-                // (ทางเลือก) อาจจะแสดง Alert บอกว่าส่งสำเร็จแล้ว
                 Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
                 successAlert.setTitle("Success");
                 successAlert.setHeaderText(null);
@@ -242,6 +257,12 @@ public class InstructorReportPageController {
 
                 // เรียก Repository เพื่อลบข้อมูลจาก Database
                 reportRepository.delete(selectedReport.getReportId());
+
+                // ---------------------------------------------------------------
+                // [เพิ่มส่วนนี้] สร้าง Repository ใหม่เพื่อดึงข้อมูลล่าสุดจาก DB จริงๆ
+                // เป็นการเช็ค double check ว่าใน DB หายไปแล้วจริงๆ
+                reportRepository = new ReportRepository();
+                // ---------------------------------------------------------------
 
                 // โหลดข้อมูลใหม่เพื่อให้ตารางอัปเดตทันที
                 loadReportData();
