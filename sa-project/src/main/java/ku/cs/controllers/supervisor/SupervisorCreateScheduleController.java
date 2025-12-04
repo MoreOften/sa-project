@@ -16,11 +16,15 @@ import ku.cs.services.pilot.PilotRepository;
 import ku.cs.services.schedule.ScheduleRepository;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 public class SupervisorCreateScheduleController {
 
-    @FXML private ChoiceBox<Pilot> pilotChoiceBox;
+    // (แก้ไข) เปลี่ยนชื่อและเพิ่มตัวแปรสำหรับ Pilot 2
+    @FXML private ChoiceBox<Pilot> pilot1ChoiceBox;
+    @FXML private ChoiceBox<Pilot> pilot2ChoiceBox;
+
     @FXML private ChoiceBox<Instructor> instructorChoiceBox;
     @FXML private TextField programTextField;
     @FXML private DatePicker datePicker;
@@ -39,7 +43,6 @@ public class SupervisorCreateScheduleController {
         instructorRepository = new InstructorRepository();
         scheduleRepository = new ScheduleRepository();
 
-        // ดึงข้อมูล Supervisor ที่ Login อยู่มาใช้เป็นผู้สร้างตาราง
         User user = UserSession.getInstance().getCurrentUser();
         if (user instanceof Supervisor) {
             this.currentSupervisor = (Supervisor) user;
@@ -49,14 +52,18 @@ public class SupervisorCreateScheduleController {
     }
 
     private void setupChoiceBoxes() {
-        // 1. ตั้งค่า Pilot ChoiceBox (แสดงชื่อ Pilot แต่เก็บ Object Pilot)
-        pilotChoiceBox.setItems(FXCollections.observableArrayList(pilotRepository.getAllPilots()));
-        pilotChoiceBox.setConverter(new StringConverter<Pilot>() {
-            @Override public String toString(Pilot p) { return p == null ? "" : p.getName(); }
-            @Override public Pilot fromString(String string) { return null; }
-        });
+        // ดึงข้อมูล Pilots ทั้งหมด
+        List<Pilot> allPilots = pilotRepository.getAllPilots();
 
-        // 2. ตั้งค่า Instructor ChoiceBox
+        // 1. ตั้งค่า Pilot 1 ChoiceBox
+        pilot1ChoiceBox.setItems(FXCollections.observableArrayList(allPilots));
+        pilot1ChoiceBox.setConverter(createPilotStringConverter());
+
+        // 2. ตั้งค่า Pilot 2 ChoiceBox
+        pilot2ChoiceBox.setItems(FXCollections.observableArrayList(allPilots));
+        pilot2ChoiceBox.setConverter(createPilotStringConverter());
+
+        // 3. ตั้งค่า Instructor ChoiceBox
         instructorChoiceBox.setItems(FXCollections.observableArrayList(instructorRepository.getAllInstructors()));
         instructorChoiceBox.setConverter(new StringConverter<Instructor>() {
             @Override public String toString(Instructor i) { return i == null ? "" : i.getName(); }
@@ -64,11 +71,19 @@ public class SupervisorCreateScheduleController {
         });
     }
 
+    private StringConverter<Pilot> createPilotStringConverter() {
+        return new StringConverter<Pilot>() {
+            @Override public String toString(Pilot p) { return p == null ? "" : p.getName(); }
+            @Override public Pilot fromString(String string) { return null; }
+        };
+    }
+
     @FXML
     public void onSubmitButtonClick() {
         try {
             // 1. รับค่าจาก Form
-            Pilot selectedPilot = pilotChoiceBox.getValue();
+            Pilot selectedPilot1 = pilot1ChoiceBox.getValue();
+            Pilot selectedPilot2 = pilot2ChoiceBox.getValue();
             Instructor selectedInstructor = instructorChoiceBox.getValue();
             String program = programTextField.getText();
             String date = (datePicker.getValue() != null) ? datePicker.getValue().toString() : "";
@@ -76,21 +91,27 @@ public class SupervisorCreateScheduleController {
             String simulator = simulatorTextField.getText();
 
             // 2. ตรวจสอบข้อมูล (Validation)
-            if (selectedPilot == null || selectedInstructor == null || program.isEmpty() || date.isEmpty() || time.isEmpty()) {
-                errorLabel.setText("กรุณากรอกข้อมูลให้ครบถ้วน");
+            if (selectedPilot1 == null || selectedPilot2 == null || selectedInstructor == null ||
+                    program.isEmpty() || date.isEmpty() || time.isEmpty()) {
+                errorLabel.setText("กรุณากรอกข้อมูลให้ครบถ้วน (ต้องเลือก Pilot ทั้ง 2 คน)");
+                return;
+            }
+
+            // ตรวจสอบว่า Pilot ทั้ง 2 คนไม่ใช่คนเดียวกัน
+            if (selectedPilot1.getPilotID().equals(selectedPilot2.getPilotID())) {
+                errorLabel.setText("Pilot คนที่ 1 และคนที่ 2 ต้องไม่ใช่คนเดียวกัน");
                 return;
             }
 
             // 3. สร้าง Schedule Object
-            // สร้าง ID อัตโนมัติ เช่น SC-A1B2C3D4
             String scheduleId = "SC-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
             Schedule schedule = new Schedule(
                     scheduleId,
                     currentSupervisor.getSupervisorID(),
                     selectedInstructor.getInstructorID(),
-                    selectedPilot.getPilotID(),
-                    "PL_NONE", // (Pilot คนที่ 2 ให้ว่างไว้ก่อนถ้า UI มีเลือกแค่คนเดียว)
+                    selectedPilot1.getPilotID(), // ใส่ Pilot 1
+                    selectedPilot2.getPilotID(), // ใส่ Pilot 2
                     "Scheduled",
                     program,
                     date,
@@ -98,30 +119,43 @@ public class SupervisorCreateScheduleController {
                     simulator
             );
 
-            boolean isAvailable = scheduleRepository.checkAvailability(
-                    date,
-                    time,
-                    selectedInstructor.getInstructorID(),
-                    selectedPilot.getPilotID()
+            // 4. ตรวจสอบความว่าง (Availability Check)
+            // เช็ค Instructor
+            boolean isInstructorAvailable = scheduleRepository.checkAvailability(
+                    date, time, selectedInstructor.getInstructorID(), "CHECK_INST_ONLY" // ใช้ Dummy Pilot ID เพื่อเช็คแค่ Instructor
             );
 
-            if (!isAvailable) {
-                // แจ้งเตือนและหยุดการทำงาน
+            // เช็ค Pilot 1
+            boolean isPilot1Available = scheduleRepository.checkAvailability(
+                    date, time, "CHECK_PILOT_ONLY", selectedPilot1.getPilotID()
+            );
+
+            // เช็ค Pilot 2
+            boolean isPilot2Available = scheduleRepository.checkAvailability(
+                    date, time, "CHECK_PILOT_ONLY", selectedPilot2.getPilotID()
+            );
+
+            if (!isInstructorAvailable || !isPilot1Available || !isPilot2Available) {
+                String conflictMsg = "ตารางเวลาไม่ว่าง:\n";
+                if (!isInstructorAvailable) conflictMsg += "- Instructor ติดภารกิจ\n";
+                if (!isPilot1Available) conflictMsg += "- Pilot 1 ติดภารกิจ\n";
+                if (!isPilot2Available) conflictMsg += "- Pilot 2 ติดภารกิจ\n";
+
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("ตารางเวลาไม่ว่าง (Schedule Conflict)");
                 alert.setHeaderText(null);
-                alert.setContentText("Instructor หรือ Pilot มีตารางบินในช่วงวันและเวลานี้แล้ว\nกรุณาเลือกวันหรือเวลาอื่น");
+                alert.setContentText(conflictMsg + "กรุณาเลือกวันหรือเวลาอื่น");
                 alert.showAndWait();
-                return; // *** สำคัญ: หยุดการทำงานทันที ไม่บันทึก ***
+                return;
             }
 
-            // 4. บันทึกลง Database
+            // 5. บันทึกลง Database
             scheduleRepository.addSchedule(schedule);
 
-            // 5. แจ้งเตือนและกลับไปหน้าตาราง
+            // 6. แจ้งเตือนและกลับไปหน้าตาราง
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "สร้างตารางฝึกสำเร็จ!");
             alert.showAndWait();
-            onScheduleButtonClick(); // กลับไปหน้าตาราง
+            onScheduleButtonClick();
 
         } catch (Exception e) {
             errorLabel.setText("เกิดข้อผิดพลาด: " + e.getMessage());
@@ -136,6 +170,10 @@ public class SupervisorCreateScheduleController {
     @FXML public void onLogoutButtonClick() {
         UserSession.getInstance().clearSession();
         navigate("login");
+    }
+    @FXML
+    public void onUserInfoButtonClick() {
+        navigate("supervisor-user-list");
     }
 
     private void navigate(String route) {

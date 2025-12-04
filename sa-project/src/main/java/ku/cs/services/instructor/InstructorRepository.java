@@ -137,6 +137,11 @@ public class InstructorRepository {
                 Instructor instructor = new Instructor();
                 instructor.setUsername(rs.getString("username"));
                 instructor.setName(rs.getString("name"));
+
+                // [เพิ่มส่วนนี้] ดึง Email
+                instructor.setEmail(rs.getString("email"));
+                instructor.setPhone(rs.getString("phone"));
+
                 instructor.setInstructorID(rs.getString("instructor_id"));
                 instructors.add(instructor);
             }

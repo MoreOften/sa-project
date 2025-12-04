@@ -142,4 +142,14 @@ public class SupervisorReportPageController {
         public String getCreateDate() { return createDate; }
         public String getStatus() { return status; }
     }
+
+    @FXML
+    public void onUserInfoButtonClick() {
+        try {
+            FXRouter.goTo("supervisor-user-list");
+        } catch (IOException e) {
+            System.err.println("ไปที่หน้า User Info ไม่ได้");
+            e.printStackTrace();
+        }
+    }
 }

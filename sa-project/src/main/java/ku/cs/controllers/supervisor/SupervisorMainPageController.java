@@ -99,4 +99,14 @@ public class SupervisorMainPageController {
             e.printStackTrace();
         }
     }
+
+    @FXML
+    public void onUserInfoButtonClick() {
+        try {
+            FXRouter.goTo("supervisor-user-list");
+        } catch (IOException e) {
+            System.err.println("ไปที่หน้า User Info ไม่ได้");
+            e.printStackTrace();
+        }
+    }
 }

@@ -93,11 +93,14 @@ public class SupervisorSchedulePageController {
     private void loadScheduleData() {
         scheduleViewList.clear();
         List<Schedule> schedules = scheduleRepository.findSchedulesBySupervisor(currentSupervisor.getSupervisorID());
-        for (Schedule s : schedules) {
-            User pilot1 = userRepository.findUserByUsername(s.getPilotId1());
-            User pilot2 = userRepository.findUserByUsername(s.getPilotId2());
-            User instructor = userRepository.findUserByUsername(s.getInstructorId());
 
+        for (Schedule s : schedules) {
+            // [แก้ไข] ใช้ Repository ของ Pilot/Instructor ค้นหาจาก ID แทน UserRepository
+            Pilot pilot1 = pilotRepository.findPilotById(s.getPilotId1());
+            Pilot pilot2 = pilotRepository.findPilotById(s.getPilotId2());
+            Instructor instructor = instructorRepository.findInstructorById(s.getInstructorId());
+
+            // ดึงชื่อมาแสดง (ถ้าหาไม่เจอให้ขึ้น N/A)
             String p1Name = (pilot1 != null) ? pilot1.getName() : "N/A";
             String p2Name = (pilot2 != null) ? pilot2.getName() : "N/A";
             String instructorName = (instructor != null) ? instructor.getName() : "N/A";
@@ -203,5 +206,15 @@ public class SupervisorSchedulePageController {
         public String getDateTime() { return dateTime; }
         public String getProgramName() { return programName; }
         public String getInstructorName() { return instructorName; }
+    }
+
+    @FXML
+    public void onUserInfoButtonClick() {
+        try {
+            FXRouter.goTo("supervisor-user-list");
+        } catch (IOException e) {
+            System.err.println("ไปที่หน้า User Info ไม่ได้");
+            e.printStackTrace();
+        }
     }
 }

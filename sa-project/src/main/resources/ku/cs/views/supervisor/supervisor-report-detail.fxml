@@ -3,6 +3,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -19,7 +21,19 @@
                 <VBox spacing="30.0" BorderPane.alignment="CENTER">
                     <padding><Insets top="30.0" /></padding>
                     <children>
-                        <Button onAction="#onHomepageButtonClick" styleClass="sidebar-button" text="Homepage" />
+                        <Button alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onHomepageButtonClick" styleClass="sidebar-button" text="Homepage">
+                            <graphic>
+                                <ImageView fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                    <image>
+                                        <Image url="@/images/home-icon.png" />
+                                    </image>
+                                </ImageView>
+                            </graphic>
+                            <padding>
+                                <Insets left="20.0" />
+                            </padding>
+                        </Button>
+                        <Button onAction="#onUserInfoButtonClick" styleClass="sidebar-button" text="Users Info" />
                         <Button onAction="#onScheduleButtonClick" styleClass="sidebar-button" text="Schedule" />
                         <Button onAction="#onReportButtonClick" styleClass="sidebar-button, sidebar-button-active" text="Report" />
                     </children>
@@ -48,33 +62,62 @@
                 <VBox layoutX="250.0" layoutY="200.0" spacing="20.0">
                     <children>
                         <HBox spacing="10.0">
-                            <Label text="Report Number:"><font><Font size="18.0" /></font></Label>
-                            <Label fx:id="reportIdLabel" text="-"><font><Font size="18.0" /></font></Label>
+                            <Label prefWidth="160.0" text="Report Number:">
+                                <font><Font size="18.0" /></font>
+                            </Label>
+                            <Label fx:id="reportIdLabel" text="-">
+                                <font><Font size="18.0" /></font>
+                            </Label>
                         </HBox>
+
                         <HBox spacing="10.0">
-                            <Label text="Pilot Name:"><font><Font size="18.0" /></font></Label>
-                            <Label fx:id="pilotNameLabel" text="-"><font><Font size="18.0" /></font></Label>
+                            <Label prefWidth="160.0" text="Pilot Name:">
+                                <font><Font size="18.0" /></font>
+                            </Label>
+                            <Label fx:id="pilotNameLabel" text="-">
+                                <font><Font size="18.0" /></font>
+                            </Label>
                         </HBox>
+
                         <HBox spacing="10.0">
-                            <Label text="Instructor Name:"><font><Font size="18.0" /></font></Label>
-                            <Label fx:id="instructorNameLabel" text="-"><font><Font size="18.0" /></font></Label>
+                            <Label prefWidth="160.0" text="Instructor Name:">
+                                <font><Font size="18.0" /></font>
+                            </Label>
+                            <Label fx:id="instructorNameLabel" text="-">
+                                <font><Font size="18.0" /></font>
+                            </Label>
                         </HBox>
+
                         <HBox spacing="10.0">
-                            <Label text="Training Result:"><font><Font size="18.0" /></font></Label>
-                            <Label fx:id="resultLabel" text="-"><font><Font size="18.0" /></font></Label>
+                            <Label prefWidth="160.0" text="Training Result:">
+                                <font><Font size="18.0" /></font>
+                            </Label>
+                            <Label fx:id="resultLabel" text="-">
+                                <font><Font size="18.0" /></font>
+                            </Label>
                         </HBox>
+
                         <HBox spacing="10.0">
-                            <Label text="Status:"><font><Font size="18.0" /></font></Label>
-                            <Label fx:id="statusLabel" text="-"><font><Font size="18.0" /></font></Label>
+                            <Label prefWidth="160.0" text="Status:">
+                                <font><Font size="18.0" /></font>
+                            </Label>
+                            <Label fx:id="statusLabel" text="-">
+                                <font><Font size="18.0" /></font>
+                            </Label>
                         </HBox>
+
                         <HBox spacing="10.0">
-                            <Label text="Notes:"><font><Font size="18.0" /></font></Label>
-                            <Label fx:id="notesLabel" maxWidth="400" text="-" wrapText="true"><font><Font size="18.0" /></font></Label>
+                            <Label alignment="TOP_LEFT" prefWidth="160.0" text="Notes:">
+                                <font><Font size="18.0" /></font>
+                            </Label>
+                            <Label fx:id="notesLabel" maxWidth="400.0" text="-" wrapText="true">
+                                <font><Font size="18.0" /></font>
+                            </Label>
                         </HBox>
                     </children>
                 </VBox>
 
-                <AnchorPane layoutX="250.0" layoutY="535.0" prefHeight="100.0" prefWidth="560.0" style="-fx-border-color: black;">
+                <AnchorPane layoutX="250.0" layoutY="528.0" prefHeight="100.0" prefWidth="560.0" style="-fx-border-color: black;">
                     <children>
                         <Text layoutX="220.0" layoutY="30.0" strokeType="OUTSIDE" strokeWidth="0.0" text="อนุมัติผลการฝึก?">
                             <font><Font size="18.0" /></font>
@@ -88,7 +131,11 @@
                     </children>
                 </AnchorPane>
 
-                <Button layoutX="180.0" layoutY="659.0" mnemonicParsing="false" onAction="#onBackButtonClick" text="Back" />
+                <Button layoutX="455.0" layoutY="637.0" mnemonicParsing="false" onAction="#onBackButtonClick" prefHeight="40.0" prefWidth="150.0" style="-fx-background-color: #6c757d;" text="Back" textFill="WHITE">
+                    <font>
+                        <Font name="System Bold" size="18.0" />
+                    </font>
+                </Button>
 
             </children>
         </AnchorPane>
