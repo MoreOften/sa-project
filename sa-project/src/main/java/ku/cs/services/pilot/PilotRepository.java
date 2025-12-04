@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import ku.cs.database.DbConnect;
 import ku.cs.models.pilot.Pilot;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -251,5 +252,74 @@ public class PilotRepository {
         }
 
         return pilot; // คืนค่า pilot (ที่มีข้อมูลครบ) หรือ null
+    }
+
+    public List<Pilot> getAllPilots() {
+        List<Pilot> pilots = new ArrayList<>();
+        String sql = "SELECT * FROM users u JOIN pilots p ON u.username = p.username";
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                Pilot pilot = new Pilot();
+                // Map ข้อมูลจาก DB เข้า Object (User fields)
+                pilot.setUsername(rs.getString("username"));
+                pilot.setName(rs.getString("name"));
+
+                // [เพิ่มส่วนนี้] ดึง Email และ Phone
+                pilot.setEmail(rs.getString("email"));
+                pilot.setPhone(rs.getString("phone"));
+
+                // Map ข้อมูล Pilot fields
+                pilot.setPilotID(rs.getString("pilot_id"));
+
+                // [เพิ่มส่วนนี้] ดึง Status และ IsAvailable
+                pilot.setPilotStatus(rs.getString("pilot_status"));
+                pilot.setPilotIsAvailable(rs.getString("pilot_is_available"));
+
+                // (เผื่อใช้ในอนาคต)
+                pilot.setPilotType(rs.getString("pilot_type"));
+
+                pilots.add(pilot);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return pilots;
+    }
+
+    // เพิ่มในคลาส PilotRepository
+
+    /**
+     * Use Case 5: ตรวจสอบและอัปเดตสถานะนักบิน (Q6.2, Q6.3)
+     * - Veteran: ให้ Available = True เสมอ
+     * - Trainee: ให้ Available = True ถ้า Failed Count < 2
+     */
+    public void checkAndResetPilotStatus() {
+        // Query 6.2: ปลดล็อคนักบิน Veteran
+        String sqlVeteran = "UPDATE pilots SET pilot_is_available = 1 WHERE pilot_type = 'Veteran'";
+
+        // Query 6.3: ปลดล็อคนักบิน Trainee ที่สอบตกไม่เกิน 2 ครั้ง
+        String sqlTrainee = "UPDATE pilots SET pilot_is_available = 1 " +
+                "WHERE pilot_type = 'Trainee' AND pilot_fail_count < 2";
+
+        try (Connection conn = DbConnect.getConnection()) {
+            // Execute Q6.2
+            try (PreparedStatement ps = conn.prepareStatement(sqlVeteran)) {
+                int count = ps.executeUpdate();
+                System.out.println("-> [UC5] Unlocked " + count + " Veteran pilots.");
+            }
+
+            // Execute Q6.3
+            try (PreparedStatement ps = conn.prepareStatement(sqlTrainee)) {
+                int count = ps.executeUpdate();
+                System.out.println("-> [UC5] Unlocked " + count + " eligible Trainee pilots.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error in checkAndResetPilotStatus: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

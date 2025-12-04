@@ -28,7 +28,7 @@ public class Report {
         this.pilotId = pilotId;
         this.instructorId = instructorId;
         this.reportNotes = reportNotes;
-        this.reportResult = "Pending"; // Default to empty string
+        this.reportResult = "Waiting"; // Default to empty string
         this.approvalStatus = ReportStatus.DRAFT; // Default status
 
         this.createdAt = LocalDateTime.now();
@@ -58,6 +58,7 @@ public class Report {
      */
     public void sendToSupervisor() {
         if (this.approvalStatus == ReportStatus.DRAFT) {
+            // เปลี่ยนสถานะเป็น PENDING_REVIEW ที่นี่
             this.approvalStatus = ReportStatus.PENDING_REVIEW;
             this.updatedAt = LocalDateTime.now();
         } else {

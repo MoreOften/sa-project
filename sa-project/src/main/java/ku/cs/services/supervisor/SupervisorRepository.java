@@ -29,13 +29,16 @@ public class SupervisorRepository {
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                // 2. สร้างอ็อบเจกต์เปล่า
                 supervisor = new Supervisor();
                 supervisor.setUsername(rs.getString("username"));
                 supervisor.setPassword(rs.getString("password"));
                 supervisor.setName(rs.getString("name"));
                 supervisor.setEmail(rs.getString("email"));
                 supervisor.setPhone(rs.getString("phone"));
+
+                // [เพิ่มบรรทัดนี้] ดึง Role จากฐานข้อมูลมาใส่
+                supervisor.setRole(rs.getString("role"));
+
                 supervisor.setSupervisorID(rs.getString("supervisor_id"));
             }
 
@@ -57,11 +60,14 @@ public class SupervisorRepository {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     supervisor = new Supervisor();
-                    // *** สำคัญ: ต้อง set ข้อมูลทั้งหมดจาก ResultSet ***
                     supervisor.setUsername(rs.getString("username"));
                     supervisor.setName(rs.getString("name"));
                     supervisor.setEmail(rs.getString("email"));
                     supervisor.setPhone(rs.getString("phone"));
+
+                    // [เพิ่มบรรทัดนี้เช่นกัน] เพื่อให้ข้อมูลครบถ้วนเวลาค้นหาด้วย ID
+                    supervisor.setRole(rs.getString("role"));
+
                     supervisor.setSupervisorID(rs.getString("supervisor_id"));
 
                     System.out.println("-> [SupervisorRepo] พบ Supervisor ID: " + supervisorId +

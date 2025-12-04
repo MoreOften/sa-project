@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime; // อย่าลืม import Timestamp
+import java.util.ArrayList;
+import java.util.List;
 
 import ku.cs.database.DbConnect;
 import ku.cs.models.instructor.Instructor;
@@ -122,6 +124,31 @@ public class InstructorRepository {
             return "heartofficial16@gmail.com";
         }
         return null;
+    }
+
+    public List<Instructor> getAllInstructors() {
+        List<Instructor> instructors = new ArrayList<>();
+        String sql = "SELECT * FROM users u JOIN instructors i ON u.username = i.username";
+        try (Connection conn = DbConnect.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                Instructor instructor = new Instructor();
+                instructor.setUsername(rs.getString("username"));
+                instructor.setName(rs.getString("name"));
+
+                // [เพิ่มส่วนนี้] ดึง Email
+                instructor.setEmail(rs.getString("email"));
+                instructor.setPhone(rs.getString("phone"));
+
+                instructor.setInstructorID(rs.getString("instructor_id"));
+                instructors.add(instructor);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return instructors;
     }
 
     // ... (เมธอด updatePasswordAndStatus อยู่ที่นี่) ...
