@@ -71,6 +71,10 @@
                             <HBox.margin><Insets left="30.0" /></HBox.margin>
                         </Label>
                         <TextField fx:id="searchTextField" prefWidth="300.0" promptText="Name or ID..." />
+                        <Button mnemonicParsing="false" onAction="#onCheckStatusClick" text="Update Status" style="-fx-background-color: #28a745; -fx-text-fill: white;">
+                            <font><Font name="System Bold" size="16.0" /></font>
+                            <HBox.margin><Insets left="20.0" /></HBox.margin>
+                        </Button>
                     </children>
                 </HBox>
 

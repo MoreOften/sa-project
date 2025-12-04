@@ -5,10 +5,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import ku.cs.models.instructor.Instructor;
 import ku.cs.models.pilot.Pilot;
@@ -107,6 +104,22 @@ public class SupervisorUserListController {
                         i.getEmail(), "Active", "Yes"));
             }
         }
+    }
+
+    @FXML
+    public void onCheckStatusClick() {
+        // เรียกใช้ Logic จาก PilotRepository (Use Case 5)
+        pilotRepository.checkAndResetPilotStatus();
+
+        // โหลดข้อมูลในตารางใหม่เพื่อให้เห็นการเปลี่ยนแปลง (Available: Yes/No)
+        loadData();
+
+        // แจ้งเตือน
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("System Message");
+        alert.setHeaderText(null);
+        alert.setContentText("ตรวจสอบและอัปเดตสถานะนักบินเรียบร้อยแล้ว (Use Case 5)");
+        alert.showAndWait();
     }
 
     // --- Navigation Handlers ---
